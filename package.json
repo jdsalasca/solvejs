@@ -1,0 +1,22 @@
+{
+  "name": "solvejs-monorepo",
+  "private": true,
+  "version": "0.0.0",
+  "description": "Solve common JavaScript and TypeScript problems with lightweight utilities.",
+  "license": "MIT",
+  "packageManager": "npm@11.8.0",
+  "workspaces": [
+    "packages/*"
+  ],
+  "scripts": {
+    "build": "npm run build:core && npm run --workspace packages/solvejs build",
+    "build:core": "npm run --workspace packages/solvejs-date build && npm run --workspace packages/solvejs-string build && npm run --workspace packages/solvejs-list build && npm run --workspace packages/solvejs-regex build && npm run --workspace packages/solvejs-constants build",
+    "test": "npm run test:core && npm run --workspace packages/solvejs test",
+    "test:core": "npm run --workspace packages/solvejs-date test && npm run --workspace packages/solvejs-string test && npm run --workspace packages/solvejs-list test && npm run --workspace packages/solvejs-regex test && npm run --workspace packages/solvejs-constants test",
+    "lint": "npm run --workspaces lint",
+    "clean": "npm run --workspaces clean"
+  },
+  "devDependencies": {
+    "typescript": "^5.9.2"
+  }
+}

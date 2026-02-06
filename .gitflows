@@ -1,0 +1,7 @@
+main=main
+develop=develop
+feature_prefix=feature/
+release_prefix=release/
+hotfix_prefix=hotfix/
+support_prefix=support/
+version_tag_prefix=v
