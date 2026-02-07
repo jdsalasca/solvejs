@@ -4,3 +4,4 @@ Static documentation starter focused on search discoverability.
 
 - `index.html`: landing page with problem-first topics.
 - `styles.css`: lightweight page styles.
+- `problems/`: content pages targeting common JS/TS search intents.

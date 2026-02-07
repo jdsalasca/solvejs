@@ -10,9 +10,9 @@
   ],
   "scripts": {
     "build": "npm run build:core && npm run --workspace packages/solvejs build",
-    "build:core": "npm run --workspace packages/solvejs-date build && npm run --workspace packages/solvejs-string build && npm run --workspace packages/solvejs-list build && npm run --workspace packages/solvejs-regex build && npm run --workspace packages/solvejs-constants build",
+    "build:core": "npm run --workspace packages/solvejs-date build && npm run --workspace packages/solvejs-string build && npm run --workspace packages/solvejs-list build && npm run --workspace packages/solvejs-regex build && npm run --workspace packages/solvejs-constants build && npm run --workspace packages/solvejs-numbers build && npm run --workspace packages/solvejs-validators build",
     "test": "npm run test:core && npm run --workspace packages/solvejs test",
-    "test:core": "npm run --workspace packages/solvejs-date test && npm run --workspace packages/solvejs-string test && npm run --workspace packages/solvejs-list test && npm run --workspace packages/solvejs-regex test && npm run --workspace packages/solvejs-constants test",
+    "test:core": "npm run --workspace packages/solvejs-date test && npm run --workspace packages/solvejs-string test && npm run --workspace packages/solvejs-list test && npm run --workspace packages/solvejs-regex test && npm run --workspace packages/solvejs-constants test && npm run --workspace packages/solvejs-numbers test && npm run --workspace packages/solvejs-validators test",
     "lint": "npm run --workspaces lint",
     "clean": "npm run --workspaces clean"
   },

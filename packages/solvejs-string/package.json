@@ -1,7 +1,7 @@
 {
   "name": "@jdsalasc/solvejs-string",
-  "version": "1.0.1",
-  "description": "String utilities for casing, trimming, and normalization.",
+  "version": "1.0.2",
+  "description": "String utilities for casing, normalization, and truncation in JavaScript and TypeScript applications.",
   "license": "MIT",
   "type": "module",
   "sideEffects": false,
@@ -43,10 +43,10 @@
     "node": ">=18"
   },
   "keywords": [
-    "string utils",
-    "kebab case",
+    "string utilities",
     "camel case",
-    "typescript string",
+    "kebab case",
+    "truncate string",
     "solvejs"
   ]
 }

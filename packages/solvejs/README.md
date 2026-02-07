@@ -14,3 +14,5 @@ npm i @jdsalasc/solvejs
 - validate regex patterns in typescript
 - array helper functions
 - string case conversion
+- numeric helpers (clamp, round, average, median)
+- form validators (cellphone, name, direction, password, URL)

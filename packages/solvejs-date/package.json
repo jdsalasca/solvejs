@@ -1,7 +1,7 @@
 {
   "name": "@jdsalasc/solvejs-date",
-  "version": "1.0.1",
-  "description": "Date utilities for formatting, parsing, and validation.",
+  "version": "1.0.2",
+  "description": "Date utilities for real-world JS/TS pain points: parse, format, day boundaries, and date arithmetic.",
   "license": "MIT",
   "type": "module",
   "sideEffects": false,
@@ -43,10 +43,10 @@
     "node": ">=18"
   },
   "keywords": [
-    "javascript date",
-    "typescript date",
-    "date format",
-    "date utils",
+    "date utilities",
+    "format date javascript",
+    "parse date typescript",
+    "day boundaries",
     "solvejs"
   ]
 }
