@@ -3,47 +3,49 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="description" content="SolveJS is a zero-dependency JavaScript and TypeScript utility ecosystem for date formatting, validators, regex, list operations, and number helpers." />
-  <meta name="keywords" content="javascript utils, typescript utils, date format javascript, validate phone number javascript, slugify javascript, array utils, regex patterns" />
+  <meta name="description" content="SolveJS cookbook: searchable, problem-first JavaScript and TypeScript utility recipes." />
+  <meta name="keywords" content="javascript utilities cookbook, typescript utils recipes, date formatting, form validation, array transform, regex patterns" />
   <meta name="robots" content="index,follow" />
-  <title>SolveJS | JavaScript and TypeScript Utilities</title>
+  <title>SolveJS Docs | Cookbook and Search</title>
   <link rel="stylesheet" href="./styles.css" />
 </head>
-<body>
-  <main class="container">
-    <h1>SolveJS</h1>
-    <p>Zero-dependency utilities for solving common JavaScript and TypeScript production problems fast.</p>
-
-    <section>
-      <h2>Install</h2>
-      <pre><code>npm i @jdsalasc/solvejs</code></pre>
+<body data-root=".">
+  <main class="page">
+    <section class="hero">
+      <h1>SolveJS Cookbook</h1>
+      <p>Search by problem, package, or utility and jump to copy/paste-ready recipes.</p>
     </section>
 
-    <section>
+    <section class="layout">
+      <aside class="panel">
+        <h2>Cookbook Navigation</h2>
+        <nav data-cookbook-nav aria-label="Cookbook pages"></nav>
+      </aside>
+
+      <section class="panel">
+        <h2>Search Recipes</h2>
+        <p class="caption">Try: <code>uuid</code>, <code>date</code>, <code>slugify</code>, <code>deep merge</code>.</p>
+        <input class="search-box" data-doc-search type="search" placeholder="Search by problem, utility, package, or keyword" />
+        <div data-search-results></div>
+      </section>
+    </section>
+
+    <section class="panel">
       <h2>Core Packages</h2>
-      <ul>
-        <li>@jdsalasc/solvejs-date</li>
-        <li>@jdsalasc/solvejs-string</li>
-        <li>@jdsalasc/solvejs-list</li>
-        <li>@jdsalasc/solvejs-regex</li>
-        <li>@jdsalasc/solvejs-constants</li>
-        <li>@jdsalasc/solvejs-numbers</li>
-        <li>@jdsalasc/solvejs-validators</li>
+      <ul class="package-list">
+        <li><strong>@jdsalasc/solvejs-date</strong><p>formatDate, parseDateStrict, parseUnixTimestamp, diffInDays</p></li>
+        <li><strong>@jdsalasc/solvejs-string</strong><p>slugify, stripHtml, toTitleCase, truncate</p></li>
+        <li><strong>@jdsalasc/solvejs-list</strong><p>uniqueBy, groupBy, partition, sortBy</p></li>
+        <li><strong>@jdsalasc/solvejs-regex</strong><p>REGEX_PATTERNS, validateByName, escapeRegex</p></li>
+        <li><strong>@jdsalasc/solvejs-constants</strong><p>TIME, FILE_SIZE_BYTES, HTTP_METHODS, parseBooleanString</p></li>
+        <li><strong>@jdsalasc/solvejs-numbers</strong><p>toNumber, safeDivide, percentChange, toCurrency</p></li>
+        <li><strong>@jdsalasc/solvejs-validators</strong><p>validateCellphoneNumber, validateUsername, validateUuidV4</p></li>
+        <li><strong>@jdsalasc/solvejs-objects</strong><p>pick, omit, get, set, deepMerge</p></li>
       </ul>
+      <p class="footer">GitHub: <a class="inline-link" href="https://github.com/jdsalasca/solvejs">jdsalasca/solvejs</a> | npm: <a class="inline-link" href="https://www.npmjs.com/package/@jdsalasc/solvejs">@jdsalasc/solvejs</a></p>
     </section>
-
-    <section>
-      <h2>Problem-First Topics</h2>
-      <ul>
-        <li><a href="./problems/date-format.html">How to format dates in JavaScript</a></li>
-        <li><a href="./problems/form-validators.html">How to validate cellphone, name, and URL in TypeScript</a></li>
-        <li><a href="./problems/array-and-numbers.html">How to deduplicate arrays and compute percentages safely</a></li>
-        <li><a href="./problems/string-format.html">How to slugify, title-case, and sanitize strings in JavaScript</a></li>
-        <li><a href="./problems/regex-patterns.html">Common regex patterns for JavaScript apps</a></li>
-      </ul>
-    </section>
-
-    <p class="footer">GitHub: <a href="https://github.com/jdsalasca/solvejs">jdsalasca/solvejs</a> | npm: <a href="https://www.npmjs.com/package/@jdsalasc/solvejs">@jdsalasc/solvejs</a></p>
   </main>
+
+  <script src="./app.js"></script>
 </body>
 </html>

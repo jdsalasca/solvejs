@@ -3,20 +3,40 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="description" content="How to format dates in JavaScript and TypeScript with strict parsing and UTC-safe helpers." />
-  <title>How to Format Dates in JavaScript | SolveJS</title>
+  <meta name="description" content="Format and parse dates in JavaScript/TypeScript with strict rules and UTC-safe utilities." />
+  <title>Format and Parse Dates Safely | SolveJS</title>
   <link rel="stylesheet" href="../styles.css" />
 </head>
-<body>
-  <main class="container">
-    <h1>How to Format Dates in JavaScript</h1>
-    <p>Use <code>@jdsalasc/solvejs-date</code> when you need lightweight formatting and date arithmetic.</p>
-    <pre><code>import { formatDate, addDays } from "@jdsalasc/solvejs-date";
+<body data-root="..">
+  <main class="page">
+    <section class="hero">
+      <h1>Format and Parse Dates Safely</h1>
+      <p>Use <code>@jdsalasc/solvejs-date</code> when you need strict parsing, predictable formatting, and UTC-safe date math.</p>
+    </section>
 
-const today = new Date("2026-02-07T00:00:00.000Z");
-formatDate(today, "YYYY-MM-DD"); // "2026-02-07"
-formatDate(addDays(today, 3), "DD/MM/YYYY"); // "10/02/2026"</code></pre>
-    <p><a href="../index.html">Back to docs</a></p>
+    <section class="layout">
+      <aside class="panel">
+        <h2>Cookbook Navigation</h2>
+        <nav data-cookbook-nav aria-label="Cookbook pages"></nav>
+      </aside>
+
+      <section class="panel">
+        <h2>Recipe</h2>
+        <pre><code>import { parseDateStrict, formatDate, addDays, toIsoDate } from "@jdsalasc/solvejs-date";
+
+const parsed = parseDateStrict("2026-02-07", "YYYY-MM-DD");
+if (parsed) {
+  const inThreeDays = addDays(parsed, 3);
+  formatDate(inThreeDays, "DD/MM/YYYY"); // "10/02/2026"
+  toIsoDate(inThreeDays); // "2026-02-10"
+}</code></pre>
+        <p class="caption">Why this works: parsing is explicit, formatting tokens are stable, and all date math uses a consistent flow.</p>
+      </section>
+    </section>
+
+    <p class="back-link"><a class="inline-link" href="../index.html">Back to docs home</a></p>
   </main>
+
+  <script src="../app.js"></script>
 </body>
 </html>

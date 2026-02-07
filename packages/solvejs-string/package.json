@@ -1,7 +1,7 @@
 {
   "name": "@jdsalasc/solvejs-string",
   "version": "1.3.0",
-  "description": "Zero-dependency string toolkit for JS/TS: casing, slugify, masking, HTML stripping, and truncation.",
+  "description": "Zero-dependency JavaScript and TypeScript string utilities: slugify, toKebabCase, toCamelCase, stripHtml, mask, and truncate.",
   "license": "MIT",
   "type": "module",
   "sideEffects": false,
@@ -43,12 +43,15 @@
     "node": ">=18"
   },
   "keywords": [
-    "string utils",
+    "javascript string utilities",
+    "typescript string utilities",
     "slugify",
-    "camel case",
     "kebab case",
-    "mask string",
-    "strip html",
+    "camel case",
+    "title case",
+    "strip html tags",
+    "truncate string",
+    "zero dependency",
     "solvejs"
   ]
 }

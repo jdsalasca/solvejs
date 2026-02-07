@@ -68,6 +68,7 @@ SolveJS response:
 ## Next Community-Facing Opportunities
 
 1. Locale packs for postal/address/phone validation.
-2. Object utilities package (`solvejs-objects`) based on issue demand.
-3. Framework examples (Next.js, Express, NestJS) for fast adoption.
-4. More "problem-first" docs pages for top search queries.
+2. Framework examples (Next.js, Express, NestJS) for fast adoption.
+3. More "problem-first" docs pages for top search queries.
+4. Docs website search and cookbook-style navigation.
+5. Community voting issue each cycle to prioritize new utilities.

@@ -1,7 +1,7 @@
 {
   "name": "@jdsalasc/solvejs-numbers",
   "version": "1.3.0",
-  "description": "Zero-dependency number toolkit for JS/TS: safe divide, percent change, currency format, and robust number parsing.",
+  "description": "Zero-dependency JavaScript and TypeScript number utilities: toNumber, safeDivide, percentChange, roundTo, clamp, and toCurrency.",
   "license": "MIT",
   "type": "module",
   "sideEffects": false,
@@ -43,12 +43,14 @@
     "node": ">=18"
   },
   "keywords": [
-    "number utils",
-    "percent change",
-    "currency format",
+    "javascript number utilities",
+    "typescript number utilities",
     "parse number string",
     "safe divide",
-    "javascript math",
+    "percent change",
+    "round decimals",
+    "clamp number",
+    "currency formatter",
     "zero dependency",
     "solvejs"
   ]

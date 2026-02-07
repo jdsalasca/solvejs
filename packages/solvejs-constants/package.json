@@ -1,7 +1,7 @@
 {
   "name": "@jdsalasc/solvejs-constants",
   "version": "1.3.0",
-  "description": "Zero-dependency constants toolkit for JS/TS: time, file sizes, HTTP methods, headers, and boolean parsing.",
+  "description": "Zero-dependency JavaScript and TypeScript constants: TIME, FILE_SIZE_BYTES, HTTP_METHODS, HTTP_HEADERS, and parseBooleanString.",
   "license": "MIT",
   "type": "module",
   "sideEffects": false,
@@ -43,11 +43,15 @@
     "node": ">=18"
   },
   "keywords": [
-    "constants",
-    "http methods",
+    "javascript constants",
+    "typescript constants",
+    "http methods constants",
+    "http headers constants",
     "file size constants",
-    "boolean parser",
-    "utility constants",
+    "time constants",
+    "parse boolean string",
+    "shared app constants",
+    "zero dependency",
     "solvejs"
   ]
 }

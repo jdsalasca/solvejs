@@ -1,7 +1,7 @@
 {
-  "name": "@jdsalasc/solvejs-date",
+  "name": "@jdsalasc/solvejs-objects",
   "version": "1.3.0",
-  "description": "Zero-dependency JavaScript and TypeScript date utilities: formatDate, parseDateStrict, parseUnixTimestamp, toIsoDate, and UTC-safe date math.",
+  "description": "Zero-dependency JavaScript and TypeScript object utilities: pick, omit, hasOwn, get, set, and deepMerge.",
   "license": "MIT",
   "type": "module",
   "sideEffects": false,
@@ -25,7 +25,7 @@
     "build:cjs": "tsc -p tsconfig.cjs.json && node ./scripts/rename-cjs.mjs",
     "clean": "node -e \"require('node:fs').rmSync('dist',{recursive:true,force:true})\"",
     "test": "npm run build && node --test test/*.test.mjs",
-    "lint": "node -e \"console.log('No lint configured for @jdsalasc/solvejs-date')\""
+    "lint": "node -e \"console.log('No lint configured for @jdsalasc/solvejs-objects')\""
   },
   "publishConfig": {
     "access": "public"
@@ -43,14 +43,14 @@
     "node": ">=18"
   },
   "keywords": [
-    "javascript date utilities",
-    "typescript date utilities",
-    "date formatting",
-    "strict date parsing",
-    "unix timestamp parser",
-    "utc date helpers",
-    "date math",
-    "to iso date",
+    "javascript object utilities",
+    "typescript object utilities",
+    "pick object keys",
+    "omit object keys",
+    "deep merge objects",
+    "get nested value",
+    "set nested value",
+    "has own property",
     "zero dependency",
     "solvejs"
   ]

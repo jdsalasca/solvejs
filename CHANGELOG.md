@@ -1,5 +1,18 @@
 # Changelog
 
+## 1.3.2 - 2026-02-07
+
+- Improved npm package descriptions and keywords with clearer utility-level phrasing in English.
+- Standardized package READMEs with `Utilities`, `When to use this package`, and concise quick examples.
+- Updated roadmap and positioning docs (`TODO.md`, `POSITIONING_CHECKLIST.md`, `NPM_POSITIONING.md`) for community-facing execution.
+- Added docs cookbook navigation, client-side recipe search, and a new object-utilities recipe page.
+
+## 1.3.1 - 2026-02-07
+
+- Added new package `@jdsalasc/solvejs-objects` with `pick`, `omit`, `hasOwn`, `get`, `set`, and `deepMerge`.
+- Integrated object helpers into meta package `@jdsalasc/solvejs`.
+- Updated roadmap status for object utilities package.
+
 ## 1.3.0 - 2026-02-07
 
 - Added community-driven utilities focused on high-frequency production pain points.
