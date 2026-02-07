@@ -1,6 +1,6 @@
 {
   "name": "@jdsalasc/solvejs-list",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "List and array utilities for common operations.",
   "license": "MIT",
   "type": "module",
@@ -29,5 +29,25 @@
   },
   "publishConfig": {
     "access": "public"
-  }
+  },
+  "author": "jdsalasc",
+  "homepage": "https://github.com/jdsalasca/solvejs#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/jdsalasca/solvejs.git"
+  },
+  "bugs": {
+    "url": "https://github.com/jdsalasca/solvejs/issues"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "keywords": [
+    "array utils",
+    "list utils",
+    "groupBy",
+    "chunk",
+    "typescript array",
+    "solvejs"
+  ]
 }

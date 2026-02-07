@@ -1,7 +1,7 @@
 {
   "name": "@jdsalasc/solvejs",
-  "version": "1.0.0",
-  "description": "Meta package for SolveJS utilities.",
+  "version": "1.0.1",
+  "description": "Solve common JavaScript and TypeScript problems with lightweight utilities.",
   "license": "MIT",
   "type": "module",
   "sideEffects": false,
@@ -28,13 +28,35 @@
     "lint": "node -e \"console.log('No lint configured for @jdsalasc/solvejs')\""
   },
   "dependencies": {
-    "@jdsalasc/solvejs-constants": "1.0.0",
-    "@jdsalasc/solvejs-date": "1.0.0",
-    "@jdsalasc/solvejs-list": "1.0.0",
-    "@jdsalasc/solvejs-regex": "1.0.0",
-    "@jdsalasc/solvejs-string": "1.0.0"
+    "@jdsalasc/solvejs-date": "1.0.1",
+    "@jdsalasc/solvejs-string": "1.0.1",
+    "@jdsalasc/solvejs-list": "1.0.1",
+    "@jdsalasc/solvejs-regex": "1.0.1",
+    "@jdsalasc/solvejs-constants": "1.0.1"
   },
   "publishConfig": {
     "access": "public"
-  }
+  },
+  "author": "jdsalasc",
+  "homepage": "https://github.com/jdsalasca/solvejs#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/jdsalasca/solvejs.git"
+  },
+  "bugs": {
+    "url": "https://github.com/jdsalasca/solvejs/issues"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "keywords": [
+    "javascript",
+    "typescript",
+    "utils",
+    "date format",
+    "regex validation",
+    "array utilities",
+    "string utilities",
+    "solvejs"
+  ]
 }

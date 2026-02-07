@@ -1,33 +1,21 @@
 # SolveJS
 
-SolveJS is a lightweight utility ecosystem for JavaScript and TypeScript focused on practical fixes for everyday development problems.
+SolveJS provides lightweight JavaScript and TypeScript utilities for common day-to-day coding problems.
+
+[![CI](https://github.com/jdsalasca/solvejs/actions/workflows/ci.yml/badge.svg)](https://github.com/jdsalasca/solvejs/actions/workflows/ci.yml)
+[![Release](https://img.shields.io/github/v/release/jdsalasca/solvejs)](https://github.com/jdsalasca/solvejs/releases)
+[![npm](https://img.shields.io/npm/v/@jdsalasc/solvejs)](https://www.npmjs.com/package/@jdsalasc/solvejs)
 
 ## Vision
 
-Become the most discoverable and trusted utility toolkit for solving common JavaScript and TypeScript issues quickly, with stable APIs and zero runtime dependencies in the core modules.
+Build the most practical and discoverable utilities ecosystem for solving JavaScript and TypeScript problems fast.
 
 ## Mission
 
-- Deliver practical utilities that solve real production problems in minutes.
-- Keep core modules dependency-free, predictable, and easy to audit.
-- Offer clear documentation with copy-paste examples for fast adoption.
-- Support both TypeScript and JavaScript users with first-class typings.
-
-## Why SolveJS
-
-- Zero dependencies in core packages.
-- TypeScript-first, compiled for JS and TS consumers.
-- ESM + CJS output for broad ecosystem compatibility.
-- Small, focused modules you can install independently.
-
-## Packages
-
-- `@jdsalasc/solvejs-date`
-- `@jdsalasc/solvejs-string`
-- `@jdsalasc/solvejs-list`
-- `@jdsalasc/solvejs-regex`
-- `@jdsalasc/solvejs-constants`
-- `@jdsalasc/solvejs` (meta package)
+- Keep core utilities dependency-free.
+- Publish stable APIs with clear naming.
+- Optimize docs for problem-first search intent.
+- Support both TS and JS with first-class types and runtime compatibility.
 
 ## Install
 
@@ -38,18 +26,41 @@ npm i @jdsalasc/solvejs
 Or install only what you need:
 
 ```bash
-npm i @jdsalasc/solvejs-date @jdsalasc/solvejs-string
+npm i @jdsalasc/solvejs-date @jdsalasc/solvejs-regex
 ```
+
+## Packages
+
+- `@jdsalasc/solvejs` (meta package)
+- `@jdsalasc/solvejs-date`
+- `@jdsalasc/solvejs-string`
+- `@jdsalasc/solvejs-list`
+- `@jdsalasc/solvejs-regex`
+- `@jdsalasc/solvejs-constants`
 
 ## Quick Example
 
 ```ts
-import { formatDate, toKebabCase, unique } from "@jdsalasc/solvejs";
+import { formatDate, toKebabCase, unique, validateByName } from "@jdsalasc/solvejs";
 
-formatDate(new Date("2026-02-06T12:00:00.000Z"), "YYYY-MM-DD"); // 2026-02-06
-toKebabCase("Solve JS Utilities"); // solve-js-utilities
+formatDate(new Date("2026-02-07T12:00:00.000Z"), "YYYY-MM-DD"); // "2026-02-07"
+toKebabCase("Format Date Fast"); // "format-date-fast"
 unique([1, 1, 2, 3]); // [1, 2, 3]
+validateByName("user@example.com", "email"); // true
 ```
+
+## Common Problems SolveJS Targets
+
+- How to format dates in JavaScript.
+- How to validate email, URL, and usernames in TypeScript.
+- How to chunk arrays, deduplicate values, and group lists.
+- How to convert strings to camelCase and kebab-case.
+
+## Compatibility
+
+- Node.js `>=18`
+- ESM + CJS exports
+- TypeScript declarations included
 
 ## Development
 
@@ -61,17 +72,10 @@ npm test
 
 ## GitFlow
 
-- `main`: production-ready releases.
+- `main`: production releases.
 - `develop`: integration branch.
-- `feature/*`: isolated development branches.
-- `release/*`: release preparation branches.
-
-## Release Strategy
-
-- Semantic versioning.
-- Git tags per release.
-- GitHub Releases for changelog visibility.
-- Public npm publication per package.
+- `feature/*`: feature branches.
+- `release/*`: release branches.
 
 ## License
 
