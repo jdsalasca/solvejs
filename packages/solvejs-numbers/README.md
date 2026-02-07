@@ -1,19 +1,16 @@
 # @jdsalasc/solvejs-numbers
 
-Number utilities for common JavaScript and TypeScript math tasks.
+Zero-dependency numeric helpers for analytics, pricing, and business logic.
+
+## Tools Included
+
+- `clamp`, `roundTo`, `sum`, `average`, `median`
+- `percent`, `percentChange`
+- `safeDivide`, `isBetween`
+- `toCurrency`, `randomInt`
 
 ## Install
 
 ```bash
 npm i @jdsalasc/solvejs-numbers
-```
-
-## Example
-
-```ts
-import { clamp, average, percent } from "@jdsalasc/solvejs-numbers";
-
-clamp(120, 0, 100); // 100
-average([10, 20, 30]); // 20
-percent(25, 200, 1); // 12.5
 ```

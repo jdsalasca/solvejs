@@ -1,7 +1,7 @@
 {
   "name": "@jdsalasc/solvejs",
-  "version": "1.1.0",
-  "description": "Problem-first utility toolkit for JavaScript and TypeScript with zero external runtime dependencies.",
+  "version": "1.2.0",
+  "description": "Zero-dependency utility suite for JavaScript and TypeScript: date, string, list, regex, numbers, constants, and validators.",
   "license": "MIT",
   "type": "module",
   "sideEffects": false,
@@ -28,13 +28,13 @@
     "lint": "node -e \"console.log('No lint configured for @jdsalasc/solvejs')\""
   },
   "dependencies": {
-    "@jdsalasc/solvejs-date": "1.1.0",
-    "@jdsalasc/solvejs-string": "1.1.0",
-    "@jdsalasc/solvejs-list": "1.1.0",
-    "@jdsalasc/solvejs-regex": "1.1.0",
-    "@jdsalasc/solvejs-constants": "1.1.0",
-    "@jdsalasc/solvejs-numbers": "1.1.0",
-    "@jdsalasc/solvejs-validators": "1.1.0"
+    "@jdsalasc/solvejs-date": "1.2.0",
+    "@jdsalasc/solvejs-string": "1.2.0",
+    "@jdsalasc/solvejs-list": "1.2.0",
+    "@jdsalasc/solvejs-regex": "1.2.0",
+    "@jdsalasc/solvejs-constants": "1.2.0",
+    "@jdsalasc/solvejs-numbers": "1.2.0",
+    "@jdsalasc/solvejs-validators": "1.2.0"
   },
   "publishConfig": {
     "access": "public"
@@ -54,10 +54,10 @@
   "keywords": [
     "javascript",
     "typescript",
-    "utils",
+    "utilities",
+    "zero dependency",
     "form validation",
-    "date format",
-    "number utils",
+    "date tools",
     "solvejs"
   ]
 }

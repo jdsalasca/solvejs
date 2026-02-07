@@ -1,7 +1,7 @@
 {
   "name": "@jdsalasc/solvejs-string",
-  "version": "1.1.0",
-  "description": "String utilities for casing, normalization, and truncation in JavaScript and TypeScript applications.",
+  "version": "1.2.0",
+  "description": "Zero-dependency string toolkit for JS/TS: casing, slugify, masking, HTML stripping, and truncation.",
   "license": "MIT",
   "type": "module",
   "sideEffects": false,
@@ -43,10 +43,12 @@
     "node": ">=18"
   },
   "keywords": [
-    "string utilities",
+    "string utils",
+    "slugify",
     "camel case",
     "kebab case",
-    "truncate string",
+    "mask string",
+    "strip html",
     "solvejs"
   ]
 }

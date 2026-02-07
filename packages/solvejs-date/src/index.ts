@@ -148,6 +148,71 @@ export function fromUtcParts(year: number, month: number, day: number): Date {
 }
 
 /**
+ * Returns the UTC end of day for a date.
+ *
+ * @param date - Source date.
+ * @returns A new Date set to `23:59:59.999` UTC.
+ * @throws {TypeError} If `date` is invalid.
+ */
+export function endOfDay(date: Date): Date {
+  if (!isDate(date)) {
+    throw new TypeError("Expected a valid Date instance.");
+  }
+  return new Date(Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate(), 23, 59, 59, 999));
+}
+
+/**
+ * Calculates full UTC day difference between two dates.
+ *
+ * @param left - First date.
+ * @param right - Second date.
+ * @returns Signed number of days (`left - right`).
+ * @throws {TypeError} If either date is invalid.
+ */
+export function diffInDays(left: Date, right: Date): number {
+  if (!isDate(left) || !isDate(right)) {
+    throw new TypeError("Expected valid Date instances.");
+  }
+  const msPerDay = 86_400_000;
+  const leftStart = startOfDay(left).getTime();
+  const rightStart = startOfDay(right).getTime();
+  return Math.round((leftStart - rightStart) / msPerDay);
+}
+
+/**
+ * Checks if a year is leap based on Gregorian rules.
+ *
+ * @param year - Full year.
+ * @returns `true` when year is leap.
+ * @throws {TypeError} If `year` is not an integer.
+ */
+export function isLeapYear(year: number): boolean {
+  if (!Number.isInteger(year)) {
+    throw new TypeError("Expected year to be an integer.");
+  }
+  return (year % 4 === 0 && year % 100 !== 0) || year % 400 === 0;
+}
+
+/**
+ * Returns number of days in a given month and year.
+ *
+ * @param year - Full year.
+ * @param month - Month in range 1-12.
+ * @returns Number of days in month.
+ * @throws {TypeError} If inputs are not integers.
+ * @throws {RangeError} If month is outside 1-12.
+ */
+export function daysInMonth(year: number, month: number): number {
+  if (!Number.isInteger(year) || !Number.isInteger(month)) {
+    throw new TypeError("Expected year and month to be integers.");
+  }
+  if (month < 1 || month > 12) {
+    throw new RangeError("Expected month to be between 1 and 12.");
+  }
+  return new Date(Date.UTC(year, month, 0)).getUTCDate();
+}
+
+/**
  * Formats a date into a compact tokenized output.
  *
  * @param date - Source date.

@@ -1,18 +1,11 @@
 # @jdsalasc/solvejs
 
-Problem-first utility toolkit for JavaScript and TypeScript.
+Problem-first, zero-dependency utility toolkit for JavaScript and TypeScript.
+
+Install once and get date, string, list, regex, constants, numbers, and validators modules.
 
 ## Install
 
 ```bash
 npm i @jdsalasc/solvejs
 ```
-
-## Useful for
-
-- format dates in javascript
-- validate regex patterns in typescript
-- array helper functions
-- string case conversion
-- numeric helpers (clamp, round, average, median)
-- form validators (cellphone, name, direction, password, URL)

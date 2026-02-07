@@ -1,7 +1,7 @@
 {
   "name": "@jdsalasc/solvejs-validators",
-  "version": "1.1.0",
-  "description": "Practical validators for real JS/TS form pain points: cellphone, direction, name, password, email, and URL.",
+  "version": "1.2.0",
+  "description": "Zero-dependency validators for JS/TS forms with structured result codes and region-aware checks.",
   "license": "MIT",
   "type": "module",
   "sideEffects": false,
@@ -44,9 +44,11 @@
   },
   "keywords": [
     "validators",
-    "cellphone validator",
-    "name validator",
-    "password validator",
+    "form validation",
+    "cellphone validation",
+    "credit card luhn",
+    "username validation",
+    "typescript validation",
     "solvejs"
   ]
 }
