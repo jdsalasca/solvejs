@@ -52,6 +52,42 @@ const TOPICS = [
     tags: ["object", "deep merge", "nested path"],
     packages: ["@jdsalasc/solvejs-objects"],
     level: "Intermediate"
+  },
+  {
+    id: "nextjs-integration",
+    title: "Integrate SolveJS in Next.js",
+    description: "Use validators and parsers in route handlers and server actions.",
+    path: "guides/nextjs-integration.html",
+    tags: ["nextjs", "integration", "api"],
+    packages: ["@jdsalasc/solvejs-validators", "@jdsalasc/solvejs-numbers"],
+    level: "Intermediate"
+  },
+  {
+    id: "express-integration",
+    title: "Integrate SolveJS in Express",
+    description: "Add reusable validation middleware with structured result codes.",
+    path: "guides/express-integration.html",
+    tags: ["express", "integration", "middleware"],
+    packages: ["@jdsalasc/solvejs-validators"],
+    level: "Intermediate"
+  },
+  {
+    id: "nest-integration",
+    title: "Integrate SolveJS in NestJS",
+    description: "Use utility validators inside services and domain logic.",
+    path: "guides/nest-integration.html",
+    tags: ["nestjs", "integration", "service"],
+    packages: ["@jdsalasc/solvejs-validators"],
+    level: "Intermediate"
+  },
+  {
+    id: "validator-locale-matrix",
+    title: "Validator Locale Matrix",
+    description: "See current country coverage for phone and postal validation.",
+    path: "guides/validator-locale-matrix.html",
+    tags: ["validators", "locale", "postal", "phone"],
+    packages: ["@jdsalasc/solvejs-validators"],
+    level: "Reference"
   }
 ];
 

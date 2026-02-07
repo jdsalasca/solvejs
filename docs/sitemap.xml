@@ -21,4 +21,16 @@
   <url>
     <loc>https://jdsalasca.github.io/solvejs/problems/object-utils.html</loc>
   </url>
+  <url>
+    <loc>https://jdsalasca.github.io/solvejs/guides/nextjs-integration.html</loc>
+  </url>
+  <url>
+    <loc>https://jdsalasca.github.io/solvejs/guides/express-integration.html</loc>
+  </url>
+  <url>
+    <loc>https://jdsalasca.github.io/solvejs/guides/nest-integration.html</loc>
+  </url>
+  <url>
+    <loc>https://jdsalasca.github.io/solvejs/guides/validator-locale-matrix.html</loc>
+  </url>
 </urlset>

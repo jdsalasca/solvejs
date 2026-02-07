@@ -21,7 +21,8 @@ import {
   validateCellphoneNumber,
   validateCreditCardNumber,
   validateIsoDateString,
-  validateName
+  validateName,
+  validatePostalCode
 } from "../dist/esm/index.js";
 
 test("boolean validators keep compatibility", () => {
@@ -34,6 +35,8 @@ test("boolean validators keep compatibility", () => {
   assert.equal(isEmail("user@example.com"), true);
   assert.equal(isHttpUrl("https://solvejs.dev"), true);
   assert.equal(isPostalCode("12345-6789"), true);
+  assert.equal(isPostalCode("110111", { country: "CO" }), true);
+  assert.equal(isPostalCode("28013", { country: "ES" }), true);
   assert.equal(isAddressLine("221B Baker Street"), true);
   assert.equal(isStrongPassword("Aa123456!"), true);
   assert.equal(isCreditCardNumber("4111 1111 1111 1111"), true);
@@ -50,6 +53,12 @@ test("structured validators return codes and messages", () => {
   assert.equal(validateAddressDirection("west", { locale: "es" }).ok, false);
   assert.equal(validateName("A").code, "TOO_SHORT");
   assert.equal(validateAddressLine("A").code, "TOO_SHORT");
+  assert.equal(validatePostalCode("110111", { country: "CO" }).ok, true);
+  assert.equal(validatePostalCode("28013", { country: "ES" }).ok, true);
+  assert.equal(validatePostalCode("7500000", { country: "CL" }).ok, true);
+  assert.equal(validatePostalCode("110111", { country: "US" }).ok, false);
+  assert.equal(validateCellphoneNumber("+5491123456789", { country: "AR" }).ok, true);
+  assert.equal(validateCellphoneNumber("+5511912345678", { country: "BR" }).ok, true);
   assert.equal(validateCreditCardNumber("1234").code, "INVALID_FORMAT");
   assert.equal(validateIsoDateString("2026-02-30").code, "INVALID_FORMAT");
 });
