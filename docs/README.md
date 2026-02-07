@@ -1,19 +1,31 @@
 # SolveJS Docs
 
-Static documentation starter focused on search discoverability.
+Static documentation for GitHub Pages with a searchable cookbook UX.
 
-- `index.html`: landing page with problem-first topics.
-- `styles.css`: lightweight page styles.
+## Files
+
+- `index.html`: cookbook landing page with recipe search.
+- `styles.css`: shared visual system for docs pages.
+- `app.js`: client-side search + cookbook navigation renderer.
 - `robots.txt`: crawl policy for search engines.
 - `sitemap.xml`: indexed URLs for docs pages.
-- `problems/`: content pages targeting common JS/TS search intents.
-  - `date-format.md`
-  - `form-validators.md`
-  - `array-and-numbers.md`
-  - `string-format.md`
-  - `regex-patterns.md`
-  - `date-format.html`
-  - `form-validators.html`
-  - `array-and-numbers.html`
-  - `string-format.html`
-  - `regex-patterns.html`
+- `problems/`: problem-first recipe pages in HTML and Markdown.
+
+## Recipe Pages
+
+- `date-format`
+- `form-validators`
+- `array-and-numbers`
+- `string-format`
+- `regex-patterns`
+- `object-utils`
+
+## Integration Guides
+
+- `guides/nextjs-integration`
+- `guides/express-integration`
+- `guides/nest-integration`
+- `guides/validator-locale-matrix`
+- `guides/package-inventory`
+- `guides/solvejs-vs-lodash`
+- `guides/solvejs-vs-datefns-validator`

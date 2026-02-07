@@ -1,4 +1,4 @@
-# SolveJS Community Roadmap (v1.2.0)
+# SolveJS Community Roadmap (v1.4.0)
 
 ## Core Pain Points We Solve
 
@@ -8,6 +8,7 @@
 - [x] Regex shortcuts for common production patterns.
 - [x] Numeric helpers for business logic and safe calculations.
 - [x] Form validators with structured error codes for UI/UX flows.
+- [x] Object utilities for nested path operations and deep merging.
 
 ## Developer Experience
 
@@ -22,7 +23,16 @@
 - [x] Contributing guide.
 - [x] Code of Conduct.
 - [x] Issue templates for bug reports and feature requests.
-- [ ] Add docs website search and cookbook navigation.
-- [ ] Add locale packs for validators (more countries and postal formats).
-- [ ] Add object utilities package (`solvejs-objects`) based on community demand.
+- [x] Add docs website search and cookbook navigation.
+- [x] Publish "When to use this package" section across npm package pages (README sync check).
+- [x] Add locale packs for validators (phone + postal coverage for US, CO, MX, ES, AR, CL, PE, BR).
+- [x] Add object utilities package (`solvejs-objects`) based on community demand.
 - [x] Publish and announce `v1.2.0` across npm and GitHub release notes.
+
+## Next Iteration (Community-Driven)
+
+- [x] Add framework integration guides: Next.js, Express, NestJS.
+- [x] Add validator locale expansion matrix (`phone`, `postalCode`, `addressDirection`) by country/locale.
+- [x] Add recipe-style docs pages with copy/paste snippets for top intents.
+- [x] Add monthly community vote issue for next utility priorities.
+- [x] Add comparison docs pages to support adoption decisions (`SolveJS vs ...`).

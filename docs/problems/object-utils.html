@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Shape, access, and merge nested objects in JavaScript and TypeScript with lightweight helpers." />
+  <title>Shape and Merge Objects | SolveJS</title>
+  <link rel="stylesheet" href="../styles.css" />
+</head>
+<body data-root="..">
+  <main class="page">
+    <section class="hero">
+      <h1>Shape and Merge Objects</h1>
+      <p>Use <code>@jdsalasc/solvejs-objects</code> for object selection, nested path operations, and deep merge workflows.</p>
+    </section>
+
+    <section class="layout">
+      <aside class="panel">
+        <h2>Cookbook Navigation</h2>
+        <nav data-cookbook-nav aria-label="Cookbook pages"></nav>
+        <noscript>
+          <ul class="cookbook-list">
+            <li><a class="cookbook-link" href="../problems/date-format.html">Format and Parse Dates Safely</a></li>
+            <li><a class="cookbook-link" href="../problems/form-validators.html">Validate Form and API Inputs</a></li>
+            <li><a class="cookbook-link" href="../problems/array-and-numbers.html">Transform Arrays and Run Safe Math</a></li>
+            <li><a class="cookbook-link" href="../problems/string-format.html">Normalize and Sanitize Strings</a></li>
+            <li><a class="cookbook-link" href="../problems/regex-patterns.html">Use Common Regex Patterns</a></li>
+            <li><a class="cookbook-link" href="../problems/object-utils.html">Shape and Merge Objects</a></li>
+          </ul>
+        </noscript>
+      </aside>
+
+      <section class="panel">
+        <h2>Recipe</h2>
+        <pre><code>import { pick, omit, get, set, deepMerge } from "@jdsalasc/solvejs-objects";
+
+const user = { id: "u1", name: "Ada", role: "admin", profile: { locale: "en" } };
+
+pick(user, ["id", "name"]); // { id: "u1", name: "Ada" }
+omit(user, ["role"]); // { id, name, profile }
+get(user, "profile.locale"); // "en"
+
+const state = { filters: {} };
+set(state, "filters.status", "active");
+
+deepMerge({ app: { flags: { a: true } } }, { app: { flags: { b: true } } });</code></pre>
+        <p class="caption">Why this works: object operations remain explicit and reusable across frontend and backend code.</p>
+        <h3>Quick Search</h3>
+        <input class="search-box" data-doc-search type="search" placeholder="Search more recipes" />
+        <div data-search-results></div>
+        <h3>Related Recipes</h3>
+        <div data-related-recipes></div>
+      </section>
+    </section>
+
+    <p class="back-link"><a class="inline-link" href="../index.html">Back to docs home</a></p>
+  </main>
+
+  <script src="../app.js"></script>
+</body>
+</html>

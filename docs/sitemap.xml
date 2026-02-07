@@ -18,4 +18,28 @@
   <url>
     <loc>https://jdsalasca.github.io/solvejs/problems/regex-patterns.html</loc>
   </url>
+  <url>
+    <loc>https://jdsalasca.github.io/solvejs/problems/object-utils.html</loc>
+  </url>
+  <url>
+    <loc>https://jdsalasca.github.io/solvejs/guides/nextjs-integration.html</loc>
+  </url>
+  <url>
+    <loc>https://jdsalasca.github.io/solvejs/guides/express-integration.html</loc>
+  </url>
+  <url>
+    <loc>https://jdsalasca.github.io/solvejs/guides/nest-integration.html</loc>
+  </url>
+  <url>
+    <loc>https://jdsalasca.github.io/solvejs/guides/validator-locale-matrix.html</loc>
+  </url>
+  <url>
+    <loc>https://jdsalasca.github.io/solvejs/guides/package-inventory.html</loc>
+  </url>
+  <url>
+    <loc>https://jdsalasca.github.io/solvejs/guides/solvejs-vs-lodash.html</loc>
+  </url>
+  <url>
+    <loc>https://jdsalasca.github.io/solvejs/guides/solvejs-vs-datefns-validator.html</loc>
+  </url>
 </urlset>

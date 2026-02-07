@@ -1,7 +1,7 @@
 {
   "name": "@jdsalasc/solvejs-date",
-  "version": "1.3.0",
-  "description": "Zero-dependency date toolkit for JS/TS: strict parsing, unix timestamp parsing, UTC-safe formatting, and date math.",
+  "version": "1.4.0",
+  "description": "Production-ready JS/TS date utilities: strict parsing, UTC-safe formatting, unix timestamp parsing, and date math.",
   "license": "MIT",
   "type": "module",
   "sideEffects": false,
@@ -43,11 +43,14 @@
     "node": ">=18"
   },
   "keywords": [
-    "javascript date format",
-    "typescript date parse",
+    "javascript date utilities",
+    "typescript date utilities",
+    "date formatting",
+    "strict date parsing",
     "unix timestamp parser",
-    "utc date utils",
+    "utc date helpers",
     "date math",
+    "to iso date",
     "zero dependency",
     "solvejs"
   ]

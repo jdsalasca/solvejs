@@ -3,21 +3,55 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="description" content="How to slugify, title-case, mask, and sanitize strings in JavaScript and TypeScript." />
-  <title>String Formatting Utilities | SolveJS</title>
+  <meta name="description" content="Normalize and sanitize strings in JavaScript and TypeScript with lightweight helpers." />
+  <title>Normalize and Sanitize Strings | SolveJS</title>
   <link rel="stylesheet" href="../styles.css" />
 </head>
-<body>
-  <main class="container">
-    <h1>How to Slugify, Title-Case, and Sanitize Strings in JavaScript</h1>
-    <p>Use <code>@jdsalasc/solvejs-string</code> to normalize user-facing text safely.</p>
-    <pre><code>import { slugify, toTitleCase, stripHtml, mask } from "@jdsalasc/solvejs-string";
+<body data-root="..">
+  <main class="page">
+    <section class="hero">
+      <h1>Normalize and Sanitize Strings</h1>
+      <p>Use <code>@jdsalasc/solvejs-string</code> to generate slugs, clean HTML, mask sensitive values, and keep text UI-ready.</p>
+    </section>
 
-slugify("Build Better JS Apps"); // "build-better-js-apps"
-toTitleCase("solvejs utility ecosystem"); // "Solvejs Utility Ecosystem"
-stripHtml("&lt;p&gt;Hello &lt;strong&gt;world&lt;/strong&gt;&lt;/p&gt;"); // "Hello world"
-mask("4111111111111111", 4); // "************1111"</code></pre>
-    <p><a href="../index.html">Back to docs</a></p>
+    <section class="layout">
+      <aside class="panel">
+        <h2>Cookbook Navigation</h2>
+        <nav data-cookbook-nav aria-label="Cookbook pages"></nav>
+        <noscript>
+          <ul class="cookbook-list">
+            <li><a class="cookbook-link" href="../problems/date-format.html">Format and Parse Dates Safely</a></li>
+            <li><a class="cookbook-link" href="../problems/form-validators.html">Validate Form and API Inputs</a></li>
+            <li><a class="cookbook-link" href="../problems/array-and-numbers.html">Transform Arrays and Run Safe Math</a></li>
+            <li><a class="cookbook-link" href="../problems/string-format.html">Normalize and Sanitize Strings</a></li>
+            <li><a class="cookbook-link" href="../problems/regex-patterns.html">Use Common Regex Patterns</a></li>
+            <li><a class="cookbook-link" href="../problems/object-utils.html">Shape and Merge Objects</a></li>
+          </ul>
+        </noscript>
+      </aside>
+
+      <section class="panel">
+        <h2>Recipe</h2>
+        <pre><code>import { slugify, toTitleCase, stripHtml, mask, truncate } from "@jdsalasc/solvejs-string";
+
+const raw = "<p>build better <strong>js apps</strong></p>";
+const plain = stripHtml(raw); // "build better js apps"
+const title = toTitleCase(plain); // "Build Better Js Apps"
+const slug = slugify(title); // "build-better-js-apps"
+const preview = truncate(plain, 12); // "build better..."
+const secure = mask("4111111111111111", 4); // "************1111"</code></pre>
+        <p class="caption">Why this works: a single toolkit handles formatting and sanitization without repetitive custom helpers.</p>
+        <h3>Quick Search</h3>
+        <input class="search-box" data-doc-search type="search" placeholder="Search more recipes" />
+        <div data-search-results></div>
+        <h3>Related Recipes</h3>
+        <div data-related-recipes></div>
+      </section>
+    </section>
+
+    <p class="back-link"><a class="inline-link" href="../index.html">Back to docs home</a></p>
   </main>
+
+  <script src="../app.js"></script>
 </body>
 </html>

@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Integrate SolveJS utilities in Express middleware and controllers." />
+  <title>Express Integration Guide | SolveJS</title>
+  <link rel="stylesheet" href="../styles.css" />
+</head>
+<body data-root="..">
+  <main class="page">
+    <section class="hero">
+      <h1>Integrate SolveJS in Express</h1>
+      <p>Reuse the same validation and utility rules in middleware and handlers.</p>
+    </section>
+
+    <section class="layout">
+      <aside class="panel">
+        <h2>Cookbook Navigation</h2>
+        <nav data-cookbook-nav aria-label="Cookbook pages"></nav>
+      </aside>
+
+      <section class="panel">
+        <h2>Middleware Example</h2>
+        <pre><code>import { validateCellphoneNumber, validateHttpUrl } from "@jdsalasc/solvejs-validators";
+
+export function validateSignup(req, res, next) {
+  const phone = validateCellphoneNumber(String(req.body.phone ?? ""), { country: "CO" });
+  const website = validateHttpUrl(String(req.body.website ?? ""));
+
+  if (!phone.ok || !website.ok) {
+    return res.status(400).json({ ok: false, phone, website });
+  }
+
+  return next();
+}</code></pre>
+      </section>
+    </section>
+
+    <p class="back-link"><a class="inline-link" href="../index.html">Back to docs home</a></p>
+  </main>
+
+  <script src="../app.js"></script>
+</body>
+</html>

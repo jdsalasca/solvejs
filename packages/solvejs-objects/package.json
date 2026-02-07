@@ -1,0 +1,57 @@
+{
+  "name": "@jdsalasc/solvejs-objects",
+  "version": "1.4.0",
+  "description": "Production-ready JS/TS object utilities: pick, omit, hasOwn, get/set nested paths, and deepMerge.",
+  "license": "MIT",
+  "type": "module",
+  "sideEffects": false,
+  "main": "./dist/cjs/index.cjs",
+  "module": "./dist/esm/index.js",
+  "types": "./dist/esm/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/esm/index.d.ts",
+      "import": "./dist/esm/index.js",
+      "require": "./dist/cjs/index.cjs"
+    }
+  },
+  "files": [
+    "dist",
+    "README.md"
+  ],
+  "scripts": {
+    "build": "npm run clean && npm run build:esm && npm run build:cjs",
+    "build:esm": "tsc -p tsconfig.esm.json",
+    "build:cjs": "tsc -p tsconfig.cjs.json && node ./scripts/rename-cjs.mjs",
+    "clean": "node -e \"require('node:fs').rmSync('dist',{recursive:true,force:true})\"",
+    "test": "npm run build && node --test test/*.test.mjs",
+    "lint": "node -e \"console.log('No lint configured for @jdsalasc/solvejs-objects')\""
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "author": "jdsalasc",
+  "homepage": "https://github.com/jdsalasca/solvejs#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/jdsalasca/solvejs.git"
+  },
+  "bugs": {
+    "url": "https://github.com/jdsalasca/solvejs/issues"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "keywords": [
+    "javascript object utilities",
+    "typescript object utilities",
+    "pick object keys",
+    "omit object keys",
+    "deep merge objects",
+    "get nested value",
+    "set nested value",
+    "has own property",
+    "zero dependency",
+    "solvejs"
+  ]
+}

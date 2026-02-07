@@ -2,16 +2,16 @@
 
 ## Core Positioning
 
-- [ ] Keep one clear promise everywhere: `Zero-dependency JS/TS utilities for real production pain points.`
-- [ ] Keep one short tagline for npm/GitHub: `Install one or only what you need.`
-- [ ] Keep package naming conventions stable (`solvejs-*`) to reduce discovery friction.
+- [x] Keep one clear promise everywhere: `Zero-dependency JS/TS utilities for real production pain points.`
+- [x] Keep one short tagline for npm/GitHub: `Install one or only what you need.`
+- [x] Keep package naming conventions stable (`solvejs-*`) to reduce discovery friction.
 
 ## npm Discoverability
 
-- [ ] Ensure every package has 8-14 high-intent keywords.
-- [ ] Put top problem terms in package descriptions (`date format`, `validators`, `array utils`, `regex`).
-- [ ] Keep README first code sample under 15 lines.
-- [ ] Add "When to use this package" section in each package README.
+- [x] Ensure every package has 8-14 high-intent keywords.
+- [x] Put top problem terms in package descriptions (`date format`, `validators`, `array utils`, `regex`).
+- [x] Keep README first code sample under 15 lines.
+- [x] Add "When to use this package" section in each package README.
 - [ ] Verify `latest` tag after each publish.
 
 ## SEO and Docs

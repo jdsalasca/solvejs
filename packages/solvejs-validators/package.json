@@ -1,7 +1,7 @@
 {
   "name": "@jdsalasc/solvejs-validators",
-  "version": "1.3.0",
-  "description": "Zero-dependency validators for JS/TS forms and APIs with structured result codes: phone, name, address, UUID, IPv4, and ISO date.",
+  "version": "1.4.0",
+  "description": "Production-ready JS/TS validators with structured result codes for forms/APIs: phone, username, postal, UUID, IPv4, and ISO date.",
   "license": "MIT",
   "type": "module",
   "sideEffects": false,
@@ -43,13 +43,16 @@
     "node": ">=18"
   },
   "keywords": [
+    "javascript validators",
+    "typescript validators",
     "form validation",
-    "api validation",
-    "uuid validator",
+    "api payload validation",
+    "phone number validator",
+    "postal code validator",
+    "username validator",
+    "uuid v4 validator",
     "ipv4 validator",
     "iso date validator",
-    "phone validator",
-    "typescript validation",
     "solvejs"
   ]
 }

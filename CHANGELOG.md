@@ -1,5 +1,41 @@
 # Changelog
 
+## 1.4.0 - 2026-02-07
+
+- Added new package `@jdsalasc/solvejs-objects` with `pick`, `omit`, `hasOwn`, `get`, `set`, and `deepMerge`.
+- Expanded validator locale support for phone/postal checks (US, CO, MX, ES, AR, CL, PE, BR).
+- Added validator locale matrix including address-direction locales (`en`, `es`).
+- Added framework integration guides (Next.js, Express, NestJS).
+- Added docs cookbook search/navigation improvements with related-recipe suggestions.
+- Added package inventory generator (`npm run inventory`) with Markdown and HTML outputs.
+- Improved npm package pages with clearer practical descriptions and trust badges.
+- Added monthly community vote automation workflow and issue template.
+- Added adoption comparison guides (`SolveJS vs Lodash`, `SolveJS vs date-fns + validator`).
+- Improved regression coverage with new edge-case tests in string/list/regex packages.
+
+## 1.3.2 - 2026-02-07
+
+- Improved npm package descriptions and keywords with clearer utility-level phrasing in English.
+- Standardized package READMEs with `Utilities`, `When to use this package`, and concise quick examples.
+- Updated roadmap and positioning docs (`TODO.md`, `POSITIONING_CHECKLIST.md`, `NPM_POSITIONING.md`) for community-facing execution.
+- Added docs cookbook navigation, client-side recipe search, and a new object-utilities recipe page.
+- Added quick-search and related-recipe sections across each docs problem page with no-JS cookbook fallback links.
+- Added framework integration guides (Next.js, Express, NestJS) and a validator locale matrix page.
+- Expanded validator locale support for phone/postal checks (US, CO, MX, ES, AR, CL, PE, BR).
+- Added edge-case tests for string/list/regex packages to improve regression coverage.
+- Added automated package inventory generator (`npm run inventory`) producing Markdown + HTML docs snapshots.
+- Improved meta/readme adoption copy with clearer "why adopt" and docs entry points.
+- Added npm and Node compatibility badges across all package READMEs for stronger npm page trust signals.
+- Expanded validator locale matrix docs to include address-direction locale coverage (`en`, `es`).
+- Added monthly community vote automation workflow and reusable issue template.
+- Added adoption-focused comparison guides (`SolveJS vs Lodash`, `SolveJS vs date-fns + validator`).
+
+## 1.3.1 - 2026-02-07
+
+- Added new package `@jdsalasc/solvejs-objects` with `pick`, `omit`, `hasOwn`, `get`, `set`, and `deepMerge`.
+- Integrated object helpers into meta package `@jdsalasc/solvejs`.
+- Updated roadmap status for object utilities package.
+
 ## 1.3.0 - 2026-02-07
 
 - Added community-driven utilities focused on high-frequency production pain points.

@@ -3,20 +3,58 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="description" content="How to validate cellphone numbers, names, URLs, and usernames in TypeScript and JavaScript." />
-  <title>TypeScript Form Validators | SolveJS</title>
+  <meta name="description" content="Validate form and API inputs with structured validator results in JavaScript and TypeScript." />
+  <title>Validate Form and API Inputs | SolveJS</title>
   <link rel="stylesheet" href="../styles.css" />
 </head>
-<body>
-  <main class="container">
-    <h1>How to Validate Forms in TypeScript</h1>
-    <p>Use <code>@jdsalasc/solvejs-validators</code> for structured validation results and common rules.</p>
-    <pre><code>import { validateCellphoneNumber, validateName, validateUrl } from "@jdsalasc/solvejs-validators";
+<body data-root="..">
+  <main class="page">
+    <section class="hero">
+      <h1>Validate Form and API Inputs</h1>
+      <p>Use <code>@jdsalasc/solvejs-validators</code> to return structured results (<code>{'{ ok, code, message }'}</code>) instead of only booleans.</p>
+    </section>
+
+    <section class="layout">
+      <aside class="panel">
+        <h2>Cookbook Navigation</h2>
+        <nav data-cookbook-nav aria-label="Cookbook pages"></nav>
+        <noscript>
+          <ul class="cookbook-list">
+            <li><a class="cookbook-link" href="../problems/date-format.html">Format and Parse Dates Safely</a></li>
+            <li><a class="cookbook-link" href="../problems/form-validators.html">Validate Form and API Inputs</a></li>
+            <li><a class="cookbook-link" href="../problems/array-and-numbers.html">Transform Arrays and Run Safe Math</a></li>
+            <li><a class="cookbook-link" href="../problems/string-format.html">Normalize and Sanitize Strings</a></li>
+            <li><a class="cookbook-link" href="../problems/regex-patterns.html">Use Common Regex Patterns</a></li>
+            <li><a class="cookbook-link" href="../problems/object-utils.html">Shape and Merge Objects</a></li>
+          </ul>
+        </noscript>
+      </aside>
+
+      <section class="panel">
+        <h2>Recipe</h2>
+        <pre><code>import {
+  validateCellphoneNumber,
+  validateUsername,
+  validateHttpUrl,
+  validateUuidV4
+} from "@jdsalasc/solvejs-validators";
 
 validateCellphoneNumber("+573001112233", { country: "CO" });
-validateName("Ada Lovelace");
-validateUrl("https://solvejs.dev");</code></pre>
-    <p><a href="../index.html">Back to docs</a></p>
+validateUsername("solvejs_team");
+validateHttpUrl("https://solvejs.dev");
+validateUuidV4("550e8400-e29b-41d4-a716-446655440000");</code></pre>
+        <p class="caption">Why this works: each validator returns actionable failure codes for better UX and API error mapping.</p>
+        <h3>Quick Search</h3>
+        <input class="search-box" data-doc-search type="search" placeholder="Search more recipes" />
+        <div data-search-results></div>
+        <h3>Related Recipes</h3>
+        <div data-related-recipes></div>
+      </section>
+    </section>
+
+    <p class="back-link"><a class="inline-link" href="../index.html">Back to docs home</a></p>
   </main>
+
+  <script src="../app.js"></script>
 </body>
 </html>

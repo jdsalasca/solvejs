@@ -1,7 +1,7 @@
 {
   "name": "@jdsalasc/solvejs-list",
-  "version": "1.3.0",
-  "description": "Zero-dependency list toolkit for JS/TS: uniqueBy, groupBy, keyBy, partition, intersection, difference, and sortBy.",
+  "version": "1.4.0",
+  "description": "Production-ready JS/TS list utilities: uniqueBy, groupBy, keyBy, partition, intersection, difference, and sortBy.",
   "license": "MIT",
   "type": "module",
   "sideEffects": false,
@@ -43,12 +43,14 @@
     "node": ">=18"
   },
   "keywords": [
-    "array utils",
-    "typescript list utils",
-    "groupby",
-    "uniqueby",
+    "javascript array utilities",
+    "typescript array utilities",
+    "group by key",
+    "unique by",
+    "partition array",
     "difference array",
-    "sortby",
+    "intersection array",
+    "sort by key",
     "zero dependency",
     "solvejs"
   ]

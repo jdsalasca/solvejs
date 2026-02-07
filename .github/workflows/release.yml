@@ -35,7 +35,7 @@ jobs:
           npm publish --workspace packages/solvejs-regex --access public
           npm publish --workspace packages/solvejs-constants --access public
           npm publish --workspace packages/solvejs-numbers --access public
-          npm publish --workspace packages/solvejs-validators --access public
+          npm publish --workspace packages/solvejs-validators --access public`n          npm publish --workspace packages/solvejs-objects --access public
           npm publish --workspace packages/solvejs --access public
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
