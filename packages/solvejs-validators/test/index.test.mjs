@@ -9,14 +9,18 @@ import {
   isCreditCardNumber,
   isEmail,
   isHttpUrl,
+  isIpv4,
+  isIsoDateString,
   isPostalCode,
   isStrongPassword,
+  isUuidV4,
   isUsername,
   isValidName,
   validateAddressDirection,
   validateAddressLine,
   validateCellphoneNumber,
   validateCreditCardNumber,
+  validateIsoDateString,
   validateName
 } from "../dist/esm/index.js";
 
@@ -33,6 +37,9 @@ test("boolean validators keep compatibility", () => {
   assert.equal(isAddressLine("221B Baker Street"), true);
   assert.equal(isStrongPassword("Aa123456!"), true);
   assert.equal(isCreditCardNumber("4111 1111 1111 1111"), true);
+  assert.equal(isIpv4("192.168.0.1"), true);
+  assert.equal(isUuidV4("550e8400-e29b-41d4-a716-446655440000"), true);
+  assert.equal(isIsoDateString("2026-02-07"), true);
 });
 
 test("structured validators return codes and messages", () => {
@@ -44,4 +51,5 @@ test("structured validators return codes and messages", () => {
   assert.equal(validateName("A").code, "TOO_SHORT");
   assert.equal(validateAddressLine("A").code, "TOO_SHORT");
   assert.equal(validateCreditCardNumber("1234").code, "INVALID_FORMAT");
+  assert.equal(validateIsoDateString("2026-02-30").code, "INVALID_FORMAT");
 });

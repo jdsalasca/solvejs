@@ -230,3 +230,31 @@ export function toCurrency(value: number, currency = "USD", locale = "en-US"): s
     currency
   }).format(value);
 }
+
+/**
+ * Parses numeric text coming from forms or CSV-like inputs.
+ *
+ * @param value - Raw numeric-like input.
+ * @param options - Parsing options.
+ * @param options.allowThousandsSeparator - Whether commas are accepted as thousands separators.
+ * @returns Parsed finite number, or `null` when parsing fails.
+ */
+export function toNumber(
+  value: string,
+  options: { allowThousandsSeparator?: boolean } = {}
+): number | null {
+  const normalized = value.trim();
+  if (!normalized) {
+    return null;
+  }
+
+  const allowThousandsSeparator = options.allowThousandsSeparator ?? true;
+  const candidate = allowThousandsSeparator ? normalized.replace(/,/g, "") : normalized;
+
+  if (!/^[+-]?(?:\d+\.?\d*|\.\d+)$/.test(candidate)) {
+    return null;
+  }
+
+  const parsed = Number(candidate);
+  return Number.isFinite(parsed) ? parsed : null;
+}

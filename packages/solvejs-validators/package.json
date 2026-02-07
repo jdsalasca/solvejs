@@ -1,7 +1,7 @@
 {
   "name": "@jdsalasc/solvejs-validators",
-  "version": "1.2.0",
-  "description": "Zero-dependency validators for JS/TS forms with structured result codes and region-aware checks.",
+  "version": "1.3.0",
+  "description": "Zero-dependency validators for JS/TS forms and APIs with structured result codes: phone, name, address, UUID, IPv4, and ISO date.",
   "license": "MIT",
   "type": "module",
   "sideEffects": false,
@@ -43,11 +43,12 @@
     "node": ">=18"
   },
   "keywords": [
-    "validators",
     "form validation",
-    "cellphone validation",
-    "credit card luhn",
-    "username validation",
+    "api validation",
+    "uuid validator",
+    "ipv4 validator",
+    "iso date validator",
+    "phone validator",
     "typescript validation",
     "solvejs"
   ]

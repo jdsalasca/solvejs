@@ -11,6 +11,7 @@ import {
   roundTo,
   safeDivide,
   sum,
+  toNumber,
   toCurrency
 } from "../dist/esm/index.js";
 
@@ -26,6 +27,9 @@ test("numbers helpers", () => {
   assert.equal(percentChange(120, 100, 1), 20);
   assert.equal(isBetween(5, 1, 10), true);
   assert.equal(toCurrency(10, "USD", "en-US"), "$10.00");
+  assert.equal(toNumber("1,234.5"), 1234.5);
+  assert.equal(toNumber(" 42 "), 42);
+  assert.equal(toNumber("n/a"), null);
 });
 
 test("randomInt returns value inside inclusive range", () => {
