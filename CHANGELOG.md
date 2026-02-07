@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 1.5.0 - 2026-02-07
 
 - Improved quality coverage across packages:
   - Added DST/timezone edge tests in `solvejs-date`.
@@ -13,6 +13,7 @@
 - Added new package `@jdsalasc/solvejs-async` with `sleep`, `timeout`, `retry`, and `pMap`, integrated into monorepo build/test and meta exports.
 - Added async cookbook recipe page (`docs/problems/async-control.md` and `.html`) and docs navigation entries.
 - Added new package opportunities guide (`docs/guides/new-package-opportunities.md`) with prioritized next-package options.
+
 ## 1.4.1 - 2026-02-07
 
 - Restored remote `develop` branch from `main` to re-enable GitFlow-style branch targets.
