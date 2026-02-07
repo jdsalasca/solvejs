@@ -1,7 +1,7 @@
 {
-  "name": "@jdsalasc/solvejs-constants",
+  "name": "@jdsalasc/solvejs-numbers",
   "version": "1.0.2",
-  "description": "High-signal constants and boolean parsing helpers for everyday application logic.",
+  "description": "Number utilities for rounding, percentages, clamping, median, average, and safe math helpers.",
   "license": "MIT",
   "type": "module",
   "sideEffects": false,
@@ -25,7 +25,7 @@
     "build:cjs": "tsc -p tsconfig.cjs.json && node ./scripts/rename-cjs.mjs",
     "clean": "node -e \"require('node:fs').rmSync('dist',{recursive:true,force:true})\"",
     "test": "npm run build && node --test test/*.test.mjs",
-    "lint": "node -e \"console.log('No lint configured for @jdsalasc/solvejs-constants')\""
+    "lint": "node -e \"console.log('No lint configured for @jdsalasc/solvejs-numbers')\""
   },
   "publishConfig": {
     "access": "public"
@@ -43,10 +43,10 @@
     "node": ">=18"
   },
   "keywords": [
-    "constants",
-    "time constants",
-    "parse boolean",
-    "utility constants",
+    "number utilities",
+    "round numbers",
+    "percentage",
+    "statistics",
     "solvejs"
   ]
 }

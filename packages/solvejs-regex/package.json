@@ -1,7 +1,7 @@
 {
   "name": "@jdsalasc/solvejs-regex",
-  "version": "1.0.1",
-  "description": "Regex patterns and validation helpers.",
+  "version": "1.0.2",
+  "description": "Common regex patterns and validators for email, username, URL, hex color, and phone-like strings.",
   "license": "MIT",
   "type": "module",
   "sideEffects": false,
@@ -43,10 +43,10 @@
     "node": ">=18"
   },
   "keywords": [
-    "regex",
-    "regex validation",
-    "email validation",
-    "url validation",
+    "regex utilities",
+    "email regex",
+    "validation",
+    "typescript regex",
     "solvejs"
   ]
 }
