@@ -1,5 +1,9 @@
 # @jdsalasc/solvejs-objects
 
+[![npm](https://img.shields.io/npm/v/@jdsalasc/solvejs-objects)](https://www.npmjs.com/package/@jdsalasc/solvejs-objects)
+[![node](https://img.shields.io/node/v/@jdsalasc/solvejs-objects)](https://www.npmjs.com/package/@jdsalasc/solvejs-objects)
+
+
 Zero-dependency object utilities for JavaScript and TypeScript.
 
 ## Utilities

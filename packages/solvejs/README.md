@@ -1,5 +1,9 @@
 # @jdsalasc/solvejs
 
+[![npm](https://img.shields.io/npm/v/@jdsalasc/solvejs)](https://www.npmjs.com/package/@jdsalasc/solvejs)
+[![node](https://img.shields.io/node/v/@jdsalasc/solvejs)](https://www.npmjs.com/package/@jdsalasc/solvejs)
+
+
 Zero-dependency JavaScript and TypeScript utility suite for real production pain points.
 
 Includes date, string, list, regex, constants, numbers, validators, and object utilities.

@@ -1,5 +1,9 @@
 # @jdsalasc/solvejs-validators
 
+[![npm](https://img.shields.io/npm/v/@jdsalasc/solvejs-validators)](https://www.npmjs.com/package/@jdsalasc/solvejs-validators)
+[![node](https://img.shields.io/node/v/@jdsalasc/solvejs-validators)](https://www.npmjs.com/package/@jdsalasc/solvejs-validators)
+
+
 Zero-dependency validators for JavaScript and TypeScript forms and API payloads.
 
 ## Utilities

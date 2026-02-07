@@ -1,5 +1,9 @@
 # @jdsalasc/solvejs-list
 
+[![npm](https://img.shields.io/npm/v/@jdsalasc/solvejs-list)](https://www.npmjs.com/package/@jdsalasc/solvejs-list)
+[![node](https://img.shields.io/node/v/@jdsalasc/solvejs-list)](https://www.npmjs.com/package/@jdsalasc/solvejs-list)
+
+
 Zero-dependency array/list utilities for JavaScript and TypeScript.
 
 ## Utilities

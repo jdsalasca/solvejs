@@ -1,5 +1,9 @@
 # @jdsalasc/solvejs-string
 
+[![npm](https://img.shields.io/npm/v/@jdsalasc/solvejs-string)](https://www.npmjs.com/package/@jdsalasc/solvejs-string)
+[![node](https://img.shields.io/node/v/@jdsalasc/solvejs-string)](https://www.npmjs.com/package/@jdsalasc/solvejs-string)
+
+
 Zero-dependency string utilities for JavaScript and TypeScript.
 
 ## Utilities
