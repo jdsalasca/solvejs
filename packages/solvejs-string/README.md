@@ -1,18 +1,19 @@
 # @jdsalasc/solvejs-string
 
-String utilities for casing, formatting, and truncation.
+Zero-dependency string tools for cleaner UI and API payload handling.
+
+## Tools Included
+
+- `toKebabCase`
+- `toCamelCase`
+- `toTitleCase`
+- `slugify`
+- `stripHtml`
+- `mask`
+- `truncate`
 
 ## Install
 
 ```bash
 npm i @jdsalasc/solvejs-string
-```
-
-## Example
-
-```ts
-import { toCamelCase, toKebabCase } from "@jdsalasc/solvejs-string";
-
-toCamelCase("hello-world");
-toKebabCase("Hello World");
 ```

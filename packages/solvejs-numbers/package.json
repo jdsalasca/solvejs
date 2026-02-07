@@ -1,7 +1,7 @@
 {
   "name": "@jdsalasc/solvejs-numbers",
-  "version": "1.1.0",
-  "description": "Number utilities for rounding, percentages, clamping, median, average, and safe math helpers.",
+  "version": "1.2.0",
+  "description": "Zero-dependency number toolkit for JS/TS: safe divide, percent change, currency formatting, and core statistics.",
   "license": "MIT",
   "type": "module",
   "sideEffects": false,
@@ -43,10 +43,12 @@
     "node": ">=18"
   },
   "keywords": [
-    "number utilities",
-    "round numbers",
-    "percentage",
+    "number utils",
+    "safe divide",
+    "percent change",
+    "currency format",
     "statistics",
+    "javascript math",
     "solvejs"
   ]
 }

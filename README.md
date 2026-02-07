@@ -1,21 +1,17 @@
 # SolveJS
 
-SolveJS provides lightweight JavaScript and TypeScript utilities for common day-to-day coding problems.
+SolveJS is a zero-runtime-dependency utility ecosystem for JavaScript and TypeScript apps.
 
 [![CI](https://github.com/jdsalasca/solvejs/actions/workflows/ci.yml/badge.svg)](https://github.com/jdsalasca/solvejs/actions/workflows/ci.yml)
 [![Release](https://img.shields.io/github/v/release/jdsalasca/solvejs)](https://github.com/jdsalasca/solvejs/releases)
 [![npm](https://img.shields.io/npm/v/@jdsalasc/solvejs)](https://www.npmjs.com/package/@jdsalasc/solvejs)
 
-## Vision
+## Why SolveJS
 
-Build the most practical and discoverable utilities ecosystem for solving JavaScript and TypeScript problems fast.
-
-## Mission
-
-- Keep core utilities dependency-free.
-- Publish stable APIs with clear naming.
-- Optimize docs for problem-first search intent.
-- Support both TS and JS with first-class types and runtime compatibility.
+- Solves everyday JavaScript/TypeScript pain points not covered well by defaults.
+- Works in Node and modern frontend stacks.
+- Ships ESM + CJS + TypeScript declarations.
+- Keeps APIs predictable and production-friendly.
 
 ## Install
 
@@ -23,59 +19,49 @@ Build the most practical and discoverable utilities ecosystem for solving JavaSc
 npm i @jdsalasc/solvejs
 ```
 
-Or install only what you need:
+Install only what you need:
 
 ```bash
-npm i @jdsalasc/solvejs-date @jdsalasc/solvejs-regex
+npm i @jdsalasc/solvejs-date @jdsalasc/solvejs-validators
 ```
 
-## Packages
+## Tools Included
 
-- `@jdsalasc/solvejs` (meta package)
-- `@jdsalasc/solvejs-date`
-- `@jdsalasc/solvejs-string`
-- `@jdsalasc/solvejs-list`
-- `@jdsalasc/solvejs-regex`
-- `@jdsalasc/solvejs-constants`
-- `@jdsalasc/solvejs-numbers`
-- `@jdsalasc/solvejs-validators`
+- `@jdsalasc/solvejs-date`: strict parsing, UTC-safe date helpers.
+- `@jdsalasc/solvejs-string`: casing, slugging, masking, HTML stripping.
+- `@jdsalasc/solvejs-list`: grouping, partitioning, sorting, deduplication.
+- `@jdsalasc/solvejs-regex`: common regex patterns and regex helpers.
+- `@jdsalasc/solvejs-constants`: high-signal constants for app logic.
+- `@jdsalasc/solvejs-numbers`: safe arithmetic and business-math helpers.
+- `@jdsalasc/solvejs-validators`: structured validators with result codes.
 
 ## Quick Example
 
 ```ts
-import { formatDate, toKebabCase, unique, validateByName, clamp, isCellphoneNumber } from "@jdsalasc/solvejs";
+import {
+  parseDateStrict,
+  slugify,
+  sortBy,
+  validateCellphoneNumber,
+  percentChange
+} from "@jdsalasc/solvejs";
 
-formatDate(new Date("2026-02-07T12:00:00.000Z"), "YYYY-MM-DD"); // "2026-02-07"
-toKebabCase("Format Date Fast"); // "format-date-fast"
-unique([1, 1, 2, 3]); // [1, 2, 3]
-validateByName("user@example.com", "email"); // true
-clamp(140, 0, 100); // 100
-isCellphoneNumber("+573001112233"); // true
+parseDateStrict("2026-02-07", "YYYY-MM-DD");
+slugify("Build Better JS Apps");
+sortBy([{ n: 2 }, { n: 1 }], (x) => x.n);
+validateCellphoneNumber("+573001112233", { country: "CO" });
+percentChange(120, 100);
 ```
 
-Structured validator example:
+## Validation Result Shape
 
 ```ts
-import { validateCellphoneNumber } from "@jdsalasc/solvejs";
-
-const result = validateCellphoneNumber("+573001112233", { country: "CO" });
-// { ok: true, code: "VALID", message: "Valid cellphone number." }
+type ValidationResult = {
+  ok: boolean;
+  code: string;
+  message: string;
+};
 ```
-
-## Common Problems SolveJS Targets
-
-- How to format dates in JavaScript.
-- How to validate email, URL, and usernames in TypeScript.
-- How to validate cellphone numbers, names, and address directions.
-- How to chunk arrays, deduplicate values, and group lists.
-- How to convert strings to camelCase and kebab-case.
-- How to compute percentages, averages, and medians safely.
-
-## Compatibility
-
-- Node.js `>=18`
-- ESM + CJS exports
-- TypeScript declarations included
 
 ## Development
 
@@ -86,12 +72,11 @@ npm test
 npm run benchmark
 ```
 
-## GitFlow
+## Community
 
-- `main`: production releases.
-- `develop`: integration branch.
-- `feature/*`: feature branches.
-- `release/*`: release branches.
+- Contribution guide: `CONTRIBUTING.md`
+- Code of conduct: `CODE_OF_CONDUCT.md`
+- Community roadmap: `TODO.md`
 
 ## License
 

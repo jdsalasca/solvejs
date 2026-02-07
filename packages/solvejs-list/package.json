@@ -1,7 +1,7 @@
 {
   "name": "@jdsalasc/solvejs-list",
-  "version": "1.1.0",
-  "description": "List and array utilities for deduplication, grouping, chunking, and compacting values.",
+  "version": "1.2.0",
+  "description": "Zero-dependency list toolkit for JS/TS: chunk, groupBy, keyBy, partition, intersection, and sortBy.",
   "license": "MIT",
   "type": "module",
   "sideEffects": false,
@@ -43,10 +43,12 @@
     "node": ">=18"
   },
   "keywords": [
-    "array utilities",
+    "array utils",
+    "list utils",
     "groupby",
-    "chunk array",
-    "deduplicate array",
+    "partition",
+    "intersection",
+    "sortby",
     "solvejs"
   ]
 }

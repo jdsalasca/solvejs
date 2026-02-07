@@ -1,17 +1,16 @@
 # @jdsalasc/solvejs-regex
 
-Regex patterns and validators for common input validation tasks.
+Zero-dependency regex toolbox for common validation and parsing scenarios.
+
+## Tools Included
+
+- Built-in patterns: `email`, `phoneE164`, `urlHttp`, `hexColor`, `username`, `uuidV4`, `ipv4`, `isoDate`
+- `validateByName`
+- `validateWithPattern`
+- `escapeRegex`
 
 ## Install
 
 ```bash
 npm i @jdsalasc/solvejs-regex
-```
-
-## Example
-
-```ts
-import { validateByName } from "@jdsalasc/solvejs-regex";
-
-validateByName("user@example.com", "email");
 ```

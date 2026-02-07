@@ -6,7 +6,8 @@ export type ValidationResultCode =
   | "TOO_LONG"
   | "INVALID_CHARACTERS"
   | "UNSUPPORTED_LOCALE"
-  | "UNSUPPORTED_COUNTRY";
+  | "UNSUPPORTED_COUNTRY"
+  | "CHECKSUM_FAILED";
 
 export type ValidationResult = {
   ok: boolean;
@@ -183,6 +184,28 @@ export function isAddressDirection(value: string, options: { locale?: DirectionL
 }
 
 /**
+ * Backward-compatible alias for users who typed the previous function with one missing `d`.
+ *
+ * @param value - Direction text.
+ * @param options - Validation options.
+ * @returns `true` when the direction is valid.
+ */
+export function isAddresDirection(value: string, options: { locale?: DirectionLocale } = {}): boolean {
+  return isAddressDirection(value, options);
+}
+
+/**
+ * Backward-compatible alias for users who typed the previous function with two spelling mistakes.
+ *
+ * @param value - Direction text.
+ * @param options - Validation options.
+ * @returns `true` when the direction is valid.
+ */
+export function isAddresDirrection(value: string, options: { locale?: DirectionLocale } = {}): boolean {
+  return isAddressDirection(value, options);
+}
+
+/**
  * Validates person names with practical production constraints.
  *
  * @param value - Name string.
@@ -224,6 +247,50 @@ export function validateName(
  */
 export function isValidName(value: string, options: { minLength?: number; maxLength?: number } = {}): boolean {
   return validateName(value, options).ok;
+}
+
+/**
+ * Validates usernames used in sign-up forms.
+ *
+ * @param value - Username candidate.
+ * @param options - Validation options.
+ * @param options.minLength - Minimum length.
+ * @param options.maxLength - Maximum length.
+ * @returns Structured validation result.
+ */
+export function validateUsername(
+  value: string,
+  options: { minLength?: number; maxLength?: number } = {}
+): ValidationResult {
+  const minLength = options.minLength ?? 3;
+  const maxLength = options.maxLength ?? 30;
+  const normalized = value.trim();
+
+  if (!normalized) {
+    return fail("EMPTY", "Username cannot be empty.");
+  }
+  if (normalized.length < minLength) {
+    return fail("TOO_SHORT", `Username must have at least ${minLength} characters.`);
+  }
+  if (normalized.length > maxLength) {
+    return fail("TOO_LONG", `Username must have at most ${maxLength} characters.`);
+  }
+  if (!/^[a-zA-Z0-9_]+$/.test(normalized)) {
+    return fail("INVALID_CHARACTERS", "Username can only contain letters, numbers, and underscores.");
+  }
+
+  return ok("Valid username.");
+}
+
+/**
+ * Boolean wrapper for `validateUsername`.
+ *
+ * @param value - Username candidate.
+ * @param options - Validation options.
+ * @returns `true` when the username is valid.
+ */
+export function isUsername(value: string, options: { minLength?: number; maxLength?: number } = {}): boolean {
+  return validateUsername(value, options).ok;
 }
 
 /**
@@ -311,6 +378,50 @@ export function isPostalCode(value: string): boolean {
 }
 
 /**
+ * Validates address line input for common delivery/billing forms.
+ *
+ * @param value - Address line string.
+ * @param options - Validation options.
+ * @param options.minLength - Minimum length.
+ * @param options.maxLength - Maximum length.
+ * @returns Structured validation result.
+ */
+export function validateAddressLine(
+  value: string,
+  options: { minLength?: number; maxLength?: number } = {}
+): ValidationResult {
+  const minLength = options.minLength ?? 5;
+  const maxLength = options.maxLength ?? 120;
+  const normalized = value.trim();
+
+  if (!normalized) {
+    return fail("EMPTY", "Address line cannot be empty.");
+  }
+  if (normalized.length < minLength) {
+    return fail("TOO_SHORT", `Address line must have at least ${minLength} characters.`);
+  }
+  if (normalized.length > maxLength) {
+    return fail("TOO_LONG", `Address line must have at most ${maxLength} characters.`);
+  }
+  if (!/^[A-Za-z0-9À-ÖØ-öø-ÿ#.,'\/ -]+$/.test(normalized)) {
+    return fail("INVALID_CHARACTERS", "Address line contains unsupported characters.");
+  }
+
+  return ok("Valid address line.");
+}
+
+/**
+ * Boolean wrapper for `validateAddressLine`.
+ *
+ * @param value - Address line string.
+ * @param options - Validation options.
+ * @returns `true` when the address line is valid.
+ */
+export function isAddressLine(value: string, options: { minLength?: number; maxLength?: number } = {}): boolean {
+  return validateAddressLine(value, options).ok;
+}
+
+/**
  * Validates password strength using default security checks.
  *
  * @param value - Password candidate.
@@ -343,4 +454,51 @@ export function validateStrongPassword(value: string, options: { minLength?: num
  */
 export function isStrongPassword(value: string, options: { minLength?: number } = {}): boolean {
   return validateStrongPassword(value, options).ok;
+}
+
+function luhnCheck(value: string): boolean {
+  let sum = 0;
+  let shouldDouble = false;
+  for (let index = value.length - 1; index >= 0; index -= 1) {
+    let digit = Number(value[index]);
+    if (shouldDouble) {
+      digit *= 2;
+      if (digit > 9) {
+        digit -= 9;
+      }
+    }
+    sum += digit;
+    shouldDouble = !shouldDouble;
+  }
+  return sum % 10 === 0;
+}
+
+/**
+ * Validates card numbers using basic shape checks plus Luhn checksum.
+ *
+ * @param value - Card number candidate.
+ * @returns Structured validation result.
+ */
+export function validateCreditCardNumber(value: string): ValidationResult {
+  const normalized = value.replace(/[\s-]/g, "");
+  if (!normalized) {
+    return fail("EMPTY", "Card number cannot be empty.");
+  }
+  if (!/^\d{12,19}$/.test(normalized)) {
+    return fail("INVALID_FORMAT", "Card number must contain only digits and valid length.");
+  }
+  if (!luhnCheck(normalized)) {
+    return fail("CHECKSUM_FAILED", "Card number checksum is invalid.");
+  }
+  return ok("Valid card number.");
+}
+
+/**
+ * Boolean wrapper for `validateCreditCardNumber`.
+ *
+ * @param value - Card number candidate.
+ * @returns `true` when the card number is valid.
+ */
+export function isCreditCardNumber(value: string): boolean {
+  return validateCreditCardNumber(value).ok;
 }
