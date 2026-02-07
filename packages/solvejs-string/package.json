@@ -1,6 +1,6 @@
 {
   "name": "@jdsalasc/solvejs-string",
-  "version": "1.0.2",
+  "version": "1.1.0",
   "description": "String utilities for casing, normalization, and truncation in JavaScript and TypeScript applications.",
   "license": "MIT",
   "type": "module",

@@ -42,6 +42,61 @@ export function parseIsoDate(value: string): Date | null {
 }
 
 /**
+ * Parses a date string using a strict known format.
+ *
+ * @param value - Input date string.
+ * @param format - Expected format token.
+ * @returns Parsed UTC Date when valid, otherwise `null`.
+ */
+export function parseDateStrict(value: string, format: DateFormatToken = "YYYY-MM-DD"): Date | null {
+  const normalized = value.trim();
+  let year = 0;
+  let month = 0;
+  let day = 0;
+
+  if (format === "YYYY-MM-DD") {
+    const match = normalized.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+    if (!match) {
+      return null;
+    }
+    year = Number(match[1]);
+    month = Number(match[2]);
+    day = Number(match[3]);
+  } else if (format === "DD/MM/YYYY") {
+    const match = normalized.match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
+    if (!match) {
+      return null;
+    }
+    day = Number(match[1]);
+    month = Number(match[2]);
+    year = Number(match[3]);
+  } else {
+    const match = normalized.match(/^(\d{2})-(\d{2})-(\d{4})$/);
+    if (!match) {
+      return null;
+    }
+    month = Number(match[1]);
+    day = Number(match[2]);
+    year = Number(match[3]);
+  }
+
+  if (month < 1 || month > 12 || day < 1 || day > 31) {
+    return null;
+  }
+
+  const candidate = new Date(Date.UTC(year, month - 1, day));
+  if (
+    candidate.getUTCFullYear() !== year ||
+    candidate.getUTCMonth() !== month - 1 ||
+    candidate.getUTCDate() !== day
+  ) {
+    return null;
+  }
+
+  return candidate;
+}
+
+/**
  * Adds a number of days to a date, preserving UTC semantics.
  *
  * @param date - Source date.
@@ -74,6 +129,22 @@ export function startOfDay(date: Date): Date {
     throw new TypeError("Expected a valid Date instance.");
   }
   return new Date(Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate()));
+}
+
+/**
+ * Builds a UTC date from numeric parts.
+ *
+ * @param year - Full year.
+ * @param month - Month number in range 1-12.
+ * @param day - Day number in range 1-31.
+ * @returns A UTC Date at `00:00:00.000`.
+ * @throws {TypeError} If arguments are not integers.
+ */
+export function fromUtcParts(year: number, month: number, day: number): Date {
+  if (!Number.isInteger(year) || !Number.isInteger(month) || !Number.isInteger(day)) {
+    throw new TypeError("Expected year, month, and day to be integers.");
+  }
+  return new Date(Date.UTC(year, month - 1, day));
 }
 
 /**
