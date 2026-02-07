@@ -1,0 +1,22 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="How to format dates in JavaScript and TypeScript with strict parsing and UTC-safe helpers." />
+  <title>How to Format Dates in JavaScript | SolveJS</title>
+  <link rel="stylesheet" href="../styles.css" />
+</head>
+<body>
+  <main class="container">
+    <h1>How to Format Dates in JavaScript</h1>
+    <p>Use <code>@jdsalasc/solvejs-date</code> when you need lightweight formatting and date arithmetic.</p>
+    <pre><code>import { formatDate, addDays } from "@jdsalasc/solvejs-date";
+
+const today = new Date("2026-02-07T00:00:00.000Z");
+formatDate(today, "YYYY-MM-DD"); // "2026-02-07"
+formatDate(addDays(today, 3), "DD/MM/YYYY"); // "10/02/2026"</code></pre>
+    <p><a href="../index.html">Back to docs</a></p>
+  </main>
+</body>
+</html>
