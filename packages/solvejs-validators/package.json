@@ -1,6 +1,6 @@
 {
   "name": "@jdsalasc/solvejs-validators",
-  "version": "1.4.1",
+  "version": "1.5.1",
   "description": "Zero-dependency JavaScript/TypeScript validators for forms and APIs with structured result codes: phone, postal, username, password, UUID v4, IPv4, and ISO date.",
   "license": "MIT",
   "type": "module",
@@ -56,4 +56,3 @@
     "solvejs"
   ]
 }
-
