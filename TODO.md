@@ -40,8 +40,8 @@
 ## Next Iteration (v1.5.0 Candidate)
 
 - [x] Resolve npm registry visibility/release consistency for `@jdsalasc/solvejs-objects`.
-- [ ] Harden release workflow with idempotent publish checks and explicit npm token validation.
-- [ ] Publish package health report (status, issues, weaknesses, improvements) for contributors.
+- [x] Harden release workflow with idempotent publish checks and explicit npm token validation.
+- [x] Publish package health report (status, issues, weaknesses, improvements) for contributors.
 - [ ] Add deep edge-case tests for date timezone boundaries and object nested-path updates.
 - [ ] Expand validators locale/country coverage and document deprecation strategy for typo aliases.
 - [ ] Add lint baseline and CI enforcement across all workspaces.

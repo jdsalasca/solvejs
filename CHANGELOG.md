@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 1.4.1 - 2026-02-07
+
 - Restored remote `develop` branch from `main` to re-enable GitFlow-style branch targets.
 - Refined npm package descriptions in all published packages to emphasize practical utility-level value in English.
 - Revalidated package health report with updated deficiencies and priorities after npm visibility recovery.
