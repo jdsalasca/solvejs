@@ -9,6 +9,9 @@
 - Added quick-search and related-recipe sections across each docs problem page with no-JS cookbook fallback links.
 - Added framework integration guides (Next.js, Express, NestJS) and a validator locale matrix page.
 - Expanded validator locale support for phone/postal checks (US, CO, MX, ES, AR, CL, PE, BR).
+- Added edge-case tests for string/list/regex packages to improve regression coverage.
+- Added automated package inventory generator (`npm run inventory`) producing Markdown + HTML docs snapshots.
+- Improved meta/readme adoption copy with clearer "why adopt" and docs entry points.
 
 ## 1.3.1 - 2026-02-07
 

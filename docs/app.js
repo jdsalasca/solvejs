@@ -88,6 +88,15 @@ const TOPICS = [
     tags: ["validators", "locale", "postal", "phone"],
     packages: ["@jdsalasc/solvejs-validators"],
     level: "Reference"
+  },
+  {
+    id: "package-inventory",
+    title: "Package Inventory",
+    description: "Inspect API surface and test-count snapshot across all SolveJS packages.",
+    path: "guides/package-inventory.html",
+    tags: ["inventory", "quality", "tests", "exports"],
+    packages: ["@jdsalasc/solvejs"],
+    level: "Reference"
   }
 ];
 

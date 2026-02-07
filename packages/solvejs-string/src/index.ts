@@ -118,6 +118,9 @@ export function mask(value: string, visibleEnd = 4, maskChar = "*"): string {
   if (!Number.isInteger(visibleEnd) || visibleEnd < 0) {
     throw new TypeError("Expected visibleEnd to be a non-negative integer.");
   }
+  if (visibleEnd === 0) {
+    return maskChar.repeat(value.length);
+  }
   if (visibleEnd >= value.length) {
     return value;
   }

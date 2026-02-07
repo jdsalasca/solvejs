@@ -15,7 +15,8 @@
     "test:core": "npm run --workspace packages/solvejs-date test && npm run --workspace packages/solvejs-string test && npm run --workspace packages/solvejs-list test && npm run --workspace packages/solvejs-regex test && npm run --workspace packages/solvejs-constants test && npm run --workspace packages/solvejs-numbers test && npm run --workspace packages/solvejs-validators test && npm run --workspace packages/solvejs-objects test",
     "lint": "npm run --workspaces lint",
     "benchmark": "npm run build && node benchmarks/index.mjs",
-    "clean": "npm run --workspaces clean"
+    "clean": "npm run --workspaces clean",
+    "inventory": "node scripts/generate-package-inventory.mjs"
   },
   "devDependencies": {
     "typescript": "^5.9.2"
