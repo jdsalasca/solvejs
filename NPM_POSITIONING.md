@@ -45,23 +45,23 @@ Use this file to keep npm package messaging, discoverability terms, and README i
 Use these as the canonical package `description` strings in `package.json`.
 
 - `@jdsalasc/solvejs`:
-  - `Practical zero-dependency JS/TS utility suite for dates, strings, lists, regex, constants, numbers, validators, and objects.`
+  - `Zero-dependency JavaScript/TypeScript utility library for production apps: date parsing, string cleanup, list transforms, validators, numbers, regex, constants, and objects.`
 - `@jdsalasc/solvejs-date`:
-  - `Production-ready JS/TS date utilities: strict parsing, UTC-safe formatting, unix timestamp parsing, and date math.`
+  - `Zero-dependency JavaScript/TypeScript date utilities for production: strict parsing, UTC-safe formatting, unix timestamp conversion, date math, and calendar helpers.`
 - `@jdsalasc/solvejs-string`:
-  - `Production-ready JS/TS string utilities: slugify, casing, sanitize/strip HTML, masking, and truncation.`
+  - `Zero-dependency JavaScript/TypeScript string utilities for production: slugify, case transforms, HTML stripping, masking, and safe truncation.`
 - `@jdsalasc/solvejs-list`:
-  - `Production-ready JS/TS list utilities: uniqueBy, groupBy, keyBy, partition, intersection, difference, and sorting.`
+  - `Zero-dependency JavaScript/TypeScript list utilities for production: uniqueBy, groupBy, keyBy, partition, intersection, difference, chunk, and sortBy.`
 - `@jdsalasc/solvejs-regex`:
-  - `Production-ready JS/TS regex utilities with built-in patterns (uuidV4, ipv4, isoDate) and safe escaping helpers.`
+  - `Zero-dependency JavaScript/TypeScript regex utilities: built-in production patterns (UUID v4, IPv4, ISO date) plus safe pattern validation and escaping.`
 - `@jdsalasc/solvejs-constants`:
-  - `Production-ready JS/TS constants for time, file sizes, HTTP methods/headers, and boolean parsing.`
+  - `Zero-dependency JavaScript/TypeScript constants for production: time and file-size units, HTTP methods/headers, delimiters, and boolean string parsing.`
 - `@jdsalasc/solvejs-numbers`:
-  - `Production-ready JS/TS number utilities: toNumber parsing, safeDivide, percentChange, clamp, roundTo, and currency formatting.`
+  - `Zero-dependency JavaScript/TypeScript number utilities for production: parsing, clamp/round, safe division, percent change, median, and currency formatting.`
 - `@jdsalasc/solvejs-validators`:
-  - `Production-ready JS/TS validators with structured result codes for forms/APIs: phone, username, postal, UUID, IPv4, and ISO date.`
+  - `Zero-dependency JavaScript/TypeScript validators for forms and APIs with structured result codes: phone, postal, username, password, UUID v4, IPv4, and ISO date.`
 - `@jdsalasc/solvejs-objects`:
-  - `Production-ready JS/TS object utilities: pick, omit, hasOwn, get/set nested paths, and deepMerge.`
+  - `Zero-dependency JavaScript/TypeScript object utilities for production: pick, omit, hasOwn, nested get/set by path, and deepMerge for config/state.`
 
 ## Metadata Policy
 

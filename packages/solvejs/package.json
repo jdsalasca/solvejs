@@ -1,7 +1,7 @@
 {
   "name": "@jdsalasc/solvejs",
   "version": "1.4.0",
-  "description": "Practical zero-dependency JS/TS utility suite for dates, strings, lists, regex, constants, numbers, validators, and objects.",
+  "description": "Zero-dependency JavaScript/TypeScript utility library for production apps: date parsing, string cleanup, list transforms, validators, numbers, regex, constants, and objects.",
   "license": "MIT",
   "type": "module",
   "sideEffects": false,

@@ -1,7 +1,7 @@
 {
   "name": "@jdsalasc/solvejs-regex",
   "version": "1.4.0",
-  "description": "Production-ready JS/TS regex utilities with built-in patterns (uuidV4, ipv4, isoDate) and safe escaping helpers.",
+  "description": "Zero-dependency JavaScript/TypeScript regex utilities: built-in production patterns (UUID v4, IPv4, ISO date) plus safe pattern validation and escaping.",
   "license": "MIT",
   "type": "module",
   "sideEffects": false,

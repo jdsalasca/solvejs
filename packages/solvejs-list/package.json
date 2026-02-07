@@ -1,7 +1,7 @@
 {
   "name": "@jdsalasc/solvejs-list",
   "version": "1.4.0",
-  "description": "Production-ready JS/TS list utilities: uniqueBy, groupBy, keyBy, partition, intersection, difference, and sortBy.",
+  "description": "Zero-dependency JavaScript/TypeScript list utilities for production: uniqueBy, groupBy, keyBy, partition, intersection, difference, chunk, and sortBy.",
   "license": "MIT",
   "type": "module",
   "sideEffects": false,

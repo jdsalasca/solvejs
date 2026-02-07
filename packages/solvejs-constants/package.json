@@ -1,7 +1,7 @@
 {
   "name": "@jdsalasc/solvejs-constants",
   "version": "1.4.0",
-  "description": "Production-ready JS/TS constants for time, file sizes, HTTP methods/headers, and boolean parsing.",
+  "description": "Zero-dependency JavaScript/TypeScript constants for production: time and file-size units, HTTP methods/headers, delimiters, and boolean string parsing.",
   "license": "MIT",
   "type": "module",
   "sideEffects": false,
