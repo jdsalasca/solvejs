@@ -1,5 +1,9 @@
 # @jdsalasc/solvejs-regex
 
+[![npm](https://img.shields.io/npm/v/@jdsalasc/solvejs-regex)](https://www.npmjs.com/package/@jdsalasc/solvejs-regex)
+[![node](https://img.shields.io/node/v/@jdsalasc/solvejs-regex)](https://www.npmjs.com/package/@jdsalasc/solvejs-regex)
+
+
 Zero-dependency regex utilities and production-ready patterns for JavaScript and TypeScript.
 
 ## Utilities

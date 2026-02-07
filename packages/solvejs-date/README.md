@@ -1,5 +1,9 @@
 # @jdsalasc/solvejs-date
 
+[![npm](https://img.shields.io/npm/v/@jdsalasc/solvejs-date)](https://www.npmjs.com/package/@jdsalasc/solvejs-date)
+[![node](https://img.shields.io/node/v/@jdsalasc/solvejs-date)](https://www.npmjs.com/package/@jdsalasc/solvejs-date)
+
+
 Zero-dependency date utilities for JavaScript and TypeScript.
 
 ## Utilities

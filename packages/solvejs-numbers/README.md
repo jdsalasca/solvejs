@@ -1,5 +1,9 @@
 # @jdsalasc/solvejs-numbers
 
+[![npm](https://img.shields.io/npm/v/@jdsalasc/solvejs-numbers)](https://www.npmjs.com/package/@jdsalasc/solvejs-numbers)
+[![node](https://img.shields.io/node/v/@jdsalasc/solvejs-numbers)](https://www.npmjs.com/package/@jdsalasc/solvejs-numbers)
+
+
 Zero-dependency number utilities for JavaScript and TypeScript.
 
 ## Utilities

@@ -1,5 +1,9 @@
 # @jdsalasc/solvejs-constants
 
+[![npm](https://img.shields.io/npm/v/@jdsalasc/solvejs-constants)](https://www.npmjs.com/package/@jdsalasc/solvejs-constants)
+[![node](https://img.shields.io/node/v/@jdsalasc/solvejs-constants)](https://www.npmjs.com/package/@jdsalasc/solvejs-constants)
+
+
 Zero-dependency constants and parsing helpers for JavaScript and TypeScript.
 
 ## Utilities
