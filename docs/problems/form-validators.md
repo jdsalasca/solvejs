@@ -3,10 +3,10 @@
 Use `@jdsalasc/solvejs-validators` for common production validators.
 
 ```ts
-import { isCellphoneNumber, isValidName, isHttpUrl, isStrongPassword } from "@jdsalasc/solvejs-validators";
+import { validateCellphoneNumber, validateName, validateHttpUrl, validateStrongPassword } from "@jdsalasc/solvejs-validators";
 
-isCellphoneNumber("+573001112233"); // true
-isValidName("Maria Fernanda"); // true
-isHttpUrl("https://example.com"); // true
-isStrongPassword("Aa123456!"); // true
+validateCellphoneNumber("+573001112233", { country: "CO" });
+validateName("Maria Fernanda");
+validateHttpUrl("https://example.com");
+validateStrongPassword("Aa123456!");
 ```

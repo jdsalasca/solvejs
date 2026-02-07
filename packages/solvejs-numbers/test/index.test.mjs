@@ -1,6 +1,18 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { average, clamp, median, percent, randomInt, roundTo, sum } from "../dist/esm/index.js";
+import {
+  average,
+  clamp,
+  isBetween,
+  median,
+  percent,
+  percentChange,
+  randomInt,
+  roundTo,
+  safeDivide,
+  sum,
+  toCurrency
+} from "../dist/esm/index.js";
 
 test("numbers helpers", () => {
   assert.equal(clamp(120, 0, 100), 100);
@@ -10,6 +22,10 @@ test("numbers helpers", () => {
   assert.equal(median([10, 1, 3]), 3);
   assert.equal(median([10, 1, 3, 7]), 5);
   assert.equal(percent(25, 200, 1), 12.5);
+  assert.equal(safeDivide(10, 0, -1), -1);
+  assert.equal(percentChange(120, 100, 1), 20);
+  assert.equal(isBetween(5, 1, 10), true);
+  assert.equal(toCurrency(10, "USD", "en-US"), "$10.00");
 });
 
 test("randomInt returns value inside inclusive range", () => {
