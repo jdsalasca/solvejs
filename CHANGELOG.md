@@ -1,5 +1,18 @@
 # Changelog
 
+## 1.4.0 - 2026-02-07
+
+- Added new package `@jdsalasc/solvejs-objects` with `pick`, `omit`, `hasOwn`, `get`, `set`, and `deepMerge`.
+- Expanded validator locale support for phone/postal checks (US, CO, MX, ES, AR, CL, PE, BR).
+- Added validator locale matrix including address-direction locales (`en`, `es`).
+- Added framework integration guides (Next.js, Express, NestJS).
+- Added docs cookbook search/navigation improvements with related-recipe suggestions.
+- Added package inventory generator (`npm run inventory`) with Markdown and HTML outputs.
+- Improved npm package pages with clearer practical descriptions and trust badges.
+- Added monthly community vote automation workflow and issue template.
+- Added adoption comparison guides (`SolveJS vs Lodash`, `SolveJS vs date-fns + validator`).
+- Improved regression coverage with new edge-case tests in string/list/regex packages.
+
 ## 1.3.2 - 2026-02-07
 
 - Improved npm package descriptions and keywords with clearer utility-level phrasing in English.
