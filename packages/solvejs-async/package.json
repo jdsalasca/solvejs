@@ -1,6 +1,6 @@
 {
   "name": "@jdsalasc/solvejs-async",
-  "version": "1.4.1",
+  "version": "1.5.0",
   "description": "Zero-dependency JavaScript/TypeScript async utilities for production: sleep, promise timeout, retry with backoff, and concurrency-limited pMap.",
   "license": "MIT",
   "type": "module",

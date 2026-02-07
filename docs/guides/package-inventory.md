@@ -4,8 +4,8 @@ Generated on 2026-02-07.
 
 | Package | Version | Functions | Consts | Types | Tests |
 |---|---:|---:|---:|---:|---:|
-| @jdsalasc/solvejs | 1.4.1 | 0 | 0 | 0 | 1 |
-| @jdsalasc/solvejs-async | 1.4.1 | 4 | 0 | 2 | 3 |
+| @jdsalasc/solvejs | 1.5.0 | 0 | 0 | 0 | 1 |
+| @jdsalasc/solvejs-async | 1.5.0 | 4 | 0 | 2 | 3 |
 | @jdsalasc/solvejs-constants | 1.4.1 | 1 | 6 | 0 | 1 |
 | @jdsalasc/solvejs-date | 1.4.1 | 13 | 0 | 1 | 3 |
 | @jdsalasc/solvejs-list | 1.4.1 | 10 | 0 | 0 | 2 |
