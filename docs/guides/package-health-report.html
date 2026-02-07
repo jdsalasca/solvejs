@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="SolveJS package health report with status, weak points, and roadmap actions." />
+  <title>Package Health Report | SolveJS</title>
+  <link rel="stylesheet" href="../styles.css" />
+</head>
+<body data-root="..">
+  <main class="page">
+    <section class="hero">
+      <h1>Package Health Report</h1>
+      <p>Updated on 2026-02-07. Status snapshot, known issues, and prioritized improvements.</p>
+    </section>
+
+    <section class="layout">
+      <aside class="panel">
+        <h2>Cookbook Navigation</h2>
+        <nav data-cookbook-nav aria-label="Cookbook pages"></nav>
+      </aside>
+      <section class="panel">
+        <h2>Package Status</h2>
+        <div style="overflow:auto">
+          <table style="width:100%; border-collapse: collapse;">
+            <thead>
+              <tr>
+                <th align="left">Package</th>
+                <th align="left">Practical utilities</th>
+                <th align="left">Current status</th>
+                <th align="left">Known issues</th>
+                <th align="left">Weak points</th>
+                <th align="left">Next improvements</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr><td><code>@jdsalasc/solvejs</code></td><td>Single import surface for all SolveJS domains.</td><td>1.4.0 in repo, tests passing locally.</td><td>Depends on <code>solvejs-objects@1.4.0</code> availability in npm.</td><td>No tree-shake guidance in README.</td><td>Add import-size examples and migration guide.</td></tr>
+              <tr><td><code>@jdsalasc/solvejs-date</code></td><td><code>parseDateStrict</code>, <code>parseIsoDate</code>, <code>parseUnixTimestamp</code>, <code>formatDate</code>.</td><td>1.4.0 stable with tests.</td><td>None critical identified.</td><td>Limited DST/timezone edge-case tests.</td><td>Add DST boundary tests and timezone recipes.</td></tr>
+              <tr><td><code>@jdsalasc/solvejs-string</code></td><td><code>slugify</code>, <code>stripHtml</code>, <code>truncate</code>, <code>mask</code>.</td><td>1.4.0 stable with tests.</td><td>None critical identified.</td><td>Limited Unicode/locale casing coverage.</td><td>Add Unicode normalization tests and notes.</td></tr>
+              <tr><td><code>@jdsalasc/solvejs-list</code></td><td><code>uniqueBy</code>, <code>groupBy</code>, <code>partition</code>, <code>sortBy</code>.</td><td>1.4.0 stable with tests.</td><td>None critical identified.</td><td>Large-array performance guidance is missing.</td><td>Add benchmark section for 10k/100k operations.</td></tr>
+              <tr><td><code>@jdsalasc/solvejs-regex</code></td><td><code>REGEX_PATTERNS</code>, <code>validateByName</code>, <code>escapeRegex</code>.</td><td>1.4.0 stable with tests.</td><td>None critical identified.</td><td>Pattern catalog can be wider for global use cases.</td><td>Add patterns plus false-positive examples.</td></tr>
+              <tr><td><code>@jdsalasc/solvejs-constants</code></td><td><code>TIME</code>, <code>FILE_SIZE_BYTES</code>, <code>HTTP_METHODS</code>, <code>COMMON_HTTP_HEADERS</code>.</td><td>1.4.0 stable with tests.</td><td>None critical identified.</td><td>Docs naming mismatch can confuse users.</td><td>Align docs with exported identifiers exactly.</td></tr>
+              <tr><td><code>@jdsalasc/solvejs-numbers</code></td><td><code>toNumber</code>, <code>safeDivide</code>, <code>percentChange</code>, <code>toCurrency</code>.</td><td>1.4.0 stable with tests.</td><td>None critical identified.</td><td>No precision caveats for finance-heavy flows.</td><td>Add precision guidance with examples.</td></tr>
+              <tr><td><code>@jdsalasc/solvejs-validators</code></td><td><code>validate*</code>/<code>is*</code> for phone, postal, username, UUID, IPv4, ISO date.</td><td>1.4.0 stable, locale matrix documented.</td><td>Legacy typo aliases kept for compatibility.</td><td>Country coverage still limited to current matrix.</td><td>Add deprecation notes and expand locale packs.</td></tr>
+              <tr><td><code>@jdsalasc/solvejs-objects</code></td><td><code>pick</code>, <code>omit</code>, <code>get</code>, <code>set</code>, <code>deepMerge</code>.</td><td>1.4.0 code complete and tested locally.</td><td>npm lookup returned <code>Not found</code> during audit.</td><td>Single test file; nested path cases can expand.</td><td>Fix npm visibility and add deeper tests.</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+    </section>
+
+    <section class="panel">
+      <h2>Priority Order</h2>
+      <ol class="topic-list">
+        <li>Resolve npm visibility/publication state for <code>@jdsalasc/solvejs-objects</code>.</li>
+        <li>Increase edge-case tests in <code>date</code>, <code>string</code>, and <code>objects</code>.</li>
+        <li>Improve practical README/API examples for production constraints.</li>
+        <li>Add linting baseline and enforce in CI.</li>
+      </ol>
+    </section>
+
+    <p class="back-link"><a class="inline-link" href="../index.html">Back to docs home</a></p>
+  </main>
+  <script src="../app.js"></script>
+</body>
+</html>
