@@ -32,3 +32,7 @@ const revenue = toNumber("12,500");
 const ratio = safeDivide(50, 0, 0);
 const growth = percentChange(120, 100); // 20
 ```
+
+## Precision note
+
+JavaScript numbers are floating-point. For money-sensitive flows, apply explicit rounding steps (for example `roundTo(value, 2)`) at domain boundaries (tax, subtotal, invoice total).

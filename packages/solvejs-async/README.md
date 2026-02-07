@@ -11,6 +11,8 @@ Zero-dependency async/concurrency utilities for JavaScript and TypeScript.
 - `timeout`
 - `retry`
 - `pMap`
+- `debouncePromise`
+- `throttlePromise`
 
 ## When to use this package
 

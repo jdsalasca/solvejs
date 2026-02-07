@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { pMap, retry, sleep, timeout } from "../dist/esm/index.js";
+import { debouncePromise, pMap, retry, sleep, throttlePromise, timeout } from "../dist/esm/index.js";
 
 test("sleep and timeout utilities", async () => {
   const start = Date.now();
@@ -54,4 +54,31 @@ test("pMap preserves order and enforces concurrency", async () => {
 
   assert.deepEqual(result, [2, 4, 6, 8]);
   assert.equal(maxActive <= 2, true);
+});
+
+test("debouncePromise resolves latest call", async () => {
+  const fn = debouncePromise(async (value) => value * 2, { waitMs: 5 });
+  const first = fn(1);
+  const second = fn(2);
+
+  await assert.rejects(() => first, /Debounced by a newer call/);
+  assert.equal(await second, 4);
+});
+
+test("throttlePromise runs at most once per window", async () => {
+  let calls = 0;
+  const fn = throttlePromise(async (value) => {
+    calls += 1;
+    return value * 3;
+  }, { waitMs: 20 });
+
+  const first = await fn(2);
+  const second = await fn(3);
+  await sleep(25);
+  const third = await fn(4);
+
+  assert.equal(first, 6);
+  assert.equal(second, undefined);
+  assert.equal(third, 12);
+  assert.equal(calls, 2);
 });

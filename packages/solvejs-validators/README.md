@@ -35,4 +35,6 @@ validateUuidV4("550e8400-e29b-41d4-a716-446655440000");
 // Postal code examples by country:
 // validatePostalCode("110111", { country: "CO" });
 // validatePostalCode("28013", { country: "ES" });
+// validatePostalCode("K1A 0B1", { country: "CA" });
+// validatePostalCode("11000", { country: "UY" });
 ```

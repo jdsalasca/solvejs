@@ -46,3 +46,19 @@ test("strict parsing and utc parts", () => {
   assert.equal(parseUnixTimestamp(1738886400000)?.toISOString(), "2025-02-07T00:00:00.000Z");
   assert.equal(toIsoDate(new Date("2026-02-07T18:30:00.000Z")), "2026-02-07");
 });
+
+test("timezone offsets and DST-like boundaries keep UTC-safe behavior", () => {
+  // 2026-03-08 is DST start in many US zones; we validate UTC-safe calculations.
+  const beforeSwitch = parseIsoDate("2026-03-08T01:30:00-05:00");
+  const afterSwitch = parseIsoDate("2026-03-08T03:30:00-04:00");
+
+  assert.ok(beforeSwitch);
+  assert.ok(afterSwitch);
+  assert.equal(diffInDays(afterSwitch, beforeSwitch), 0);
+  assert.equal(toIsoDate(beforeSwitch), "2026-03-08");
+  assert.equal(toIsoDate(afterSwitch), "2026-03-08");
+
+  const monthBoundary = parseIsoDate("2026-03-31T23:30:00-05:00");
+  assert.ok(monthBoundary);
+  assert.equal(toIsoDate(addDays(monthBoundary, 1)), "2026-04-02");
+});

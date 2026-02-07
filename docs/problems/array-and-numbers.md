@@ -18,3 +18,8 @@ if (current !== null && previous !== null) {
   safeDivide(current, 0, 0);
 }
 ```
+
+Notes:
+
+- For financial values, prefer rounding (`roundTo`) at clear boundaries to avoid floating-point drift.
+- For large lists (`10k`/`100k`), run `npm run benchmark` and validate `uniqueBy`, `groupBy`, and `sortBy` behavior on representative data.

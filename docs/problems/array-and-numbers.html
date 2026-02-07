@@ -47,6 +47,11 @@ if (current !== null && previous !== null) {
   safeDivide(current, 0, 0);
 }</code></pre>
         <p class="caption">Why this works: utility composition keeps transforms explicit and reduces hidden edge cases.</p>
+        <h3>Production Notes</h3>
+        <ul class="topic-list">
+          <li>For financial values, apply explicit rounding boundaries (for example with <code>roundTo</code>) to control floating-point drift.</li>
+          <li>For large list workloads (<code>10k</code>/<code>100k</code>), run <code>npm run benchmark</code> and validate <code>uniqueBy</code>, <code>groupBy</code>, and <code>sortBy</code> against representative data shapes.</li>
+        </ul>
         <h3>Quick Search</h3>
         <input class="search-box" data-doc-search type="search" placeholder="Search more recipes" />
         <div data-search-results></div>

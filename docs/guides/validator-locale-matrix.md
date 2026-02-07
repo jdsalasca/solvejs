@@ -10,6 +10,8 @@ Current coverage for `validateCellphoneNumber`, `validatePostalCode`, and `valid
 - `CL`: phone + postal
 - `PE`: phone + postal
 - `BR`: phone + postal
+- `CA`: phone + postal
+- `UY`: phone + postal
 - `ANY`: phone-only preset
 
 `validatePostalCode` is country-aware with `validatePostalCode(value, { country })`.

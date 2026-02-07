@@ -69,7 +69,10 @@ export function get<T>(value: unknown, path: string, fallback?: T): T | undefine
     return fallback;
   }
 
-  const segments = path.split(".").filter(Boolean);
+  const segments = path
+    .split(".")
+    .map((segment) => segment.trim())
+    .filter(Boolean);
   let current: unknown = value;
 
   for (const segment of segments) {
@@ -97,7 +100,10 @@ export function set<T extends object>(value: T, path: string, nextValue: unknown
     throw new TypeError("Expected value to be an object.");
   }
 
-  const segments = path.split(".").filter(Boolean);
+  const segments = path
+    .split(".")
+    .map((segment) => segment.trim())
+    .filter(Boolean);
   if (segments.length === 0) {
     throw new TypeError("Expected path to be a non-empty dot path.");
   }

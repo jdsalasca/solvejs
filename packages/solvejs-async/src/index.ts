@@ -143,3 +143,92 @@ export async function pMap<T, R>(
   await Promise.all(Array.from({ length: limit }, () => worker()));
   return results;
 }
+
+export type DebouncePromiseOptions = {
+  waitMs: number;
+};
+
+/**
+ * Debounces async calls and only resolves the latest invocation.
+ *
+ * @param fn - Async function to debounce.
+ * @param options - Debounce options.
+ * @returns Debounced async function.
+ */
+export function debouncePromise<TArgs extends unknown[], TResult>(
+  fn: (...args: TArgs) => Promise<TResult> | TResult,
+  options: DebouncePromiseOptions
+): (...args: TArgs) => Promise<TResult> {
+  const waitMs = options.waitMs;
+  assertNonNegativeFinite(waitMs, "waitMs");
+
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  let latestCall = 0;
+  let previousReject: ((reason?: unknown) => void) | undefined;
+
+  return (...args: TArgs) =>
+    new Promise<TResult>((resolve, reject) => {
+      latestCall += 1;
+      const callId = latestCall;
+      if (previousReject) {
+        previousReject(new Error("Debounced by a newer call."));
+      }
+      previousReject = reject;
+
+      if (timer) {
+        clearTimeout(timer);
+      }
+
+      timer = setTimeout(async () => {
+        try {
+          const result = await fn(...args);
+          if (callId === latestCall) {
+            previousReject = undefined;
+            resolve(result);
+          }
+        } catch (error) {
+          if (callId === latestCall) {
+            previousReject = undefined;
+            reject(error);
+          }
+        }
+      }, waitMs);
+    });
+}
+
+export type ThrottlePromiseOptions = {
+  waitMs: number;
+};
+
+/**
+ * Throttles async calls and runs at most once per window.
+ *
+ * @param fn - Async function to throttle.
+ * @param options - Throttle options.
+ * @returns Throttled async function.
+ */
+export function throttlePromise<TArgs extends unknown[], TResult>(
+  fn: (...args: TArgs) => Promise<TResult> | TResult,
+  options: ThrottlePromiseOptions
+): (...args: TArgs) => Promise<TResult | undefined> {
+  const waitMs = options.waitMs;
+  assertNonNegativeFinite(waitMs, "waitMs");
+
+  let lastExecution = 0;
+  let inFlight: Promise<TResult> | null = null;
+
+  return async (...args: TArgs) => {
+    const now = Date.now();
+    if (now - lastExecution < waitMs) {
+      return undefined;
+    }
+
+    lastExecution = now;
+    inFlight = Promise.resolve(fn(...args));
+    try {
+      return await inFlight;
+    } finally {
+      inFlight = null;
+    }
+  };
+}

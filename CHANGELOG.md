@@ -2,6 +2,14 @@
 
 ## Unreleased
 
+- Improved quality coverage across packages:
+  - Added DST/timezone edge tests in `solvejs-date`.
+  - Added Unicode/locale edge tests in `solvejs-string`.
+  - Added nested-path and mutation-safety tests in `solvejs-objects` plus robust path segment trimming in `get`/`set`.
+- Expanded validator country coverage with `CA` and `UY` for phone/postal validation plus matrix/docs updates.
+- Upgraded async package with `debouncePromise` and `throttlePromise` including tests and README updates.
+- Added list-scale benchmark guidance (`10k`/`100k`) and benchmark script coverage for `uniqueBy`, `groupBy`, and `sortBy`.
+- Added precision guidance for financial number workflows in docs/README.
 - Added new package `@jdsalasc/solvejs-async` with `sleep`, `timeout`, `retry`, and `pMap`, integrated into monorepo build/test and meta exports.
 - Added async cookbook recipe page (`docs/problems/async-control.md` and `.html`) and docs navigation entries.
 - Added new package opportunities guide (`docs/guides/new-package-opportunities.md`) with prioritized next-package options.

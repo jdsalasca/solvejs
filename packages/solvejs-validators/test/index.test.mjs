@@ -35,6 +35,8 @@ test("boolean validators keep compatibility", () => {
   assert.equal(isEmail("user@example.com"), true);
   assert.equal(isHttpUrl("https://solvejs.dev"), true);
   assert.equal(isPostalCode("12345-6789"), true);
+  assert.equal(isPostalCode("K1A 0B1", { country: "CA" }), true);
+  assert.equal(isPostalCode("11000", { country: "UY" }), true);
   assert.equal(isPostalCode("110111", { country: "CO" }), true);
   assert.equal(isPostalCode("28013", { country: "ES" }), true);
   assert.equal(isAddressLine("221B Baker Street"), true);
@@ -56,9 +58,13 @@ test("structured validators return codes and messages", () => {
   assert.equal(validatePostalCode("110111", { country: "CO" }).ok, true);
   assert.equal(validatePostalCode("28013", { country: "ES" }).ok, true);
   assert.equal(validatePostalCode("7500000", { country: "CL" }).ok, true);
+  assert.equal(validatePostalCode("K1A0B1", { country: "CA" }).ok, true);
+  assert.equal(validatePostalCode("11000", { country: "UY" }).ok, true);
   assert.equal(validatePostalCode("110111", { country: "US" }).ok, false);
   assert.equal(validateCellphoneNumber("+5491123456789", { country: "AR" }).ok, true);
   assert.equal(validateCellphoneNumber("+5511912345678", { country: "BR" }).ok, true);
+  assert.equal(validateCellphoneNumber("+14165551234", { country: "CA" }).ok, true);
+  assert.equal(validateCellphoneNumber("+59899123456", { country: "UY" }).ok, true);
   assert.equal(validateCreditCardNumber("1234").code, "INVALID_FORMAT");
   assert.equal(validateIsoDateString("2026-02-30").code, "INVALID_FORMAT");
 });

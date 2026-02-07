@@ -33,3 +33,7 @@ const uniqueRows = uniqueBy(rows, (r) => r.id);
 const byTeam = groupBy(uniqueRows, (r) => r.team);
 sortBy(byTeam.x, (r) => r.score, "desc");
 ```
+
+## Scale note
+
+For high-volume pipelines (`10k`/`100k` rows), run `npm run benchmark` from the monorepo to profile `uniqueBy`, `groupBy`, and `sortBy` with your real data shape.

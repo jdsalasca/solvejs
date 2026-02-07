@@ -22,3 +22,24 @@ test("object helpers", () => {
   );
   assert.deepEqual(merged, { app: { retries: 2, flags: { a: true, b: true } } });
 });
+
+test("nested path creation, fallback behavior, and mutation guarantees", () => {
+  const state = {};
+  const sameRef = set(state, "a.b.c", 1);
+  assert.equal(sameRef, state);
+  assert.deepEqual(state, { a: { b: { c: 1 } } });
+  assert.equal(get(state, "a.b.c"), 1);
+  assert.equal(get(state, "a.x.c", "fallback"), "fallback");
+  assert.throws(() => set({}, "   ", 1), /non-empty dot path/i);
+  assert.throws(() => set(null, "a.b", 1), /Expected value to be an object/i);
+});
+
+test("deepMerge does not mutate source objects and replaces arrays", () => {
+  const left = { app: { flags: { a: true }, list: [1, 2] } };
+  const right = { app: { flags: { b: true }, list: [3] } };
+  const output = deepMerge(left, right);
+
+  assert.deepEqual(left, { app: { flags: { a: true }, list: [1, 2] } });
+  assert.deepEqual(right, { app: { flags: { b: true }, list: [3] } });
+  assert.deepEqual(output, { app: { flags: { a: true, b: true }, list: [3] } });
+});

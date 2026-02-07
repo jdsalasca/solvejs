@@ -22,6 +22,11 @@ test("string helpers edge cases", () => {
   assert.equal(mask("1234", 0), "****");
   assert.equal(stripHtml("<div><p>safe</p></div>"), "safe");
   assert.equal(toTitleCase("   MANY    spaces "), "Many Spaces");
+  assert.equal(toKebabCase("Straße für Öl"), "stra-e-fur-ol");
+  assert.equal(toCamelCase("İstanbul büyükşehir"), "istanbulBuyuksehir");
+  assert.equal(toTitleCase("mañana útil"), "Mañana Útil");
+  assert.equal(truncate("😀😀😀", 2), "..");
+  assert.equal(mask("🔒secret", 3), "*****ret");
   assert.throws(() => truncate("x", -1), /non-negative integer/i);
   assert.throws(() => mask("x", -1), /non-negative integer/i);
 });
