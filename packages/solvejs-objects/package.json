@@ -1,7 +1,7 @@
 {
   "name": "@jdsalasc/solvejs-objects",
   "version": "1.4.0",
-  "description": "Production-ready JS/TS object utilities: pick, omit, hasOwn, get/set nested paths, and deepMerge.",
+  "description": "Zero-dependency JavaScript/TypeScript object utilities for production: pick, omit, hasOwn, nested get/set by path, and deepMerge for config/state.",
   "license": "MIT",
   "type": "module",
   "sideEffects": false,

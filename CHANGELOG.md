@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- Restored remote `develop` branch from `main` to re-enable GitFlow-style branch targets.
+- Refined npm package descriptions in all published packages to emphasize practical utility-level value in English.
+- Revalidated package health report with updated deficiencies and priorities after npm visibility recovery.
 - Fixed `.github/workflows/release.yml` by removing broken publish command, adding per-workspace matrix publish, npm token validation, and idempotent version-exists checks.
 - Added package health report docs (`docs/guides/package-health-report.md` and `.html`) with package status, issues, weak points, and prioritized actions.
 - Updated docs navigation to include the new package health report.
