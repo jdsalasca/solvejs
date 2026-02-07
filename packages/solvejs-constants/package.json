@@ -1,6 +1,6 @@
 {
   "name": "@jdsalasc/solvejs-constants",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Shared constants for common development use cases.",
   "license": "MIT",
   "type": "module",
@@ -29,5 +29,24 @@
   },
   "publishConfig": {
     "access": "public"
-  }
+  },
+  "author": "jdsalasc",
+  "homepage": "https://github.com/jdsalasca/solvejs#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/jdsalasca/solvejs.git"
+  },
+  "bugs": {
+    "url": "https://github.com/jdsalasca/solvejs/issues"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "keywords": [
+    "constants",
+    "time constants",
+    "javascript constants",
+    "typescript constants",
+    "solvejs"
+  ]
 }

@@ -1,6 +1,6 @@
 {
   "name": "@jdsalasc/solvejs-string",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "String utilities for casing, trimming, and normalization.",
   "license": "MIT",
   "type": "module",
@@ -29,5 +29,24 @@
   },
   "publishConfig": {
     "access": "public"
-  }
+  },
+  "author": "jdsalasc",
+  "homepage": "https://github.com/jdsalasca/solvejs#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/jdsalasca/solvejs.git"
+  },
+  "bugs": {
+    "url": "https://github.com/jdsalasca/solvejs/issues"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "keywords": [
+    "string utils",
+    "kebab case",
+    "camel case",
+    "typescript string",
+    "solvejs"
+  ]
 }
