@@ -1,0 +1,23 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="How to deduplicate arrays and calculate percentages safely in JavaScript and TypeScript." />
+  <title>Array and Number Utilities | SolveJS</title>
+  <link rel="stylesheet" href="../styles.css" />
+</head>
+<body>
+  <main class="container">
+    <h1>How to Deduplicate Arrays and Compute Percentages Safely</h1>
+    <p>Use <code>@jdsalasc/solvejs-list</code> and <code>@jdsalasc/solvejs-numbers</code> for practical transformations and safe math.</p>
+    <pre><code>import { unique, sortBy } from "@jdsalasc/solvejs-list";
+import { percentChange } from "@jdsalasc/solvejs-numbers";
+
+unique([1, 1, 2, 3]); // [1, 2, 3]
+sortBy([{ n: 2 }, { n: 1 }], (x) => x.n); // [{ n: 1 }, { n: 2 }]
+percentChange(120, 100); // 20</code></pre>
+    <p><a href="../index.html">Back to docs</a></p>
+  </main>
+</body>
+</html>

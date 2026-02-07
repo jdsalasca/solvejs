@@ -25,4 +25,4 @@
 - [ ] Add docs website search and cookbook navigation.
 - [ ] Add locale packs for validators (more countries and postal formats).
 - [ ] Add object utilities package (`solvejs-objects`) based on community demand.
-- [ ] Publish and announce `v1.2.0` across npm and GitHub release notes.
+- [x] Publish and announce `v1.2.0` across npm and GitHub release notes.

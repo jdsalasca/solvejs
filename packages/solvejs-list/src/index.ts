@@ -9,6 +9,26 @@ export function unique<T>(values: readonly T[]): T[] {
 }
 
 /**
+ * Removes duplicates by a derived key while preserving first-seen order.
+ *
+ * @param values - Input collection.
+ * @param selector - Key selector function.
+ * @returns Deduplicated array by selector key.
+ */
+export function uniqueBy<T, K extends PropertyKey>(values: readonly T[], selector: (value: T) => K): T[] {
+  const seen = new Set<K>();
+  const output: T[] = [];
+  for (const value of values) {
+    const key = selector(value);
+    if (!seen.has(key)) {
+      seen.add(key);
+      output.push(value);
+    }
+  }
+  return output;
+}
+
+/**
  * Removes falsy values from a list.
  *
  * @param values - Input collection possibly containing falsy values.
@@ -100,6 +120,18 @@ export function keyBy<T, K extends PropertyKey>(values: readonly T[], selector: 
 export function intersection<T>(left: readonly T[], right: readonly T[]): T[] {
   const rightSet = new Set(right);
   return left.filter((value) => rightSet.has(value));
+}
+
+/**
+ * Returns items present in the left array and absent from the right array.
+ *
+ * @param left - Left collection.
+ * @param right - Right collection.
+ * @returns Difference array (`left - right`).
+ */
+export function difference<T>(left: readonly T[], right: readonly T[]): T[] {
+  const rightSet = new Set(right);
+  return left.filter((value) => !rightSet.has(value));
 }
 
 /**

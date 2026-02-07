@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <url>
+    <loc>https://jdsalasca.github.io/solvejs/</loc>
+  </url>
+  <url>
+    <loc>https://jdsalasca.github.io/solvejs/problems/date-format.html</loc>
+  </url>
+  <url>
+    <loc>https://jdsalasca.github.io/solvejs/problems/form-validators.html</loc>
+  </url>
+  <url>
+    <loc>https://jdsalasca.github.io/solvejs/problems/array-and-numbers.html</loc>
+  </url>
+  <url>
+    <loc>https://jdsalasca.github.io/solvejs/problems/string-format.html</loc>
+  </url>
+  <url>
+    <loc>https://jdsalasca.github.io/solvejs/problems/regex-patterns.html</loc>
+  </url>
+</urlset>

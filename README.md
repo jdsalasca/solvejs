@@ -77,6 +77,10 @@ npm run benchmark
 - Contribution guide: `CONTRIBUTING.md`
 - Code of conduct: `CODE_OF_CONDUCT.md`
 - Community roadmap: `TODO.md`
+- Marketing and growth plan: `MARKETING_PLAN.md`
+- npm positioning guide: `NPM_POSITIONING.md`
+- Positioning execution checklist: `POSITIONING_CHECKLIST.md`
+- Community pain-point analysis: `COMMUNITY_PAIN_POINTS.md`
 
 ## License
 

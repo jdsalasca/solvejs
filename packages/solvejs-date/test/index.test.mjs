@@ -11,7 +11,9 @@ import {
   isLeapYear,
   parseDateStrict,
   parseIsoDate,
-  startOfDay
+  parseUnixTimestamp,
+  startOfDay,
+  toIsoDate
 } from "../dist/esm/index.js";
 
 test("formatDate formats in supported tokens", () => {
@@ -40,4 +42,7 @@ test("strict parsing and utc parts", () => {
   assert.equal(diffInDays(new Date("2026-02-10T00:00:00.000Z"), new Date("2026-02-07T00:00:00.000Z")), 3);
   assert.equal(isLeapYear(2024), true);
   assert.equal(daysInMonth(2026, 2), 28);
+  assert.equal(parseUnixTimestamp(1738886400, "seconds")?.toISOString(), "2025-02-07T00:00:00.000Z");
+  assert.equal(parseUnixTimestamp(1738886400000)?.toISOString(), "2025-02-07T00:00:00.000Z");
+  assert.equal(toIsoDate(new Date("2026-02-07T18:30:00.000Z")), "2026-02-07");
 });

@@ -7,7 +7,7 @@ Zero-dependency numeric helpers for analytics, pricing, and business logic.
 - `clamp`, `roundTo`, `sum`, `average`, `median`
 - `percent`, `percentChange`
 - `safeDivide`, `isBetween`
-- `toCurrency`, `randomInt`
+- `toCurrency`, `toNumber`, `randomInt`
 
 ## Install
 
