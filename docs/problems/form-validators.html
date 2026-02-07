@@ -18,6 +18,16 @@
       <aside class="panel">
         <h2>Cookbook Navigation</h2>
         <nav data-cookbook-nav aria-label="Cookbook pages"></nav>
+        <noscript>
+          <ul class="cookbook-list">
+            <li><a class="cookbook-link" href="../problems/date-format.html">Format and Parse Dates Safely</a></li>
+            <li><a class="cookbook-link" href="../problems/form-validators.html">Validate Form and API Inputs</a></li>
+            <li><a class="cookbook-link" href="../problems/array-and-numbers.html">Transform Arrays and Run Safe Math</a></li>
+            <li><a class="cookbook-link" href="../problems/string-format.html">Normalize and Sanitize Strings</a></li>
+            <li><a class="cookbook-link" href="../problems/regex-patterns.html">Use Common Regex Patterns</a></li>
+            <li><a class="cookbook-link" href="../problems/object-utils.html">Shape and Merge Objects</a></li>
+          </ul>
+        </noscript>
       </aside>
 
       <section class="panel">
@@ -34,6 +44,11 @@ validateUsername("solvejs_team");
 validateHttpUrl("https://solvejs.dev");
 validateUuidV4("550e8400-e29b-41d4-a716-446655440000");</code></pre>
         <p class="caption">Why this works: each validator returns actionable failure codes for better UX and API error mapping.</p>
+        <h3>Quick Search</h3>
+        <input class="search-box" data-doc-search type="search" placeholder="Search more recipes" />
+        <div data-search-results></div>
+        <h3>Related Recipes</h3>
+        <div data-related-recipes></div>
       </section>
     </section>
 

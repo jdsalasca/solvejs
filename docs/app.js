@@ -59,6 +59,11 @@ function normalize(value) {
   return String(value || "").toLowerCase();
 }
 
+function currentTopic() {
+  const filename = location.pathname.split("/").pop() || "index.html";
+  return TOPICS.find((topic) => topic.path.endsWith(filename));
+}
+
 function topicHref(topic) {
   const root = document.body.dataset.root || ".";
   return `${root}/${topic.path}`;
@@ -164,7 +169,41 @@ function initCookbookNav() {
   nav.appendChild(list);
 }
 
+function initRelatedRecipes() {
+  const container = document.querySelector("[data-related-recipes]");
+  const topic = currentTopic();
+  if (!container || !topic) {
+    return;
+  }
+
+  const related = TOPICS
+    .filter((entry) => entry.id !== topic.id)
+    .map((entry) => {
+      const sharedTags = entry.tags.filter((tag) => topic.tags.includes(tag)).length;
+      const sharedPackages = entry.packages.filter((pkg) => topic.packages.includes(pkg)).length;
+      return { entry, score: sharedTags * 2 + sharedPackages };
+    })
+    .filter((entry) => entry.score > 0)
+    .sort((a, b) => b.score - a.score)
+    .slice(0, 3)
+    .map((entry) => entry.entry);
+
+  if (related.length === 0) {
+    return;
+  }
+
+  const list = document.createElement("ul");
+  list.className = "topic-list";
+  for (const entry of related) {
+    const item = document.createElement("li");
+    item.innerHTML = `<a class="topic-link" href="${topicHref(entry)}">${entry.title}</a><p>${entry.description}</p>`;
+    list.appendChild(item);
+  }
+  container.appendChild(list);
+}
+
 document.addEventListener("DOMContentLoaded", () => {
   initSearch();
   initCookbookNav();
+  initRelatedRecipes();
 });
