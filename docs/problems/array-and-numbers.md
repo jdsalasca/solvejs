@@ -1,14 +1,20 @@
 # Array and number utility recipes
 
-Use `@jdsalasc/solvejs-list` and `@jdsalasc/solvejs-numbers` for common data processing tasks.
+Use `@jdsalasc/solvejs-list` and `@jdsalasc/solvejs-numbers` for practical data transformations and safe business math.
 
 ```ts
-import { unique, groupBy } from "@jdsalasc/solvejs-list";
-import { average, percent, clamp } from "@jdsalasc/solvejs-numbers";
+import { uniqueBy, groupBy, sortBy } from "@jdsalasc/solvejs-list";
+import { toNumber, safeDivide, percentChange } from "@jdsalasc/solvejs-numbers";
 
-unique([1, 1, 2, 3]); // [1, 2, 3]
-groupBy(["one", "two", "three"], v => v.length);
-average([10, 20, 30]); // 20
-percent(25, 200, 1); // 12.5
-clamp(140, 0, 100); // 100
+const rows = [{ id: "a", team: "x", value: "120" }, { id: "a", team: "x", value: "120" }, { id: "b", team: "y", value: "80" }];
+const uniqueRows = uniqueBy(rows, (r) => r.id);
+const grouped = groupBy(uniqueRows, (r) => r.team);
+const sorted = sortBy(uniqueRows, (r) => Number(r.value), "desc");
+
+const current = toNumber(sorted[0].value);
+const previous = toNumber(sorted[1].value);
+if (current !== null && previous !== null) {
+  percentChange(current, previous);
+  safeDivide(current, 0, 0);
+}
 ```

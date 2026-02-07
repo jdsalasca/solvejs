@@ -1,16 +1,30 @@
 # @jdsalasc/solvejs-numbers
 
-Zero-dependency numeric helpers for analytics, pricing, and business logic.
+Zero-dependency number utilities for JavaScript and TypeScript.
 
-## Tools Included
+## Utilities
 
 - `clamp`, `roundTo`, `sum`, `average`, `median`
 - `percent`, `percentChange`
 - `safeDivide`, `isBetween`
 - `toCurrency`, `toNumber`, `randomInt`
 
+## When to use this package
+
+Use it when you need safer business math and robust number parsing for forms, analytics, and pricing logic.
+
 ## Install
 
 ```bash
 npm i @jdsalasc/solvejs-numbers
+```
+
+## Quick example
+
+```ts
+import { toNumber, safeDivide, percentChange } from "@jdsalasc/solvejs-numbers";
+
+const revenue = toNumber("12,500");
+const ratio = safeDivide(50, 0, 0);
+const growth = percentChange(120, 100); // 20
 ```

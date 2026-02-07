@@ -3,23 +3,40 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="description" content="Common regex patterns for JavaScript apps, including email, UUID v4, IPv4, and escaping helpers." />
-  <title>Common Regex Patterns for JavaScript | SolveJS</title>
+  <meta name="description" content="Use tested regex patterns in JavaScript and TypeScript for common validation tasks." />
+  <title>Use Common Regex Patterns | SolveJS</title>
   <link rel="stylesheet" href="../styles.css" />
 </head>
-<body>
-  <main class="container">
-    <h1>Common Regex Patterns for JavaScript Apps</h1>
-    <p>Use <code>@jdsalasc/solvejs-regex</code> for production-ready regex patterns and helpers.</p>
-    <pre><code>import { REGEX_PATTERNS, testPattern, escapeRegex } from "@jdsalasc/solvejs-regex";
+<body data-root="..">
+  <main class="page">
+    <section class="hero">
+      <h1>Use Common Regex Patterns</h1>
+      <p>Use <code>@jdsalasc/solvejs-regex</code> for tested patterns and safer dynamic regex composition.</p>
+    </section>
+
+    <section class="layout">
+      <aside class="panel">
+        <h2>Cookbook Navigation</h2>
+        <nav data-cookbook-nav aria-label="Cookbook pages"></nav>
+      </aside>
+
+      <section class="panel">
+        <h2>Recipe</h2>
+        <pre><code>import { REGEX_PATTERNS, testPattern, validateByName, escapeRegex } from "@jdsalasc/solvejs-regex";
 
 testPattern("dev@solvejs.dev", REGEX_PATTERNS.email); // true
-testPattern("550e8400-e29b-41d4-a716-446655440000", REGEX_PATTERNS.uuidV4); // true
-testPattern("192.168.0.1", REGEX_PATTERNS.ipv4); // true
+validateByName("550e8400-e29b-41d4-a716-446655440000", "uuidV4"); // true
+validateByName("192.168.0.1", "ipv4"); // true
 
-const safe = new RegExp(escapeRegex("(a+b)*"), "g");
-safe.test("(a+b)*"); // true</code></pre>
-    <p><a href="../index.html">Back to docs</a></p>
+const safePattern = new RegExp(`^${escapeRegex("(a+b)*")}$`);
+safePattern.test("(a+b)*"); // true</code></pre>
+        <p class="caption">Why this works: common checks are centralized and dynamic regex construction is escaped safely.</p>
+      </section>
+    </section>
+
+    <p class="back-link"><a class="inline-link" href="../index.html">Back to docs home</a></p>
   </main>
+
+  <script src="../app.js"></script>
 </body>
 </html>
