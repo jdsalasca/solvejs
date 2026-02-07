@@ -1,5 +1,15 @@
 # Changelog
 
+## 1.1.0 - 2026-02-07
+
+- Added structured validation API (`ValidationResult`) in `@jdsalasc/solvejs-validators`.
+- Added country-aware cellphone validation presets and locale-aware address directions.
+- Added strict date parsing (`parseDateStrict`) and UTC constructor (`fromUtcParts`).
+- Added business number helpers: `safeDivide`, `percentChange`, `isBetween`, `toCurrency`.
+- Added benchmark starter (`npm run benchmark`).
+- Added governance files (`CONTRIBUTING.md`, `CODE_OF_CONDUCT.md`) and issue templates.
+- Added implementation TODO tracker in `TODO.md`.
+
 ## 1.0.3 - 2026-02-07
 
 - Published hotfix release for `@jdsalasc/solvejs-numbers` and `@jdsalasc/solvejs-validators`.

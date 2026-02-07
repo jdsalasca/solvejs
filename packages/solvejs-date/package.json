@@ -1,6 +1,6 @@
 {
   "name": "@jdsalasc/solvejs-date",
-  "version": "1.0.2",
+  "version": "1.1.0",
   "description": "Date utilities for real-world JS/TS pain points: parse, format, day boundaries, and date arithmetic.",
   "license": "MIT",
   "type": "module",

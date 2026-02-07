@@ -53,6 +53,15 @@ clamp(140, 0, 100); // 100
 isCellphoneNumber("+573001112233"); // true
 ```
 
+Structured validator example:
+
+```ts
+import { validateCellphoneNumber } from "@jdsalasc/solvejs";
+
+const result = validateCellphoneNumber("+573001112233", { country: "CO" });
+// { ok: true, code: "VALID", message: "Valid cellphone number." }
+```
+
 ## Common Problems SolveJS Targets
 
 - How to format dates in JavaScript.
@@ -74,6 +83,7 @@ isCellphoneNumber("+573001112233"); // true
 npm install
 npm run build
 npm test
+npm run benchmark
 ```
 
 ## GitFlow

@@ -154,3 +154,79 @@ export function randomInt(min: number, max: number): number {
 
   return Math.floor(Math.random() * (max - min + 1)) + min;
 }
+
+/**
+ * Safely divides two numbers with a fallback value.
+ *
+ * @param numerator - Dividend.
+ * @param denominator - Divisor.
+ * @param fallback - Value returned when denominator is zero.
+ * @returns Division result or fallback when denominator is zero.
+ * @throws {TypeError} If numeric inputs are not finite.
+ */
+export function safeDivide(numerator: number, denominator: number, fallback = 0): number {
+  assertFinite(numerator, "numerator");
+  assertFinite(denominator, "denominator");
+  assertFinite(fallback, "fallback");
+
+  if (denominator === 0) {
+    return fallback;
+  }
+
+  return numerator / denominator;
+}
+
+/**
+ * Calculates percentual change from `previous` to `current`.
+ *
+ * @param current - Current value.
+ * @param previous - Previous value.
+ * @param decimals - Decimal precision.
+ * @returns Percentual change where 10 means +10%.
+ * @throws {TypeError} If values are not finite.
+ * @throws {RangeError} If `previous` is zero.
+ */
+export function percentChange(current: number, previous: number, decimals = 2): number {
+  assertFinite(current, "current");
+  assertFinite(previous, "previous");
+  if (previous === 0) {
+    throw new RangeError("Cannot compute percent change when previous is zero.");
+  }
+  return roundTo(((current - previous) / Math.abs(previous)) * 100, decimals);
+}
+
+/**
+ * Checks if a value is inside an interval.
+ *
+ * @param value - Number to evaluate.
+ * @param min - Lower bound.
+ * @param max - Upper bound.
+ * @param inclusive - Whether bounds are inclusive.
+ * @returns `true` if value is in range.
+ */
+export function isBetween(value: number, min: number, max: number, inclusive = true): boolean {
+  assertFinite(value, "value");
+  assertFinite(min, "min");
+  assertFinite(max, "max");
+  if (min > max) {
+    throw new RangeError("Expected min to be less than or equal to max.");
+  }
+  return inclusive ? value >= min && value <= max : value > min && value < max;
+}
+
+/**
+ * Formats a number as currency using `Intl.NumberFormat`.
+ *
+ * @param value - Numeric value to format.
+ * @param currency - ISO 4217 currency code.
+ * @param locale - BCP 47 locale tag.
+ * @returns Formatted currency string.
+ * @throws {TypeError} If `value` is not finite.
+ */
+export function toCurrency(value: number, currency = "USD", locale = "en-US"): string {
+  assertFinite(value, "value");
+  return new Intl.NumberFormat(locale, {
+    style: "currency",
+    currency
+  }).format(value);
+}
