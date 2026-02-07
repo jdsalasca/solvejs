@@ -1,6 +1,6 @@
 # Validator Locale Matrix
 
-Current country coverage for `validateCellphoneNumber` and `validatePostalCode`.
+Current coverage for `validateCellphoneNumber`, `validatePostalCode`, and `validateAddressDirection`.
 
 - `US`: phone + postal
 - `CO`: phone + postal
@@ -13,3 +13,8 @@ Current country coverage for `validateCellphoneNumber` and `validatePostalCode`.
 - `ANY`: phone-only preset
 
 `validatePostalCode` is country-aware with `validatePostalCode(value, { country })`.
+
+Address direction locales:
+
+- `en`: `N, S, E, W, NE, NW, SE, SW` + full words
+- `es`: `N, S, E, O, NE, NO, SE, SO` + full words

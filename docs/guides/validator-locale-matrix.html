@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="description" content="Current locale matrix for SolveJS phone and postal validation coverage." />
+  <meta name="description" content="Current locale matrix for SolveJS phone, postal code, and address direction validation coverage." />
   <title>Validator Locale Matrix | SolveJS</title>
   <link rel="stylesheet" href="../styles.css" />
 </head>
@@ -11,7 +11,7 @@
   <main class="page">
     <section class="hero">
       <h1>Validator Locale Matrix</h1>
-      <p>Current country coverage for <code>validateCellphoneNumber</code> and <code>validatePostalCode</code>.</p>
+      <p>Current coverage for <code>validateCellphoneNumber</code>, <code>validatePostalCode</code>, and <code>validateAddressDirection</code>.</p>
     </section>
 
     <section class="layout">
@@ -31,7 +31,10 @@ CL: phone + postal
 PE: phone + postal
 BR: phone + postal
 ANY: phone-only preset</code></pre>
-        <p class="caption">Postal validation is country-aware via <code>validatePostalCode(value, { country })</code>. Default country is <code>US</code>.</p>
+        <h2>Address Direction Locales</h2>
+        <pre><code>en: N, S, E, W, NE, NW, SE, SW + full words
+es: N, S, E, O, NE, NO, SE, SO + full words</code></pre>
+        <p class="caption">Postal validation is country-aware via <code>validatePostalCode(value, { country })</code>. Address direction is locale-aware via <code>validateAddressDirection(value, { locale })</code>.</p>
       </section>
     </section>
 

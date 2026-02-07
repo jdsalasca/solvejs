@@ -13,6 +13,7 @@
 - Added automated package inventory generator (`npm run inventory`) producing Markdown + HTML docs snapshots.
 - Improved meta/readme adoption copy with clearer "why adopt" and docs entry points.
 - Added npm and Node compatibility badges across all package READMEs for stronger npm page trust signals.
+- Expanded validator locale matrix docs to include address-direction locale coverage (`en`, `es`).
 
 ## 1.3.1 - 2026-02-07
 
