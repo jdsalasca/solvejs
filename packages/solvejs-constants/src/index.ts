@@ -18,6 +18,27 @@ export const BOOLEAN_STRINGS = {
   FALSE_VALUES: ["false", "0", "no", "off"] as const
 } as const;
 
+export const FILE_SIZE_BYTES = {
+  KB: 1024,
+  MB: 1024 * 1024,
+  GB: 1024 * 1024 * 1024
+} as const;
+
+export const HTTP_METHODS = {
+  GET: "GET",
+  POST: "POST",
+  PUT: "PUT",
+  PATCH: "PATCH",
+  DELETE: "DELETE"
+} as const;
+
+export const COMMON_HTTP_HEADERS = {
+  CONTENT_TYPE: "content-type",
+  AUTHORIZATION: "authorization",
+  ACCEPT: "accept",
+  USER_AGENT: "user-agent"
+} as const;
+
 /**
  * Parses common boolean-like text into a boolean value.
  *

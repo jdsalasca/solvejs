@@ -1,19 +1,16 @@
 # @jdsalasc/solvejs-list
 
-Array and list utilities for JavaScript and TypeScript.
+Zero-dependency array/list tools for common data transformation workflows.
+
+## Tools Included
+
+- `unique`, `compact`, `chunk`
+- `groupBy`, `keyBy`
+- `partition`, `intersection`
+- `sortBy`
 
 ## Install
 
 ```bash
 npm i @jdsalasc/solvejs-list
-```
-
-## Example
-
-```ts
-import { unique, chunk, groupBy } from "@jdsalasc/solvejs-list";
-
-unique([1, 1, 2, 3]);
-chunk([1, 2, 3, 4], 2);
-groupBy(["one", "two", "three"], item => item.length);
 ```

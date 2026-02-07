@@ -2,9 +2,13 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import {
   addDays,
+  daysInMonth,
+  diffInDays,
+  endOfDay,
   formatDate,
   fromUtcParts,
   isValidDate,
+  isLeapYear,
   parseDateStrict,
   parseIsoDate,
   startOfDay
@@ -32,4 +36,8 @@ test("strict parsing and utc parts", () => {
   assert.equal(parseDateStrict("02-07-2026", "MM-DD-YYYY")?.toISOString(), "2026-02-07T00:00:00.000Z");
   assert.equal(parseDateStrict("31/02/2026", "DD/MM/YYYY"), null);
   assert.equal(fromUtcParts(2026, 2, 7).toISOString(), "2026-02-07T00:00:00.000Z");
+  assert.equal(endOfDay(new Date("2026-02-07T00:00:00.000Z")).toISOString(), "2026-02-07T23:59:59.999Z");
+  assert.equal(diffInDays(new Date("2026-02-10T00:00:00.000Z"), new Date("2026-02-07T00:00:00.000Z")), 3);
+  assert.equal(isLeapYear(2024), true);
+  assert.equal(daysInMonth(2026, 2), 28);
 });

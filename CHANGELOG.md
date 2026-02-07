@@ -1,5 +1,18 @@
 # Changelog
 
+## 1.2.0 - 2026-02-07
+
+- Added more production-ready utilities across all core packages.
+- Added structured and region-aware validation improvements, including username, address line, and credit card checks.
+- Added backward-compatible validator aliases for common misspellings.
+- Expanded date toolkit with `endOfDay`, `diffInDays`, `isLeapYear`, and `daysInMonth`.
+- Expanded string toolkit with `slugify`, `stripHtml`, `toTitleCase`, and `mask`.
+- Expanded list toolkit with `partition`, `keyBy`, `intersection`, and `sortBy`.
+- Expanded regex toolkit with `uuidV4`, `ipv4`, `isoDate`, and `escapeRegex`.
+- Expanded constants toolkit with file size and HTTP constants.
+- Upgraded npm package descriptions and keywords for stronger discoverability.
+- Updated community roadmap with pain-point-driven product direction.
+
 ## 1.1.0 - 2026-02-07
 
 - Added structured validation API (`ValidationResult`) in `@jdsalasc/solvejs-validators`.

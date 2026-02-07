@@ -55,3 +55,73 @@ export function groupBy<T, K extends PropertyKey>(values: readonly T[], selector
     return accumulator;
   }, {} as Record<K, T[]>);
 }
+
+/**
+ * Partitions values into two groups based on a predicate.
+ *
+ * @param values - Input collection.
+ * @param predicate - Predicate function.
+ * @returns Tuple with `[matched, unmatched]` values.
+ */
+export function partition<T>(values: readonly T[], predicate: (value: T) => boolean): [T[], T[]] {
+  const matched: T[] = [];
+  const unmatched: T[] = [];
+  for (const value of values) {
+    if (predicate(value)) {
+      matched.push(value);
+    } else {
+      unmatched.push(value);
+    }
+  }
+  return [matched, unmatched];
+}
+
+/**
+ * Creates an object map from list values keyed by selector output.
+ *
+ * @param values - Input collection.
+ * @param selector - Key selector function.
+ * @returns Object map of values by key.
+ */
+export function keyBy<T, K extends PropertyKey>(values: readonly T[], selector: (value: T) => K): Record<K, T> {
+  return values.reduce((accumulator, value) => {
+    accumulator[selector(value)] = value;
+    return accumulator;
+  }, {} as Record<K, T>);
+}
+
+/**
+ * Returns intersection between two arrays preserving order from the first one.
+ *
+ * @param left - Left collection.
+ * @param right - Right collection.
+ * @returns Values found in both collections.
+ */
+export function intersection<T>(left: readonly T[], right: readonly T[]): T[] {
+  const rightSet = new Set(right);
+  return left.filter((value) => rightSet.has(value));
+}
+
+/**
+ * Sorts values by selector output.
+ *
+ * @param values - Input collection.
+ * @param selector - Function selecting sortable key.
+ * @param order - Sort order.
+ * @returns New sorted array.
+ */
+export function sortBy<T, K extends number | string>(
+  values: readonly T[],
+  selector: (value: T) => K,
+  order: "asc" | "desc" = "asc"
+): T[] {
+  const factor = order === "asc" ? 1 : -1;
+  return [...values].sort((a, b) => {
+    const left = selector(a);
+    const right = selector(b);
+    if (left === right) {
+      return 0;
+    }
+    return left > right ? factor : -factor;
+  });
+}

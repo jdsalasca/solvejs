@@ -1,29 +1,18 @@
 # @jdsalasc/solvejs-validators
 
-Validation helpers for common web and app form pain points.
+Zero-dependency validators for real-world JS/TS forms with structured error results.
+
+## Tools Included
+
+- `validateCellphoneNumber` (country presets)
+- `validateAddressDirection` (locale support)
+- `validateName`, `validateUsername`, `validateAddressLine`
+- `validateEmail`, `validateHttpUrl`, `validatePostalCode`
+- `validateStrongPassword`, `validateCreditCardNumber`
+- Boolean wrappers (`isX`) for quick checks
 
 ## Install
 
 ```bash
 npm i @jdsalasc/solvejs-validators
-```
-
-## Example
-
-```ts
-import { isCellphoneNumber, validateCellphoneNumber, validateName } from "@jdsalasc/solvejs-validators";
-
-isCellphoneNumber("+573001112233");
-validateCellphoneNumber("+573001112233", { country: "CO" });
-validateName("Maria Fernanda");
-```
-
-Structured validators return:
-
-```ts
-type ValidationResult = {
-  ok: boolean;
-  code: string;
-  message: string;
-};
 ```

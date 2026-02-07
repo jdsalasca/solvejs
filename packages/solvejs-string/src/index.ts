@@ -69,3 +69,57 @@ export function truncate(value: string, maxLength: number, suffix = "..."): stri
   }
   return `${value.slice(0, maxLength - suffix.length)}${suffix}`;
 }
+
+/**
+ * Converts text to a URL-safe slug.
+ *
+ * @param value - Input text.
+ * @returns Slugified lowercase string.
+ */
+export function slugify(value: string): string {
+  return toKebabCase(value);
+}
+
+/**
+ * Removes HTML tags from a string.
+ *
+ * @param value - Input HTML-like string.
+ * @returns Plain text without tags.
+ */
+export function stripHtml(value: string): string {
+  return value.replace(/<[^>]*>/g, "");
+}
+
+/**
+ * Converts a phrase to Title Case.
+ *
+ * @param value - Input phrase.
+ * @returns Title cased phrase.
+ */
+export function toTitleCase(value: string): string {
+  return value
+    .toLowerCase()
+    .split(/\s+/)
+    .filter(Boolean)
+    .map((word) => capitalize(word))
+    .join(" ");
+}
+
+/**
+ * Masks a string keeping a number of trailing characters visible.
+ *
+ * @param value - Input text.
+ * @param visibleEnd - Number of trailing characters to keep.
+ * @param maskChar - Masking character.
+ * @returns Masked string.
+ * @throws {TypeError} If `visibleEnd` is not a non-negative integer.
+ */
+export function mask(value: string, visibleEnd = 4, maskChar = "*"): string {
+  if (!Number.isInteger(visibleEnd) || visibleEnd < 0) {
+    throw new TypeError("Expected visibleEnd to be a non-negative integer.");
+  }
+  if (visibleEnd >= value.length) {
+    return value;
+  }
+  return `${maskChar.repeat(value.length - visibleEnd)}${value.slice(-visibleEnd)}`;
+}
