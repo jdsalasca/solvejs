@@ -71,6 +71,7 @@ npm run benchmark
 - npm positioning guide: `NPM_POSITIONING.md`
 - Positioning execution checklist: `POSITIONING_CHECKLIST.md`
 - Community pain-point analysis: `COMMUNITY_PAIN_POINTS.md`
+- Monthly vote automation: `.github/workflows/community-vote.yml`
 - Docs cookbook: `https://jdsalasca.github.io/solvejs/`
 - Package inventory: `docs/guides/package-inventory.md`
 

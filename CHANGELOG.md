@@ -14,6 +14,8 @@
 - Improved meta/readme adoption copy with clearer "why adopt" and docs entry points.
 - Added npm and Node compatibility badges across all package READMEs for stronger npm page trust signals.
 - Expanded validator locale matrix docs to include address-direction locale coverage (`en`, `es`).
+- Added monthly community vote automation workflow and reusable issue template.
+- Added adoption-focused comparison guides (`SolveJS vs Lodash`, `SolveJS vs date-fns + validator`).
 
 ## 1.3.1 - 2026-02-07
 

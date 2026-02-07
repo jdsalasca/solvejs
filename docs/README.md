@@ -27,3 +27,5 @@ Static documentation for GitHub Pages with a searchable cookbook UX.
 - `guides/nest-integration`
 - `guides/validator-locale-matrix`
 - `guides/package-inventory`
+- `guides/solvejs-vs-lodash`
+- `guides/solvejs-vs-datefns-validator`

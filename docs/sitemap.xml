@@ -36,4 +36,10 @@
   <url>
     <loc>https://jdsalasca.github.io/solvejs/guides/package-inventory.html</loc>
   </url>
+  <url>
+    <loc>https://jdsalasca.github.io/solvejs/guides/solvejs-vs-lodash.html</loc>
+  </url>
+  <url>
+    <loc>https://jdsalasca.github.io/solvejs/guides/solvejs-vs-datefns-validator.html</loc>
+  </url>
 </urlset>

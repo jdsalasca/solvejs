@@ -97,6 +97,24 @@ const TOPICS = [
     tags: ["inventory", "quality", "tests", "exports"],
     packages: ["@jdsalasc/solvejs"],
     level: "Reference"
+  },
+  {
+    id: "solvejs-vs-lodash",
+    title: "SolveJS vs Lodash",
+    description: "Compare scope, typing, and adoption fit for utility workflows.",
+    path: "guides/solvejs-vs-lodash.html",
+    tags: ["comparison", "lodash", "adoption"],
+    packages: ["@jdsalasc/solvejs"],
+    level: "Reference"
+  },
+  {
+    id: "solvejs-vs-datefns-validator",
+    title: "SolveJS vs date-fns + validator",
+    description: "Compare one-ecosystem consistency vs mixed-library stacks.",
+    path: "guides/solvejs-vs-datefns-validator.html",
+    tags: ["comparison", "date-fns", "validator", "adoption"],
+    packages: ["@jdsalasc/solvejs-date", "@jdsalasc/solvejs-validators"],
+    level: "Reference"
   }
 ];
 
