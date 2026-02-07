@@ -11,6 +11,19 @@ jobs:
     permissions:
       contents: write
       id-token: write
+    strategy:
+      fail-fast: false
+      matrix:
+        workspace:
+          - packages/solvejs-date
+          - packages/solvejs-string
+          - packages/solvejs-list
+          - packages/solvejs-regex
+          - packages/solvejs-constants
+          - packages/solvejs-numbers
+          - packages/solvejs-validators
+          - packages/solvejs-objects
+          - packages/solvejs
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -27,20 +40,47 @@ jobs:
       - name: Build
         run: npm run build
 
-      - name: Publish packages
+      - name: Resolve package metadata
+        id: package
         run: |
-          npm publish --workspace packages/solvejs-date --access public
-          npm publish --workspace packages/solvejs-string --access public
-          npm publish --workspace packages/solvejs-list --access public
-          npm publish --workspace packages/solvejs-regex --access public
-          npm publish --workspace packages/solvejs-constants --access public
-          npm publish --workspace packages/solvejs-numbers --access public
-          npm publish --workspace packages/solvejs-validators --access public`n          npm publish --workspace packages/solvejs-objects --access public
-          npm publish --workspace packages/solvejs --access public
+          NAME=$(node -p "require('./${{ matrix.workspace }}/package.json').name")
+          VERSION=$(node -p "require('./${{ matrix.workspace }}/package.json').version")
+          echo "name=$NAME" >> $GITHUB_OUTPUT
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+
+      - name: Check npm token
+        run: |
+          if [ -z "${NODE_AUTH_TOKEN}" ]; then
+            echo "NPM_TOKEN is missing. Configure repository secret NPM_TOKEN."
+            exit 1
+          fi
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+      - name: Check if version exists
+        id: registry
+        run: |
+          set +e
+          npm view "${{ steps.package.outputs.name }}@${{ steps.package.outputs.version }}" version --json > /tmp/version.json 2>/tmp/npm-view.err
+          RESULT=$?
+          set -e
+          if [ $RESULT -eq 0 ]; then
+            echo "exists=true" >> $GITHUB_OUTPUT
+            echo "Version already exists on npm, skipping publish."
+          else
+            echo "exists=false" >> $GITHUB_OUTPUT
+            echo "Version not found on npm, publishing."
+          fi
+
+      - name: Publish workspace
+        if: steps.registry.outputs.exists != 'true'
+        run: |
+          npm publish --workspace "${{ matrix.workspace }}" --access public
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
       - name: Create GitHub Release
+        if: matrix.workspace == 'packages/solvejs'
         uses: softprops/action-gh-release@v2
         with:
           generate_release_notes: true

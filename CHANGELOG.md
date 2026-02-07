@@ -1,5 +1,14 @@
 # Changelog
 
+## Unreleased
+
+- Fixed `.github/workflows/release.yml` by removing broken publish command, adding per-workspace matrix publish, npm token validation, and idempotent version-exists checks.
+- Added package health report docs (`docs/guides/package-health-report.md` and `.html`) with package status, issues, weak points, and prioritized actions.
+- Updated docs navigation to include the new package health report.
+- Regenerated package inventory docs for current `1.4.0` package versions.
+- Updated roadmap (`TODO.md`) with `v1.5.0` candidate priorities.
+- Expanded `NPM_POSITIONING.md` with canonical npm description copy for each package.
+
 ## 1.4.0 - 2026-02-07
 
 - Added new package `@jdsalasc/solvejs-objects` with `pick`, `omit`, `hasOwn`, `get`, `set`, and `deepMerge`.

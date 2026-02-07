@@ -40,6 +40,29 @@ Use this file to keep npm package messaging, discoverability terms, and README i
   - Position: object shaping and nested path helpers.
   - Search intents: `pick object keys`, `deep merge objects`, `set nested value`.
 
+## npm Description Copy (English)
+
+Use these as the canonical package `description` strings in `package.json`.
+
+- `@jdsalasc/solvejs`:
+  - `Practical zero-dependency JS/TS utility suite for dates, strings, lists, regex, constants, numbers, validators, and objects.`
+- `@jdsalasc/solvejs-date`:
+  - `Production-ready JS/TS date utilities: strict parsing, UTC-safe formatting, unix timestamp parsing, and date math.`
+- `@jdsalasc/solvejs-string`:
+  - `Production-ready JS/TS string utilities: slugify, casing, sanitize/strip HTML, masking, and truncation.`
+- `@jdsalasc/solvejs-list`:
+  - `Production-ready JS/TS list utilities: uniqueBy, groupBy, keyBy, partition, intersection, difference, and sorting.`
+- `@jdsalasc/solvejs-regex`:
+  - `Production-ready JS/TS regex utilities with built-in patterns (uuidV4, ipv4, isoDate) and safe escaping helpers.`
+- `@jdsalasc/solvejs-constants`:
+  - `Production-ready JS/TS constants for time, file sizes, HTTP methods/headers, and boolean parsing.`
+- `@jdsalasc/solvejs-numbers`:
+  - `Production-ready JS/TS number utilities: toNumber parsing, safeDivide, percentChange, clamp, roundTo, and currency formatting.`
+- `@jdsalasc/solvejs-validators`:
+  - `Production-ready JS/TS validators with structured result codes for forms/APIs: phone, username, postal, UUID, IPv4, and ISO date.`
+- `@jdsalasc/solvejs-objects`:
+  - `Production-ready JS/TS object utilities: pick, omit, hasOwn, get/set nested paths, and deepMerge.`
+
 ## Metadata Policy
 
 - Keep 8-14 high-intent keywords per package.

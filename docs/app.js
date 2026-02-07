@@ -99,6 +99,15 @@ const TOPICS = [
     level: "Reference"
   },
   {
+    id: "package-health-report",
+    title: "Package Health Report",
+    description: "Review package status, known issues, weak points, and next improvements.",
+    path: "guides/package-health-report.html",
+    tags: ["inventory", "roadmap", "quality", "adoption"],
+    packages: ["@jdsalasc/solvejs"],
+    level: "Reference"
+  },
+  {
     id: "solvejs-vs-lodash",
     title: "SolveJS vs Lodash",
     description: "Compare scope, typing, and adoption fit for utility workflows.",
