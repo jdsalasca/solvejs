@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Integrate SolveJS utilities in NestJS DTO validation and services." />
+  <title>NestJS Integration Guide | SolveJS</title>
+  <link rel="stylesheet" href="../styles.css" />
+</head>
+<body data-root="..">
+  <main class="page">
+    <section class="hero">
+      <h1>Integrate SolveJS in NestJS</h1>
+      <p>Apply SolveJS rules inside service methods to keep business validation centralized.</p>
+    </section>
+
+    <section class="layout">
+      <aside class="panel">
+        <h2>Cookbook Navigation</h2>
+        <nav data-cookbook-nav aria-label="Cookbook pages"></nav>
+      </aside>
+
+      <section class="panel">
+        <h2>Service Example</h2>
+        <pre><code>import { Injectable, BadRequestException } from "@nestjs/common";
+import { validateUsername, validatePostalCode } from "@jdsalasc/solvejs-validators";
+
+@Injectable()
+export class UsersService {
+  create(input: { username: string; postalCode: string }) {
+    const username = validateUsername(input.username);
+    const postal = validatePostalCode(input.postalCode, { country: "US" });
+
+    if (!username.ok || !postal.ok) {
+      throw new BadRequestException({ username, postal });
+    }
+
+    return { ok: true };
+  }
+}</code></pre>
+      </section>
+    </section>
+
+    <p class="back-link"><a class="inline-link" href="../index.html">Back to docs home</a></p>
+  </main>
+
+  <script src="../app.js"></script>
+</body>
+</html>

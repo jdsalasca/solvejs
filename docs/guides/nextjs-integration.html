@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Integrate SolveJS utilities in Next.js apps with server and client examples." />
+  <title>Next.js Integration Guide | SolveJS</title>
+  <link rel="stylesheet" href="../styles.css" />
+</head>
+<body data-root="..">
+  <main class="page">
+    <section class="hero">
+      <h1>Integrate SolveJS in Next.js</h1>
+      <p>Use focused SolveJS packages in route handlers and UI layers without adding runtime dependencies.</p>
+    </section>
+
+    <section class="layout">
+      <aside class="panel">
+        <h2>Cookbook Navigation</h2>
+        <nav data-cookbook-nav aria-label="Cookbook pages"></nav>
+      </aside>
+
+      <section class="panel">
+        <h2>Route Handler Example</h2>
+        <pre><code>import { validateEmail } from "@jdsalasc/solvejs-validators";
+import { toNumber } from "@jdsalasc/solvejs-numbers";
+
+export async function POST(request: Request) {
+  const body = await request.json();
+  const emailResult = validateEmail(body.email ?? "");
+  const amount = toNumber(String(body.amount ?? ""));
+
+  if (!emailResult.ok || amount === null) {
+    return Response.json({ ok: false, emailResult, amount }, { status: 400 });
+  }
+
+  return Response.json({ ok: true });
+}</code></pre>
+      </section>
+    </section>
+
+    <p class="back-link"><a class="inline-link" href="../index.html">Back to docs home</a></p>
+  </main>
+
+  <script src="../app.js"></script>
+</body>
+</html>

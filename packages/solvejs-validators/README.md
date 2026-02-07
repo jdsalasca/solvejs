@@ -6,7 +6,7 @@ Zero-dependency validators for JavaScript and TypeScript forms and API payloads.
 
 - Structured validators returning `{ ok, code, message }`
 - `validateCellphoneNumber`, `validateEmail`, `validateHttpUrl`
-- `validateName`, `validateUsername`, `validateAddressLine`, `validatePostalCode`
+- `validateName`, `validateUsername`, `validateAddressLine`, `validatePostalCode` (country-aware)
 - `validateStrongPassword`, `validateCreditCardNumber`
 - `validateUuidV4`, `validateIpv4`, `validateIsoDateString`
 - Boolean wrappers (`isX`) for quick checks
@@ -28,4 +28,7 @@ import { validateCellphoneNumber, validateUuidV4 } from "@jdsalasc/solvejs-valid
 
 validateCellphoneNumber("+573001234567", { country: "CO" });
 validateUuidV4("550e8400-e29b-41d4-a716-446655440000");
+// Postal code examples by country:
+// validatePostalCode("110111", { country: "CO" });
+// validatePostalCode("28013", { country: "ES" });
 ```

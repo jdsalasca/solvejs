@@ -15,8 +15,9 @@ export type ValidationResult = {
   message: string;
 };
 
-export type SupportedCountry = "ANY" | "US" | "CO" | "MX" | "ES";
+export type SupportedCountry = "ANY" | "US" | "CO" | "MX" | "ES" | "AR" | "CL" | "PE" | "BR";
 export type DirectionLocale = "en" | "es";
+export type PostalCountry = "US" | "CO" | "MX" | "ES" | "AR" | "CL" | "PE" | "BR";
 
 const ADDRESS_DIRECTIONS: Record<DirectionLocale, ReadonlySet<string>> = {
   en: new Set([
@@ -61,7 +62,22 @@ const COUNTRY_RULES: Record<Exclude<SupportedCountry, "ANY">, { minDigits: numbe
   US: { minDigits: 10, maxDigits: 11 },
   CO: { minDigits: 10, maxDigits: 12 },
   MX: { minDigits: 10, maxDigits: 13 },
-  ES: { minDigits: 9, maxDigits: 11 }
+  ES: { minDigits: 9, maxDigits: 11 },
+  AR: { minDigits: 10, maxDigits: 13 },
+  CL: { minDigits: 9, maxDigits: 11 },
+  PE: { minDigits: 9, maxDigits: 11 },
+  BR: { minDigits: 10, maxDigits: 13 }
+};
+
+const POSTAL_PATTERNS: Record<PostalCountry, RegExp> = {
+  US: /^\d{5}(?:-\d{4})?$/,
+  CO: /^\d{6}$/,
+  MX: /^\d{5}$/,
+  ES: /^(?:0[1-9]|[1-4]\d|5[0-2])\d{3}$/,
+  AR: /^[A-Z]?\d{4}[A-Z]{0,3}$/i,
+  CL: /^\d{7}$/,
+  PE: /^\d{5}$/,
+  BR: /^\d{5}-?\d{3}$/
 };
 
 function ok(message = "Validation passed."): ValidationResult {
@@ -95,7 +111,7 @@ export function validateCellphoneNumber(
   const allowInternational = options.allowInternational ?? true;
   const country = options.country ?? "ANY";
 
-  if (!["ANY", "US", "CO", "MX", "ES"].includes(country)) {
+  if (!["ANY", "US", "CO", "MX", "ES", "AR", "CL", "PE", "BR"].includes(country)) {
     return fail("UNSUPPORTED_COUNTRY", `Unsupported country preset: ${country}.`);
   }
 
@@ -352,29 +368,42 @@ export function isHttpUrl(value: string): boolean {
 }
 
 /**
- * Validates US-style postal codes (`12345` or `12345-6789`).
+ * Validates postal codes using country-specific patterns.
  *
  * @param value - Postal code string.
+ * @param options - Validation options.
+ * @param options.country - Country code used for pattern selection.
  * @returns Structured validation result.
  */
-export function validatePostalCode(value: string): ValidationResult {
+export function validatePostalCode(
+  value: string,
+  options: { country?: PostalCountry } = {}
+): ValidationResult {
   const normalized = value.trim();
+  const country = options.country ?? "US";
+
   if (!normalized) {
     return fail("EMPTY", "Postal code cannot be empty.");
   }
-  return /^\d{5}(?:-\d{4})?$/.test(normalized)
-    ? ok("Valid postal code.")
-    : fail("INVALID_FORMAT", "Postal code does not match supported formats.");
+  const pattern = POSTAL_PATTERNS[country];
+  if (!pattern) {
+    return fail("UNSUPPORTED_COUNTRY", `Unsupported postal code country: ${country}.`);
+  }
+
+  return pattern.test(normalized)
+    ? ok(`Valid postal code for ${country}.`)
+    : fail("INVALID_FORMAT", `Postal code does not match ${country} format.`);
 }
 
 /**
  * Boolean wrapper for `validatePostalCode`.
  *
  * @param value - Postal code string.
+ * @param options - Validation options.
  * @returns `true` when the value is valid.
  */
-export function isPostalCode(value: string): boolean {
-  return validatePostalCode(value).ok;
+export function isPostalCode(value: string, options: { country?: PostalCountry } = {}): boolean {
+  return validatePostalCode(value, options).ok;
 }
 
 /**

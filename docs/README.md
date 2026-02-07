@@ -19,3 +19,10 @@ Static documentation for GitHub Pages with a searchable cookbook UX.
 - `string-format`
 - `regex-patterns`
 - `object-utils`
+
+## Integration Guides
+
+- `guides/nextjs-integration`
+- `guides/express-integration`
+- `guides/nest-integration`
+- `guides/validator-locale-matrix`

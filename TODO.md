@@ -25,13 +25,13 @@
 - [x] Issue templates for bug reports and feature requests.
 - [x] Add docs website search and cookbook navigation.
 - [ ] Publish "When to use this package" section across npm package pages (README sync check).
-- [ ] Add locale packs for validators (more countries and postal formats).
+- [x] Add locale packs for validators (phone + postal coverage for US, CO, MX, ES, AR, CL, PE, BR).
 - [x] Add object utilities package (`solvejs-objects`) based on community demand.
 - [x] Publish and announce `v1.2.0` across npm and GitHub release notes.
 
 ## Next Iteration (Community-Driven)
 
-- [ ] Add framework integration guides: Next.js, Express, NestJS.
+- [x] Add framework integration guides: Next.js, Express, NestJS.
 - [ ] Add validator locale expansion matrix (`phone`, `postalCode`, `addressDirection`) by country.
 - [ ] Add recipe-style docs pages with copy/paste snippets for top intents.
 - [ ] Add monthly community vote issue for next utility priorities.
