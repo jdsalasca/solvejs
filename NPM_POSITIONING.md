@@ -39,13 +39,16 @@ Use this file to keep npm package messaging, discoverability terms, and README i
 - `@jdsalasc/solvejs-objects`
   - Position: object shaping and nested path helpers.
   - Search intents: `pick object keys`, `deep merge objects`, `set nested value`.
+- `@jdsalasc/solvejs-async`
+  - Position: async workflow control (retry, timeout, concurrency limits).
+  - Search intents: `promise timeout`, `retry with backoff`, `pmap concurrency`.
 
 ## npm Description Copy (English)
 
 Use these as the canonical package `description` strings in `package.json`.
 
 - `@jdsalasc/solvejs`:
-  - `Zero-dependency JavaScript/TypeScript utility library for production apps: date parsing, string cleanup, list transforms, validators, numbers, regex, constants, and objects.`
+  - `Zero-dependency JavaScript/TypeScript utility library for production apps: date parsing, string cleanup, list transforms, validators, numbers, regex, constants, objects, and async control.`
 - `@jdsalasc/solvejs-date`:
   - `Zero-dependency JavaScript/TypeScript date utilities for production: strict parsing, UTC-safe formatting, unix timestamp conversion, date math, and calendar helpers.`
 - `@jdsalasc/solvejs-string`:
@@ -62,6 +65,8 @@ Use these as the canonical package `description` strings in `package.json`.
   - `Zero-dependency JavaScript/TypeScript validators for forms and APIs with structured result codes: phone, postal, username, password, UUID v4, IPv4, and ISO date.`
 - `@jdsalasc/solvejs-objects`:
   - `Zero-dependency JavaScript/TypeScript object utilities for production: pick, omit, hasOwn, nested get/set by path, and deepMerge for config/state.`
+- `@jdsalasc/solvejs-async`:
+  - `Zero-dependency JavaScript/TypeScript async utilities for production: sleep, promise timeout, retry with backoff, and concurrency-limited pMap.`
 
 ## Metadata Policy
 

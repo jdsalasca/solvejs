@@ -1,7 +1,7 @@
 {
-  "name": "@jdsalasc/solvejs",
+  "name": "@jdsalasc/solvejs-async",
   "version": "1.4.1",
-  "description": "Zero-dependency JavaScript/TypeScript utility library for production apps: date parsing, string cleanup, list transforms, validators, numbers, regex, constants, objects, and async control.",
+  "description": "Zero-dependency JavaScript/TypeScript async utilities for production: sleep, promise timeout, retry with backoff, and concurrency-limited pMap.",
   "license": "MIT",
   "type": "module",
   "sideEffects": false,
@@ -25,18 +25,7 @@
     "build:cjs": "tsc -p tsconfig.cjs.json && node ./scripts/rename-cjs.mjs",
     "clean": "node -e \"require('node:fs').rmSync('dist',{recursive:true,force:true})\"",
     "test": "npm run build && node --test test/*.test.mjs",
-    "lint": "node -e \"console.log('No lint configured for @jdsalasc/solvejs')\""
-  },
-  "dependencies": {
-    "@jdsalasc/solvejs-date": "1.4.1",
-    "@jdsalasc/solvejs-string": "1.4.1",
-    "@jdsalasc/solvejs-list": "1.4.1",
-    "@jdsalasc/solvejs-regex": "1.4.1",
-    "@jdsalasc/solvejs-constants": "1.4.1",
-    "@jdsalasc/solvejs-numbers": "1.4.1",
-    "@jdsalasc/solvejs-validators": "1.4.1",
-    "@jdsalasc/solvejs-objects": "1.4.1",
-    "@jdsalasc/solvejs-async": "1.4.1"
+    "lint": "node -e \"console.log('No lint configured for @jdsalasc/solvejs-async')\""
   },
   "publishConfig": {
     "access": "public"
@@ -54,17 +43,14 @@
     "node": ">=18"
   },
   "keywords": [
-    "javascript utility library",
-    "typescript utility library",
+    "javascript async utilities",
+    "typescript async utilities",
+    "promise timeout",
+    "retry with backoff",
+    "concurrency limit",
+    "pmap",
+    "sleep function",
     "zero dependency",
-    "date utilities",
-    "string utilities",
-    "array utilities",
-    "object utilities",
-    "async utilities",
-    "form validators",
-    "regex utilities",
-    "number utilities",
     "solvejs"
   ]
 }

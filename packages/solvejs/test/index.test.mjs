@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 import {
   deepMerge,
   formatDate,
+  pMap,
   toKebabCase,
   clamp,
   isCellphoneNumber,
@@ -10,10 +11,11 @@ import {
   slugify,
   toNumber,
   uniqueBy,
-  validateUsername
+  validateUsername,
+  sleep
 } from "../dist/esm/index.js";
 
-test("meta package re-exports symbols", () => {
+test("meta package re-exports symbols", async () => {
   assert.equal(formatDate(new Date("2026-01-02T00:00:00.000Z"), "YYYY-MM-DD"), "2026-01-02");
   assert.equal(toKebabCase("Hello World"), "hello-world");
   assert.equal(slugify("Hello World"), "hello-world");
@@ -27,4 +29,6 @@ test("meta package re-exports symbols", () => {
     deepMerge({ app: { env: "dev", flags: { a: true } } }, { app: { flags: { b: true } } }),
     { app: { env: "dev", flags: { a: true, b: true } } }
   );
+  await sleep(1);
+  assert.deepEqual(await pMap([1, 2, 3], async (x) => x * 2, { concurrency: 2 }), [2, 4, 6]);
 });

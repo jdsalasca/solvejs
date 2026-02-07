@@ -54,6 +54,15 @@ const TOPICS = [
     level: "Intermediate"
   },
   {
+    id: "async-control",
+    title: "Control Async Workflows",
+    description: "Apply retries, promise timeouts, and concurrency limits for API/job operations.",
+    path: "problems/async-control.html",
+    tags: ["async", "retry", "timeout", "concurrency"],
+    packages: ["@jdsalasc/solvejs-async"],
+    level: "Intermediate"
+  },
+  {
     id: "nextjs-integration",
     title: "Integrate SolveJS in Next.js",
     description: "Use validators and parsers in route handlers and server actions.",
