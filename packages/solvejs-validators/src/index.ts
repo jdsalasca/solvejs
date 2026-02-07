@@ -473,6 +473,22 @@ function luhnCheck(value: string): boolean {
   return sum % 10 === 0;
 }
 
+function isValidIsoDateParts(value: string): boolean {
+  const match = value.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  if (!match) {
+    return false;
+  }
+  const year = Number(match[1]);
+  const month = Number(match[2]);
+  const day = Number(match[3]);
+  const candidate = new Date(Date.UTC(year, month - 1, day));
+  return (
+    candidate.getUTCFullYear() === year &&
+    candidate.getUTCMonth() === month - 1 &&
+    candidate.getUTCDate() === day
+  );
+}
+
 /**
  * Validates card numbers using basic shape checks plus Luhn checksum.
  *
@@ -501,4 +517,82 @@ export function validateCreditCardNumber(value: string): ValidationResult {
  */
 export function isCreditCardNumber(value: string): boolean {
   return validateCreditCardNumber(value).ok;
+}
+
+/**
+ * Validates UUID v4 strings.
+ *
+ * @param value - UUID candidate.
+ * @returns Structured validation result.
+ */
+export function validateUuidV4(value: string): ValidationResult {
+  const normalized = value.trim();
+  if (!normalized) {
+    return fail("EMPTY", "UUID cannot be empty.");
+  }
+  return /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(normalized)
+    ? ok("Valid UUID v4.")
+    : fail("INVALID_FORMAT", "UUID does not match v4 format.");
+}
+
+/**
+ * Boolean wrapper for `validateUuidV4`.
+ *
+ * @param value - UUID candidate.
+ * @returns `true` when UUID is valid.
+ */
+export function isUuidV4(value: string): boolean {
+  return validateUuidV4(value).ok;
+}
+
+/**
+ * Validates IPv4 addresses.
+ *
+ * @param value - IPv4 candidate.
+ * @returns Structured validation result.
+ */
+export function validateIpv4(value: string): ValidationResult {
+  const normalized = value.trim();
+  if (!normalized) {
+    return fail("EMPTY", "IPv4 address cannot be empty.");
+  }
+  return /^(?:25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(?:\.(?:25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3}$/.test(normalized)
+    ? ok("Valid IPv4 address.")
+    : fail("INVALID_FORMAT", "IPv4 address does not match expected format.");
+}
+
+/**
+ * Boolean wrapper for `validateIpv4`.
+ *
+ * @param value - IPv4 candidate.
+ * @returns `true` when IPv4 is valid.
+ */
+export function isIpv4(value: string): boolean {
+  return validateIpv4(value).ok;
+}
+
+/**
+ * Validates strict ISO date strings (`YYYY-MM-DD`) including calendar correctness.
+ *
+ * @param value - Date string candidate.
+ * @returns Structured validation result.
+ */
+export function validateIsoDateString(value: string): ValidationResult {
+  const normalized = value.trim();
+  if (!normalized) {
+    return fail("EMPTY", "Date string cannot be empty.");
+  }
+  return isValidIsoDateParts(normalized)
+    ? ok("Valid ISO date.")
+    : fail("INVALID_FORMAT", "Date string must be a valid ISO date in YYYY-MM-DD format.");
+}
+
+/**
+ * Boolean wrapper for `validateIsoDateString`.
+ *
+ * @param value - Date string candidate.
+ * @returns `true` when date string is valid.
+ */
+export function isIsoDateString(value: string): boolean {
+  return validateIsoDateString(value).ok;
 }

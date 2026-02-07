@@ -7,11 +7,13 @@ Zero-dependency date tools for production JavaScript and TypeScript apps.
 - `formatDate`
 - `parseDateStrict`
 - `parseIsoDate`
+- `parseUnixTimestamp`
 - `addDays`
 - `startOfDay` / `endOfDay`
 - `diffInDays`
 - `isLeapYear`
 - `daysInMonth`
+- `toIsoDate`
 
 ## Install
 

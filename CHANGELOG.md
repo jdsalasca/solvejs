@@ -1,5 +1,15 @@
 # Changelog
 
+## 1.3.0 - 2026-02-07
+
+- Added community-driven utilities focused on high-frequency production pain points.
+- Added `parseUnixTimestamp` and `toIsoDate` in `@jdsalasc/solvejs-date`.
+- Added `uniqueBy` and `difference` in `@jdsalasc/solvejs-list`.
+- Added `toNumber` for robust form/string numeric parsing in `@jdsalasc/solvejs-numbers`.
+- Added `validateUuidV4`, `validateIpv4`, and `validateIsoDateString` (+ `isX` wrappers) in `@jdsalasc/solvejs-validators`.
+- Improved npm descriptions and keywords for stronger high-intent discoverability.
+- Added `POSITIONING_CHECKLIST.md` and `COMMUNITY_PAIN_POINTS.md` to guide growth and roadmap decisions.
+
 ## 1.2.0 - 2026-02-07
 
 - Added more production-ready utilities across all core packages.

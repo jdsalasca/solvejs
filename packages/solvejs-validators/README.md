@@ -9,6 +9,7 @@ Zero-dependency validators for real-world JS/TS forms with structured error resu
 - `validateName`, `validateUsername`, `validateAddressLine`
 - `validateEmail`, `validateHttpUrl`, `validatePostalCode`
 - `validateStrongPassword`, `validateCreditCardNumber`
+- `validateUuidV4`, `validateIpv4`, `validateIsoDateString`
 - Boolean wrappers (`isX`) for quick checks
 
 ## Install

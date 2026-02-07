@@ -42,6 +42,22 @@ export function parseIsoDate(value: string): Date | null {
 }
 
 /**
+ * Parses Unix timestamps provided in seconds or milliseconds.
+ *
+ * @param value - Numeric Unix timestamp.
+ * @param unit - Timestamp unit (`"seconds"` or `"milliseconds"`).
+ * @returns Parsed Date instance, or `null` when invalid.
+ */
+export function parseUnixTimestamp(value: number, unit: "seconds" | "milliseconds" = "milliseconds"): Date | null {
+  if (!Number.isFinite(value)) {
+    return null;
+  }
+  const milliseconds = unit === "seconds" ? value * 1000 : value;
+  const parsed = new Date(milliseconds);
+  return isDate(parsed) ? parsed : null;
+}
+
+/**
  * Parses a date string using a strict known format.
  *
  * @param value - Input date string.
@@ -210,6 +226,17 @@ export function daysInMonth(year: number, month: number): number {
     throw new RangeError("Expected month to be between 1 and 12.");
   }
   return new Date(Date.UTC(year, month, 0)).getUTCDate();
+}
+
+/**
+ * Formats a Date into strict ISO date format (`YYYY-MM-DD`) using UTC values.
+ *
+ * @param date - Source date.
+ * @returns ISO date-only string.
+ * @throws {TypeError} If `date` is invalid.
+ */
+export function toIsoDate(date: Date): string {
+  return formatDate(date, "YYYY-MM-DD");
 }
 
 /**

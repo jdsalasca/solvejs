@@ -5,8 +5,8 @@ Zero-dependency array/list tools for common data transformation workflows.
 ## Tools Included
 
 - `unique`, `compact`, `chunk`
-- `groupBy`, `keyBy`
-- `partition`, `intersection`
+- `uniqueBy`, `groupBy`, `keyBy`
+- `partition`, `intersection`, `difference`
 - `sortBy`
 
 ## Install
