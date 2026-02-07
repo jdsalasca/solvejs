@@ -6,6 +6,7 @@
 - Standardized package READMEs with `Utilities`, `When to use this package`, and concise quick examples.
 - Updated roadmap and positioning docs (`TODO.md`, `POSITIONING_CHECKLIST.md`, `NPM_POSITIONING.md`) for community-facing execution.
 - Added docs cookbook navigation, client-side recipe search, and a new object-utilities recipe page.
+- Added quick-search and related-recipe sections across each docs problem page with no-JS cookbook fallback links.
 
 ## 1.3.1 - 2026-02-07
 
