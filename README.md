@@ -37,24 +37,30 @@ npm i @jdsalasc/solvejs-date @jdsalasc/solvejs-regex
 - `@jdsalasc/solvejs-list`
 - `@jdsalasc/solvejs-regex`
 - `@jdsalasc/solvejs-constants`
+- `@jdsalasc/solvejs-numbers`
+- `@jdsalasc/solvejs-validators`
 
 ## Quick Example
 
 ```ts
-import { formatDate, toKebabCase, unique, validateByName } from "@jdsalasc/solvejs";
+import { formatDate, toKebabCase, unique, validateByName, clamp, isCellphoneNumber } from "@jdsalasc/solvejs";
 
 formatDate(new Date("2026-02-07T12:00:00.000Z"), "YYYY-MM-DD"); // "2026-02-07"
 toKebabCase("Format Date Fast"); // "format-date-fast"
 unique([1, 1, 2, 3]); // [1, 2, 3]
 validateByName("user@example.com", "email"); // true
+clamp(140, 0, 100); // 100
+isCellphoneNumber("+573001112233"); // true
 ```
 
 ## Common Problems SolveJS Targets
 
 - How to format dates in JavaScript.
 - How to validate email, URL, and usernames in TypeScript.
+- How to validate cellphone numbers, names, and address directions.
 - How to chunk arrays, deduplicate values, and group lists.
 - How to convert strings to camelCase and kebab-case.
+- How to compute percentages, averages, and medians safely.
 
 ## Compatibility
 

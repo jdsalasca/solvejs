@@ -17,3 +17,24 @@ export const BOOLEAN_STRINGS = {
   TRUE_VALUES: ["true", "1", "yes", "on"] as const,
   FALSE_VALUES: ["false", "0", "no", "off"] as const
 } as const;
+
+/**
+ * Parses common boolean-like text into a boolean value.
+ *
+ * @param value - Boolean-like input text.
+ * @returns Parsed boolean value.
+ * @throws {TypeError} If the input value is not recognized.
+ */
+export function parseBooleanString(value: string): boolean {
+  const normalized = value.trim().toLowerCase();
+
+  if ((BOOLEAN_STRINGS.TRUE_VALUES as readonly string[]).includes(normalized)) {
+    return true;
+  }
+
+  if ((BOOLEAN_STRINGS.FALSE_VALUES as readonly string[]).includes(normalized)) {
+    return false;
+  }
+
+  throw new TypeError(`Unsupported boolean string value: ${value}`);
+}
