@@ -1,0 +1,53 @@
+name: Community Monthly Vote
+
+on:
+  schedule:
+    - cron: "0 13 1 * *"
+  workflow_dispatch:
+
+permissions:
+  issues: write
+  contents: read
+
+jobs:
+  create-vote-issue:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set vote month
+        run: echo "VOTE_MONTH=$(date +'%Y-%m')" >> "$GITHUB_ENV"
+
+      - name: Create monthly vote issue
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require("node:fs");
+            const month = process.env.VOTE_MONTH;
+            const title = `Community Vote ${month}: What should SolveJS ship next?`;
+
+            const openIssues = await github.paginate(github.rest.issues.listForRepo, {
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              state: "open",
+              per_page: 100
+            });
+
+            const exists = openIssues.some((issue) => issue.title === title);
+            if (exists) {
+              core.info(`Issue already exists: ${title}`);
+              return;
+            }
+
+            const bodyTemplate = fs.readFileSync('.github/ISSUE_TEMPLATE/monthly_vote.md', 'utf8');
+            const body = bodyTemplate.replace(/\{\{MONTH\}\}/g, month);
+
+            await github.rest.issues.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title,
+              body
+            });
+
+            core.info(`Created issue: ${title}`);

@@ -34,4 +34,5 @@
 - [x] Add framework integration guides: Next.js, Express, NestJS.
 - [x] Add validator locale expansion matrix (`phone`, `postalCode`, `addressDirection`) by country/locale.
 - [x] Add recipe-style docs pages with copy/paste snippets for top intents.
-- [ ] Add monthly community vote issue for next utility priorities.
+- [x] Add monthly community vote issue for next utility priorities.
+- [x] Add comparison docs pages to support adoption decisions (`SolveJS vs ...`).
