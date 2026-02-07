@@ -12,3 +12,16 @@ test("string case and truncate helpers", () => {
   assert.equal(toTitleCase("hello solvejs community"), "Hello Solvejs Community");
   assert.equal(mask("1234567890", 4), "******7890");
 });
+
+test("string helpers edge cases", () => {
+  assert.equal(toKebabCase("  Árbol   Útil  "), "arbol-util");
+  assert.equal(toCamelCase("Árbol útil"), "arbolUtil");
+  assert.equal(truncate("hello", 0), "");
+  assert.equal(truncate("hello", 3), "...");
+  assert.equal(mask("1234", 4), "1234");
+  assert.equal(mask("1234", 0), "****");
+  assert.equal(stripHtml("<div><p>safe</p></div>"), "safe");
+  assert.equal(toTitleCase("   MANY    spaces "), "Many Spaces");
+  assert.throws(() => truncate("x", -1), /non-negative integer/i);
+  assert.throws(() => mask("x", -1), /non-negative integer/i);
+});

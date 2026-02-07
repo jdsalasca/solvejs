@@ -10,6 +10,13 @@ SolveJS is a zero-dependency utility ecosystem for JavaScript and TypeScript app
 
 Zero-dependency JS/TS utilities for real production pain points. Install one package or only the modules you need.
 
+## Why Teams Adopt SolveJS
+
+- Predictable APIs with no runtime dependencies.
+- ESM + CJS + TypeScript declarations across all packages.
+- Structured validator responses for better UX/API error mapping.
+- Problem-first cookbook docs with searchable recipes and integration guides.
+
 ## Install
 
 ```bash
@@ -64,6 +71,8 @@ npm run benchmark
 - npm positioning guide: `NPM_POSITIONING.md`
 - Positioning execution checklist: `POSITIONING_CHECKLIST.md`
 - Community pain-point analysis: `COMMUNITY_PAIN_POINTS.md`
+- Docs cookbook: `https://jdsalasca.github.io/solvejs/`
+- Package inventory: `docs/guides/package-inventory.md`
 
 ## License
 

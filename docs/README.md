@@ -26,3 +26,4 @@ Static documentation for GitHub Pages with a searchable cookbook UX.
 - `guides/express-integration`
 - `guides/nest-integration`
 - `guides/validator-locale-matrix`
+- `guides/package-inventory`
