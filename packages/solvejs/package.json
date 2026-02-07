@@ -1,6 +1,6 @@
 {
   "name": "@jdsalasc/solvejs",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "Problem-first utility toolkit for JavaScript and TypeScript with zero external runtime dependencies.",
   "license": "MIT",
   "type": "module",
@@ -33,8 +33,8 @@
     "@jdsalasc/solvejs-list": "1.0.2",
     "@jdsalasc/solvejs-regex": "1.0.2",
     "@jdsalasc/solvejs-constants": "1.0.2",
-    "@jdsalasc/solvejs-numbers": "1.0.2",
-    "@jdsalasc/solvejs-validators": "1.0.2"
+    "@jdsalasc/solvejs-numbers": "1.0.3",
+    "@jdsalasc/solvejs-validators": "1.0.3"
   },
   "publishConfig": {
     "access": "public"
