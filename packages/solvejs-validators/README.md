@@ -19,6 +19,11 @@ Zero-dependency validators for JavaScript and TypeScript forms and API payloads.
 
 Use it when you need reusable validation rules with explicit error codes instead of plain true/false outputs.
 
+## Limitations and Constraints
+
+- Country coverage is explicit and incremental; unsupported countries return structured errors.
+- Validators are format-focused and do not verify external authority databases.
+
 ## Install
 
 ```bash

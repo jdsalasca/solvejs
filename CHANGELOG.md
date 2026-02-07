@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.5.2 - 2026-02-07
+
+- Added `Limitations and Constraints` sections across all package READMEs for clearer adoption expectations.
+- Expanded validator country coverage with `GB` and `DE` for phone/postal checks, including test and matrix updates.
+- Kept lint baseline and full workspace test suite passing after documentation and validator coverage updates.
+
 ## 1.5.1 - 2026-02-07
 
 - Added TypeScript-based lint baseline (`tsc --noEmit`) across all workspace packages.

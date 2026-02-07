@@ -11,12 +11,17 @@ Zero-dependency constants and parsing helpers for JavaScript and TypeScript.
 - `TIME`
 - `FILE_SIZE_BYTES`
 - `HTTP_METHODS`
-- `HTTP_HEADERS`
+- `COMMON_HTTP_HEADERS`
 - `parseBooleanString`
 
 ## When to use this package
 
 Use it when you want shared constant values and predictable string-to-boolean parsing across services and frontend apps.
+
+## Limitations and Constraints
+
+- Constants are generic defaults and may not match every org-specific protocol convention.
+- `parseBooleanString` targets common true/false string forms, not localization dictionaries.
 
 ## Install
 

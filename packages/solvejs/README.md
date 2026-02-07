@@ -12,6 +12,12 @@ Includes date, string, list, regex, constants, numbers, validators, object, and 
 
 Use it when your project needs multiple utility domains and you prefer one import surface over many package-level imports.
 
+## Limitations and Constraints
+
+- Utilities prioritize predictable defaults over framework-specific abstractions.
+- Date and number helpers do not replace domain-specific finance/timezone libraries for regulated calculations.
+- Import package-level modules directly when you need strict control over bundle boundaries.
+
 ## Install
 
 ```bash

@@ -17,6 +17,11 @@ Zero-dependency regex utilities and production-ready patterns for JavaScript and
 
 Use it when you need common regex checks and safer dynamic regex generation without rewriting pattern boilerplate.
 
+## Limitations and Constraints
+
+- Built-in patterns are pragmatic defaults, not full RFC validators.
+- Always validate business-critical formats with domain-specific checks.
+
 ## Install
 
 ```bash

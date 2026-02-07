@@ -18,6 +18,12 @@ Zero-dependency async/concurrency utilities for JavaScript and TypeScript.
 
 Use it when you need predictable retry logic, promise time limits, and controlled async concurrency without adding heavy helper libraries.
 
+## Limitations and Constraints
+
+- `throttlePromise` drops calls made during the throttle window.
+- `debouncePromise` cancels previous pending calls with a rejection.
+- Queueing/rate-limit orchestration is intentionally out of scope for now.
+
 ## Install
 
 ```bash

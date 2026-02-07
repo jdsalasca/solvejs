@@ -16,6 +16,11 @@ Zero-dependency object utilities for JavaScript and TypeScript.
 
 Use it when you need consistent object shaping and nested path operations without pulling a larger utility library.
 
+## Limitations and Constraints
+
+- Path helpers currently support dot-separated string paths only.
+- `deepMerge` merges plain objects and replaces arrays by design.
+
 ## Install
 
 ```bash

@@ -12,6 +12,8 @@ Current coverage for `validateCellphoneNumber`, `validatePostalCode`, and `valid
 - `BR`: phone + postal
 - `CA`: phone + postal
 - `UY`: phone + postal
+- `GB`: phone + postal
+- `DE`: phone + postal
 - `ANY`: phone-only preset
 
 `validatePostalCode` is country-aware with `validatePostalCode(value, { country })`.

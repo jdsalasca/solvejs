@@ -18,6 +18,12 @@ Zero-dependency date utilities for JavaScript and TypeScript.
 
 Use it when you need predictable date parsing/formatting, UTC-safe operations, and common date math without adding heavy dependencies.
 
+## Limitations and Constraints
+
+- Formatting tokens are intentionally limited to a small practical set.
+- Helpers operate in UTC-safe mode and avoid locale-calendar formatting features.
+- For advanced timezone rules per region, integrate a dedicated timezone library.
+
 ## Install
 
 ```bash

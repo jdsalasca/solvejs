@@ -17,6 +17,11 @@ Zero-dependency array/list utilities for JavaScript and TypeScript.
 
 Use it when you repeatedly write list transformation logic and want consistent, tested helpers for grouping, deduplication, and sorting.
 
+## Limitations and Constraints
+
+- Sorting/grouping semantics rely on mapper outputs and do not infer locale-aware collation.
+- Large-list performance depends on data shape and key cardinality; benchmark with production-like payloads.
+
 ## Install
 
 ```bash

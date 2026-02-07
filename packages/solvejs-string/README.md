@@ -18,6 +18,11 @@ Zero-dependency string utilities for JavaScript and TypeScript.
 
 Use it when you need clean, reusable string formatting for UI labels, slugs, payload normalization, and safe preview text.
 
+## Limitations and Constraints
+
+- Casing/slugging aims for practical normalization, not full linguistic transliteration.
+- HTML stripping uses regex and is intended for lightweight cleanup, not HTML sanitization security guarantees.
+
 ## Install
 
 ```bash

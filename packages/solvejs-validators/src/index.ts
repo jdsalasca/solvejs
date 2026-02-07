@@ -15,9 +15,9 @@ export type ValidationResult = {
   message: string;
 };
 
-export type SupportedCountry = "ANY" | "US" | "CO" | "MX" | "ES" | "AR" | "CL" | "PE" | "BR" | "CA" | "UY";
+export type SupportedCountry = "ANY" | "US" | "CO" | "MX" | "ES" | "AR" | "CL" | "PE" | "BR" | "CA" | "UY" | "GB" | "DE";
 export type DirectionLocale = "en" | "es";
-export type PostalCountry = "US" | "CO" | "MX" | "ES" | "AR" | "CL" | "PE" | "BR" | "CA" | "UY";
+export type PostalCountry = "US" | "CO" | "MX" | "ES" | "AR" | "CL" | "PE" | "BR" | "CA" | "UY" | "GB" | "DE";
 
 const ADDRESS_DIRECTIONS: Record<DirectionLocale, ReadonlySet<string>> = {
   en: new Set([
@@ -68,7 +68,9 @@ const COUNTRY_RULES: Record<Exclude<SupportedCountry, "ANY">, { minDigits: numbe
   PE: { minDigits: 9, maxDigits: 11 },
   BR: { minDigits: 10, maxDigits: 13 },
   CA: { minDigits: 10, maxDigits: 11 },
-  UY: { minDigits: 8, maxDigits: 11 }
+  UY: { minDigits: 8, maxDigits: 11 },
+  GB: { minDigits: 10, maxDigits: 12 },
+  DE: { minDigits: 10, maxDigits: 14 }
 };
 
 const POSTAL_PATTERNS: Record<PostalCountry, RegExp> = {
@@ -81,7 +83,9 @@ const POSTAL_PATTERNS: Record<PostalCountry, RegExp> = {
   PE: /^\d{5}$/,
   BR: /^\d{5}-?\d{3}$/,
   CA: /^[A-Za-z]\d[A-Za-z][ -]?\d[A-Za-z]\d$/,
-  UY: /^\d{5}$/
+  UY: /^\d{5}$/,
+  GB: /^[A-Z]{1,2}\d[A-Z\d]?\s?\d[A-Z]{2}$/i,
+  DE: /^\d{5}$/
 };
 
 function ok(message = "Validation passed."): ValidationResult {
@@ -115,7 +119,7 @@ export function validateCellphoneNumber(
   const allowInternational = options.allowInternational ?? true;
   const country = options.country ?? "ANY";
 
-  if (!["ANY", "US", "CO", "MX", "ES", "AR", "CL", "PE", "BR", "CA", "UY"].includes(country)) {
+  if (!["ANY", "US", "CO", "MX", "ES", "AR", "CL", "PE", "BR", "CA", "UY", "GB", "DE"].includes(country)) {
     return fail("UNSUPPORTED_COUNTRY", `Unsupported country preset: ${country}.`);
   }
 

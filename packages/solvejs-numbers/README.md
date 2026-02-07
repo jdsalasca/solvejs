@@ -17,6 +17,11 @@ Zero-dependency number utilities for JavaScript and TypeScript.
 
 Use it when you need safer business math and robust number parsing for forms, analytics, and pricing logic.
 
+## Limitations and Constraints
+
+- Results use IEEE-754 floating-point arithmetic.
+- Money workflows should enforce explicit rounding boundaries per domain rules.
+
 ## Install
 
 ```bash
