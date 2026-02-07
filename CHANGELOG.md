@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.0.3 - 2026-02-07
+
+- Published hotfix release for `@jdsalasc/solvejs-numbers` and `@jdsalasc/solvejs-validators`.
+- Updated meta package `@jdsalasc/solvejs` to depend on the hotfix versions.
+
 ## 1.0.2 - 2026-02-07
 
 - Added new package `@jdsalasc/solvejs-numbers` for safe and practical numeric helpers.

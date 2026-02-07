@@ -1,6 +1,6 @@
 {
   "name": "@jdsalasc/solvejs-validators",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "Practical validators for real JS/TS form pain points: cellphone, direction, name, password, email, and URL.",
   "license": "MIT",
   "type": "module",
