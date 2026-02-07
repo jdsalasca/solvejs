@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Control retries, timeouts, and async concurrency in JavaScript and TypeScript." />
+  <title>Control Async Workflows | SolveJS</title>
+  <link rel="stylesheet" href="../styles.css" />
+</head>
+<body data-root="..">
+  <main class="page">
+    <section class="hero">
+      <h1>Control Async Workflows</h1>
+      <p>Use <code>@jdsalasc/solvejs-async</code> to add retries, promise timeouts, and concurrency limits for production jobs.</p>
+    </section>
+
+    <section class="layout">
+      <aside class="panel">
+        <h2>Cookbook Navigation</h2>
+        <nav data-cookbook-nav aria-label="Cookbook pages"></nav>
+      </aside>
+
+      <section class="panel">
+        <h2>Recipe</h2>
+        <pre><code>import { retry, timeout, pMap } from "@jdsalasc/solvejs-async";
+
+const payload = await retry(
+  () => timeout(fetch("https://api.example.com/items").then((r) => r.json()), 3000),
+  { retries: 2, delayMs: 200, backoffFactor: 2 }
+);
+
+const ids = await pMap(payload.items, async (item) => item.id, { concurrency: 4 });</code></pre>
+        <p class="caption">Why this works: you get predictable retry/timeout behavior and controlled parallelism without external runtime dependencies.</p>
+        <h3>Quick Search</h3>
+        <input class="search-box" data-doc-search type="search" placeholder="Search more recipes" />
+        <div data-search-results></div>
+        <h3>Related Recipes</h3>
+        <div data-related-recipes></div>
+      </section>
+    </section>
+
+    <p class="back-link"><a class="inline-link" href="../index.html">Back to docs home</a></p>
+  </main>
+
+  <script src="../app.js"></script>
+</body>
+</html>

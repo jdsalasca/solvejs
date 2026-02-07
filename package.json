@@ -10,9 +10,9 @@
   ],
   "scripts": {
     "build": "npm run build:core && npm run --workspace packages/solvejs build",
-    "build:core": "npm run --workspace packages/solvejs-date build && npm run --workspace packages/solvejs-string build && npm run --workspace packages/solvejs-list build && npm run --workspace packages/solvejs-regex build && npm run --workspace packages/solvejs-constants build && npm run --workspace packages/solvejs-numbers build && npm run --workspace packages/solvejs-validators build && npm run --workspace packages/solvejs-objects build",
+    "build:core": "npm run --workspace packages/solvejs-date build && npm run --workspace packages/solvejs-string build && npm run --workspace packages/solvejs-list build && npm run --workspace packages/solvejs-regex build && npm run --workspace packages/solvejs-constants build && npm run --workspace packages/solvejs-numbers build && npm run --workspace packages/solvejs-validators build && npm run --workspace packages/solvejs-objects build && npm run --workspace packages/solvejs-async build",
     "test": "npm run test:core && npm run --workspace packages/solvejs test",
-    "test:core": "npm run --workspace packages/solvejs-date test && npm run --workspace packages/solvejs-string test && npm run --workspace packages/solvejs-list test && npm run --workspace packages/solvejs-regex test && npm run --workspace packages/solvejs-constants test && npm run --workspace packages/solvejs-numbers test && npm run --workspace packages/solvejs-validators test && npm run --workspace packages/solvejs-objects test",
+    "test:core": "npm run --workspace packages/solvejs-date test && npm run --workspace packages/solvejs-string test && npm run --workspace packages/solvejs-list test && npm run --workspace packages/solvejs-regex test && npm run --workspace packages/solvejs-constants test && npm run --workspace packages/solvejs-numbers test && npm run --workspace packages/solvejs-validators test && npm run --workspace packages/solvejs-objects test && npm run --workspace packages/solvejs-async test",
     "lint": "npm run --workspaces lint",
     "benchmark": "npm run build && node benchmarks/index.mjs",
     "clean": "npm run --workspaces clean",

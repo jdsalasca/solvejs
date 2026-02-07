@@ -39,11 +39,12 @@ npm i @jdsalasc/solvejs-date @jdsalasc/solvejs-validators @jdsalasc/solvejs-obje
 - `@jdsalasc/solvejs-numbers`: `toNumber`, `safeDivide`, `percentChange`, `toCurrency`.
 - `@jdsalasc/solvejs-validators`: `validateCellphoneNumber`, `validateUsername`, `validateUuidV4`.
 - `@jdsalasc/solvejs-objects`: `pick`, `omit`, `get`, `set`, `deepMerge`.
+- `@jdsalasc/solvejs-async`: `sleep`, `timeout`, `retry`, `pMap`.
 
 ## Quick Example
 
 ```ts
-import { parseDateStrict, slugify, uniqueBy, toNumber, validateUuidV4, deepMerge } from "@jdsalasc/solvejs";
+import { parseDateStrict, slugify, uniqueBy, toNumber, validateUuidV4, deepMerge, retry } from "@jdsalasc/solvejs";
 
 parseDateStrict("2026-02-07", "YYYY-MM-DD");
 slugify("Build Better JS Apps");
@@ -51,6 +52,7 @@ uniqueBy([{ id: "a" }, { id: "a" }, { id: "b" }], (x) => x.id);
 toNumber("1,200");
 validateUuidV4("550e8400-e29b-41d4-a716-446655440000");
 deepMerge({ app: { env: "dev" } }, { app: { version: 2 } });
+await retry(() => fetch("https://example.com/health"), { retries: 2, delayMs: 150 });
 ```
 
 ## Development

@@ -2,7 +2,7 @@ import { readFileSync, readdirSync, writeFileSync, existsSync } from "node:fs";
 import { join } from "node:path";
 
 function parseExports(source) {
-  const fn = [...source.matchAll(/export function\s+(\w+)/g)].map((m) => m[1]);
+  const fn = [...source.matchAll(/export\s+(?:async\s+)?function\s+(\w+)/g)].map((m) => m[1]);
   const ct = [...source.matchAll(/export const\s+(\w+)/g)].map((m) => m[1]);
   const tp = [...source.matchAll(/export type\s+(\w+)/g)].map((m) => m[1]);
   return { fn, ct, tp };

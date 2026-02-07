@@ -4,15 +4,16 @@ Generated on 2026-02-07.
 
 | Package | Version | Functions | Consts | Types | Tests |
 |---|---:|---:|---:|---:|---:|
-| @jdsalasc/solvejs | 1.4.0 | 0 | 0 | 0 | 1 |
-| @jdsalasc/solvejs-constants | 1.4.0 | 1 | 6 | 0 | 1 |
-| @jdsalasc/solvejs-date | 1.4.0 | 13 | 0 | 1 | 3 |
-| @jdsalasc/solvejs-list | 1.4.0 | 10 | 0 | 0 | 2 |
-| @jdsalasc/solvejs-numbers | 1.4.0 | 12 | 0 | 0 | 2 |
-| @jdsalasc/solvejs-objects | 1.4.0 | 6 | 0 | 0 | 1 |
-| @jdsalasc/solvejs-regex | 1.4.0 | 4 | 1 | 1 | 2 |
-| @jdsalasc/solvejs-string | 1.4.0 | 8 | 0 | 0 | 2 |
-| @jdsalasc/solvejs-validators | 1.4.0 | 28 | 0 | 5 | 2 |
+| @jdsalasc/solvejs | 1.4.1 | 0 | 0 | 0 | 1 |
+| @jdsalasc/solvejs-async | 1.4.1 | 4 | 0 | 2 | 3 |
+| @jdsalasc/solvejs-constants | 1.4.1 | 1 | 6 | 0 | 1 |
+| @jdsalasc/solvejs-date | 1.4.1 | 13 | 0 | 1 | 3 |
+| @jdsalasc/solvejs-list | 1.4.1 | 10 | 0 | 0 | 2 |
+| @jdsalasc/solvejs-numbers | 1.4.1 | 12 | 0 | 0 | 2 |
+| @jdsalasc/solvejs-objects | 1.4.1 | 6 | 0 | 0 | 1 |
+| @jdsalasc/solvejs-regex | 1.4.1 | 4 | 1 | 1 | 2 |
+| @jdsalasc/solvejs-string | 1.4.1 | 8 | 0 | 0 | 2 |
+| @jdsalasc/solvejs-validators | 1.4.1 | 28 | 0 | 5 | 2 |
 
 ## Notes
 

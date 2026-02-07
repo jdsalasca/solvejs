@@ -23,6 +23,7 @@ jobs:
           - packages/solvejs-numbers
           - packages/solvejs-validators
           - packages/solvejs-objects
+          - packages/solvejs-async
           - packages/solvejs
     steps:
       - name: Checkout
