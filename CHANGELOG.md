@@ -1,5 +1,10 @@
 # Changelog
 
+## Unreleased
+
+- Added TypeScript-based lint baseline (`tsc --noEmit`) across all workspace packages.
+- Enforced lint in CI workflow before build/test.
+
 ## 1.5.0 - 2026-02-07
 
 - Improved quality coverage across packages:

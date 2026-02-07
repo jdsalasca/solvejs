@@ -25,7 +25,7 @@
     "build:cjs": "tsc -p tsconfig.cjs.json && node ./scripts/rename-cjs.mjs",
     "clean": "node -e \"require('node:fs').rmSync('dist',{recursive:true,force:true})\"",
     "test": "npm run build && node --test test/*.test.mjs",
-    "lint": "node -e \"console.log('No lint configured for @jdsalasc/solvejs-constants')\""
+    "lint": "tsc -p tsconfig.esm.json --noEmit"
   },
   "publishConfig": {
     "access": "public"
@@ -55,3 +55,4 @@
     "solvejs"
   ]
 }
+

@@ -44,5 +44,5 @@
 - [x] Publish package health report (status, issues, weaknesses, improvements) for contributors.
 - [ ] Add deep edge-case tests for date timezone boundaries and object nested-path updates.
 - [ ] Expand validators locale/country coverage and document deprecation strategy for typo aliases.
-- [ ] Add lint baseline and CI enforcement across all workspaces.
+- [x] Add lint baseline and CI enforcement across all workspaces.
 - [x] Start new async utilities package (`solvejs-async`) for retry/timeout/concurrency workflows.
