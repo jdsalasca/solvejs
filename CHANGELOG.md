@@ -12,7 +12,7 @@
 - Added edge-case tests for string/list/regex packages to improve regression coverage.
 - Added automated package inventory generator (`npm run inventory`) producing Markdown + HTML docs snapshots.
 - Improved meta/readme adoption copy with clearer "why adopt" and docs entry points.
-- Added npm and Node compatibility badges across all package READMEs for stronger npm page trust signals.
+- Added npm and Node compatibility badges across all package READMEs for stronger npm page trust signals.`n- Expanded validator locale matrix docs to include address-direction locale coverage (`en`, `es`).
 
 ## 1.3.1 - 2026-02-07
 
