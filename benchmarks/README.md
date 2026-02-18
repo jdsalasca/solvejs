@@ -13,3 +13,9 @@ Includes list-scale checks at `10k` and `100k` rows for:
 - `uniqueBy`
 - `groupBy`
 - `sortBy`
+
+Generate benchmark and package-size docs snapshot:
+
+```bash
+npm run report:perf
+```

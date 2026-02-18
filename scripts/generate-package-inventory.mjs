@@ -19,7 +19,10 @@ function countTests(testDir) {
   return count;
 }
 
-const packages = readdirSync("packages").filter((name) => name.startsWith("solvejs"));
+const packages = readdirSync("packages").filter((name) => {
+  if (!name.startsWith("solvejs")) return false;
+  return existsSync(join("packages", name, "package.json"));
+});
 const date = new Date().toISOString().slice(0, 10);
 const rows = [];
 
@@ -49,6 +52,7 @@ for (const dir of packages) {
 }
 
 out += "\n## Notes\n\n";
+out += "- Baseline: every package should keep at least 3 test cases.\n";
 out += "- Keep each package README aligned with actual exports.\n";
 out += "- Raise test count when adding new APIs or edge-case behavior.\n";
 out += "- Run `npm run inventory` after significant package changes.\n";

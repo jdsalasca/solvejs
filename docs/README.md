@@ -27,5 +27,13 @@ Static documentation for GitHub Pages with a searchable cookbook UX.
 - `guides/nest-integration`
 - `guides/validator-locale-matrix`
 - `guides/package-inventory`
+- `guides/performance-and-size`
+- `guides/community-metrics`
 - `guides/solvejs-vs-lodash`
 - `guides/solvejs-vs-datefns-validator`
+
+## Community and Growth Assets
+
+- `growth/content-calendar-4-weeks.md`
+- `growth/social-snippets-10x.md`
+- `growth/templates/*`

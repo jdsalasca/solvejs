@@ -5,6 +5,7 @@ SolveJS is a zero-dependency utility ecosystem for JavaScript and TypeScript app
 [![CI](https://github.com/jdsalasca/solvejs/actions/workflows/ci.yml/badge.svg)](https://github.com/jdsalasca/solvejs/actions/workflows/ci.yml)
 [![Release](https://img.shields.io/github/v/release/jdsalasca/solvejs)](https://github.com/jdsalasca/solvejs/releases)
 [![npm](https://img.shields.io/npm/v/@jdsalasc/solvejs)](https://www.npmjs.com/package/@jdsalasc/solvejs)
+[![Community](https://img.shields.io/badge/community-monthly%20vote-blue)](https://github.com/jdsalasca/solvejs/issues)
 
 ## Promise
 
@@ -68,14 +69,20 @@ npm run benchmark
 
 - Contribution guide: `CONTRIBUTING.md`
 - Code of conduct: `CODE_OF_CONDUCT.md`
+- Security policy: `SECURITY.md`
 - Community roadmap: `TODO.md`
 - Marketing and growth plan: `MARKETING_PLAN.md`
 - npm positioning guide: `NPM_POSITIONING.md`
 - Positioning execution checklist: `POSITIONING_CHECKLIST.md`
 - Community pain-point analysis: `COMMUNITY_PAIN_POINTS.md`
 - Monthly vote automation: `.github/workflows/community-vote.yml`
-- Docs cookbook: `https://jdsalasca.github.io/solvejs/`
+- Monthly "You asked, we shipped" automation: `.github/workflows/community-shipped.yml`
+- Community metrics automation: `.github/workflows/community-metrics.yml`
+- Docs cookbook: `https://jdsalasca.github.io/solvejs/?utm_source=github&utm_medium=readme&utm_campaign=community_growth`
 - Package inventory: `docs/guides/package-inventory.md`
+- Performance and size report: `docs/guides/performance-and-size.md`
+- Community metrics report: `docs/guides/community-metrics.md`
+- Framework examples: `examples/`
 
 ## License
 

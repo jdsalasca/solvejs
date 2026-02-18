@@ -29,5 +29,14 @@ jobs:
       - name: Build
         run: npm run build
 
+      - name: Pack dry run
+        run: npm pack --workspaces --dry-run
+
+      - name: Generate inventory report
+        run: npm run inventory
+
+      - name: Generate performance and size report
+        run: npm run report:perf
+
       - name: Test
         run: npm test

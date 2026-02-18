@@ -4,6 +4,7 @@ on:
   push:
     tags:
       - "v*"
+  workflow_dispatch:
 
 jobs:
   publish:
@@ -35,13 +36,28 @@ jobs:
           node-version: 22
           registry-url: https://registry.npmjs.org
 
+      - name: Check npm token
+        id: token
+        run: |
+          if [ -z "${NODE_AUTH_TOKEN}" ]; then
+            echo "NPM_TOKEN is missing. Skipping publish for this run."
+            echo "has_token=false" >> $GITHUB_OUTPUT
+          else
+            echo "has_token=true" >> $GITHUB_OUTPUT
+          fi
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
       - name: Install
+        if: steps.token.outputs.has_token == 'true'
         run: npm install
 
       - name: Build
+        if: steps.token.outputs.has_token == 'true'
         run: npm run build
 
       - name: Resolve package metadata
+        if: steps.token.outputs.has_token == 'true'
         id: package
         run: |
           NAME=$(node -p "require('./${{ matrix.workspace }}/package.json').name")
@@ -49,16 +65,8 @@ jobs:
           echo "name=$NAME" >> $GITHUB_OUTPUT
           echo "version=$VERSION" >> $GITHUB_OUTPUT
 
-      - name: Check npm token
-        run: |
-          if [ -z "${NODE_AUTH_TOKEN}" ]; then
-            echo "NPM_TOKEN is missing. Configure repository secret NPM_TOKEN."
-            exit 1
-          fi
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
-
       - name: Check if version exists
+        if: steps.token.outputs.has_token == 'true'
         id: registry
         run: |
           set +e
@@ -74,14 +82,13 @@ jobs:
           fi
 
       - name: Publish workspace
-        if: steps.registry.outputs.exists != 'true'
-        run: |
-          npm publish --workspace "${{ matrix.workspace }}" --access public
+        if: steps.token.outputs.has_token == 'true' && steps.registry.outputs.exists != 'true'
+        run: npm publish --workspace "${{ matrix.workspace }}" --access public
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
       - name: Create GitHub Release
-        if: matrix.workspace == 'packages/solvejs'
+        if: steps.token.outputs.has_token == 'true' && matrix.workspace == 'packages/solvejs'
         uses: softprops/action-gh-release@v2
         with:
           generate_release_notes: true

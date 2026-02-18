@@ -1,0 +1,79 @@
+name: Community Shipped Report
+
+on:
+  schedule:
+    - cron: "0 14 2 * *"
+  workflow_dispatch:
+
+permissions:
+  issues: write
+  contents: read
+  pull-requests: read
+
+jobs:
+  report:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Create monthly shipped issue
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const now = new Date();
+            const currentMonth = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1));
+            const previousMonth = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() - 1, 1));
+            const start = previousMonth.toISOString();
+            const end = currentMonth.toISOString();
+            const monthLabel = previousMonth.toISOString().slice(0, 7);
+            const title = `You asked, we shipped - ${monthLabel}`;
+
+            const openIssues = await github.paginate(github.rest.issues.listForRepo, {
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              state: "open",
+              per_page: 100
+            });
+            if (openIssues.some((issue) => issue.title === title)) {
+              core.info(`Issue already exists: ${title}`);
+              return;
+            }
+
+            const pulls = await github.paginate(github.rest.pulls.list, {
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              state: "closed",
+              sort: "updated",
+              direction: "desc",
+              per_page: 100
+            });
+
+            const mergedInMonth = pulls.filter((pr) => pr.merged_at && pr.merged_at >= start && pr.merged_at < end);
+            const releases = await github.paginate(github.rest.repos.listReleases, {
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              per_page: 100
+            });
+            const releasesInMonth = releases.filter((rel) => rel.published_at && rel.published_at >= start && rel.published_at < end);
+
+            const mergedLines = mergedInMonth.slice(0, 20).map((pr) => `- #${pr.number} ${pr.title}`);
+            const releaseLines = releasesInMonth.map((rel) => `- ${rel.tag_name} (${rel.published_at?.slice(0, 10)})`);
+
+            const body = [
+              `Monthly community delivery summary for **${monthLabel}**.`,
+              "",
+              "## Releases",
+              ...(releaseLines.length ? releaseLines : ["- No releases published in this window."]),
+              "",
+              "## Merged PRs",
+              `- Total merged: **${mergedInMonth.length}**`,
+              ...(mergedLines.length ? mergedLines : ["- No merged PRs in this window."]),
+              "",
+              "## What should ship next?",
+              "Vote in the latest community-vote issue and add concrete API proposals."
+            ].join("\n");
+
+            await github.rest.issues.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title,
+              body
+            });

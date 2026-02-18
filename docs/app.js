@@ -117,6 +117,24 @@ const TOPICS = [
     level: "Reference"
   },
   {
+    id: "performance-and-size",
+    title: "Performance and Size Report",
+    description: "Review local benchmark snapshots and package tarball size per workspace.",
+    path: "guides/performance-and-size.html",
+    tags: ["benchmark", "performance", "bundle", "size"],
+    packages: ["@jdsalasc/solvejs"],
+    level: "Reference"
+  },
+  {
+    id: "community-metrics",
+    title: "Community Metrics",
+    description: "Track stars, issues, forks, and npm downloads with a reproducible script.",
+    path: "guides/community-metrics.html",
+    tags: ["community", "metrics", "downloads", "stars"],
+    packages: ["@jdsalasc/solvejs"],
+    level: "Reference"
+  },
+  {
     id: "solvejs-vs-lodash",
     title: "SolveJS vs Lodash",
     description: "Compare scope, typing, and adoption fit for utility workflows.",

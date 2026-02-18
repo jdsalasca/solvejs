@@ -16,7 +16,10 @@
     "lint": "npm run --workspaces lint",
     "benchmark": "npm run build && node benchmarks/index.mjs",
     "clean": "npm run --workspaces clean",
-    "inventory": "node scripts/generate-package-inventory.mjs"
+    "inventory": "node scripts/generate-package-inventory.mjs",
+    "report:perf": "node scripts/generate-performance-report.mjs",
+    "metrics:community": "node scripts/generate-community-metrics.mjs",
+    "growth:posts": "node scripts/generate-growth-posts.mjs"
   },
   "devDependencies": {
     "typescript": "^5.9.2"

@@ -7,6 +7,7 @@ labels: community-vote
 # SolveJS Monthly Community Vote ({{MONTH}})
 
 Use this issue to vote on what SolveJS should prioritize next.
+Review last month's shipped summary issue before voting to avoid duplicates.
 
 ## Vote for utility priorities
 
