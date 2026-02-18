@@ -6,7 +6,8 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: read
+  contents: write
+  pull-requests: write
 
 jobs:
   metrics:
@@ -25,12 +26,27 @@ jobs:
         run: npm install
 
       - name: Generate metrics snapshot
-        run: npm run metrics:community
+        run: |
+          npm run metrics:community
+          npm run report:perf
+          npm run inventory
 
-      - name: Upload metrics artifacts
-        uses: actions/upload-artifact@v4
+      - name: Create pull request with updated snapshots
+        uses: peter-evans/create-pull-request@v6
         with:
-          name: community-metrics
-          path: |
+          commit-message: "chore: refresh community and performance snapshots"
+          title: "chore: refresh community/performance snapshots"
+          body: |
+            Automated weekly refresh:
+            - `docs/guides/community-metrics.*`
+            - `docs/guides/performance-and-size.*`
+            - `docs/guides/package-inventory.*`
+          branch: chore/weekly-community-snapshots
+          delete-branch: true
+          add-paths: |
             docs/guides/community-metrics.md
             docs/guides/community-metrics.html
+            docs/guides/performance-and-size.md
+            docs/guides/performance-and-size.html
+            docs/guides/package-inventory.md
+            docs/guides/package-inventory.html

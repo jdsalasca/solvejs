@@ -37,3 +37,4 @@ Static documentation for GitHub Pages with a searchable cookbook UX.
 - `growth/content-calendar-4-weeks.md`
 - `growth/social-snippets-10x.md`
 - `growth/templates/*`
+- `community/issue-backlog.md`

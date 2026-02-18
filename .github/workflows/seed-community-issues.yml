@@ -1,0 +1,78 @@
+name: Seed Community Issues
+
+on:
+  workflow_dispatch:
+
+permissions:
+  issues: write
+
+jobs:
+  seed:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Seed good-first-issue and help-wanted tickets
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const labels = [
+              { name: "good first issue", color: "7057ff", description: "Good for first-time contributors" },
+              { name: "help wanted", color: "008672", description: "Maintainers welcome contributions" }
+            ];
+
+            for (const label of labels) {
+              try {
+                await github.rest.issues.createLabel({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  ...label
+                });
+              } catch (error) {
+                if (error.status !== 422) throw error;
+              }
+            }
+
+            const seeds = [
+              { title: "docs: add Fastify integration recipe", labels: ["good first issue", "help wanted"] },
+              { title: "docs: add React form-validation recipe with structured error codes", labels: ["good first issue", "help wanted"] },
+              { title: "tests: add edge-case tests for @jdsalasc/solvejs-list groupBy", labels: ["good first issue", "help wanted"] },
+              { title: "tests: raise @jdsalasc/solvejs-constants baseline from 1 to 3 tests", labels: ["good first issue", "help wanted"] },
+              { title: "tests: raise @jdsalasc/solvejs-numbers baseline from 2 to 3 tests", labels: ["good first issue", "help wanted"] },
+              { title: "docs: add migration guide from lodash pick/omit/get/set to SolveJS", labels: ["good first issue", "help wanted"] },
+              { title: "docs: add validator locale examples for AR/CL/PE onboarding forms", labels: ["good first issue", "help wanted"] },
+              { title: "benchmarks: add high-cardinality dataset scenario for list package", labels: ["help wanted"] },
+              { title: "ci: add docs link-check status badge in README", labels: ["good first issue", "help wanted"] },
+              { title: "community: create monthly shipped-summary template improvements", labels: ["help wanted"] }
+            ];
+
+            const openIssues = await github.paginate(github.rest.issues.listForRepo, {
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              state: "open",
+              per_page: 100
+            });
+
+            for (const seed of seeds) {
+              if (openIssues.some((issue) => issue.title === seed.title)) {
+                core.info(`Issue exists: ${seed.title}`);
+                continue;
+              }
+
+              await github.rest.issues.create({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                title: seed.title,
+                labels: seed.labels,
+                body: [
+                  "## Problem",
+                  "Describe current limitation and who it impacts.",
+                  "",
+                  "## Proposed change",
+                  "Provide a small, testable scope.",
+                  "",
+                  "## Definition of done",
+                  "- [ ] Implementation complete",
+                  "- [ ] Tests added/updated",
+                  "- [ ] Docs updated"
+                ].join("\n")
+              });
+            }

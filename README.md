@@ -78,10 +78,12 @@ npm run benchmark
 - Monthly vote automation: `.github/workflows/community-vote.yml`
 - Monthly "You asked, we shipped" automation: `.github/workflows/community-shipped.yml`
 - Community metrics automation: `.github/workflows/community-metrics.yml`
+- Community issue seeding automation: `.github/workflows/seed-community-issues.yml`
 - Docs cookbook: `https://jdsalasca.github.io/solvejs/?utm_source=github&utm_medium=readme&utm_campaign=community_growth`
 - Package inventory: `docs/guides/package-inventory.md`
 - Performance and size report: `docs/guides/performance-and-size.md`
 - Community metrics report: `docs/guides/community-metrics.md`
+- Community issue backlog: `docs/community/issue-backlog.md`
 - Framework examples: `examples/`
 
 ## License

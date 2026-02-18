@@ -26,8 +26,14 @@ jobs:
       - name: Lint
         run: npm run lint
 
+      - name: Enforce test baseline
+        run: npm run test:baseline
+
       - name: Build
         run: npm run build
+
+      - name: Check docs links
+        run: npm run docs:check-links
 
       - name: Pack dry run
         run: npm pack --workspaces --dry-run
