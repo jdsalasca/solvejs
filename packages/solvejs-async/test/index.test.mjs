@@ -1,6 +1,16 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { createRateLimiter, createTaskQueue, debouncePromise, pMap, retry, sleep, throttlePromise, timeout } from "../dist/esm/index.js";
+import {
+  createRateLimiter,
+  createTaskQueue,
+  createTokenBucketLimiter,
+  debouncePromise,
+  pMap,
+  retry,
+  sleep,
+  throttlePromise,
+  timeout
+} from "../dist/esm/index.js";
 
 test("sleep and timeout utilities", async () => {
   const start = Date.now();
@@ -128,4 +138,27 @@ test("createRateLimiter caps executions inside a window", async () => {
   startedAt.sort((a, b) => a - b);
   assert.equal(startedAt.length, 3);
   assert.equal(startedAt[2] >= 35, true);
+});
+
+test("createTokenBucketLimiter smooths bursts and enforces token costs", async () => {
+  const limiter = createTokenBucketLimiter({ capacity: 3, refillTokens: 1, refillIntervalMs: 30 });
+  const startedAt = [];
+  const start = Date.now();
+
+  await Promise.all([
+    limiter(async () => {
+      startedAt.push(Date.now() - start);
+      return "first";
+    }, 2),
+    limiter(async () => {
+      startedAt.push(Date.now() - start);
+      return "second";
+    }, 2)
+  ]);
+
+  startedAt.sort((a, b) => a - b);
+  assert.equal(startedAt.length, 2);
+  assert.equal(startedAt[1] >= 20, true);
+
+  assert.throws(() => limiter(async () => "invalid", 4), /tokenCost to be less than or equal to capacity/);
 });

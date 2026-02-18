@@ -5,7 +5,7 @@ Generated on 2026-02-18.
 | Package | Version | Functions | Consts | Types | Tests |
 |---|---:|---:|---:|---:|---:|
 | @jdsalasc/solvejs | 1.5.2 | 0 | 0 | 0 | 1 |
-| @jdsalasc/solvejs-async | 1.5.2 | 8 | 0 | 7 | 7 |
+| @jdsalasc/solvejs-async | 1.5.2 | 9 | 0 | 8 | 8 |
 | @jdsalasc/solvejs-constants | 1.5.2 | 1 | 6 | 0 | 3 |
 | @jdsalasc/solvejs-date | 1.5.2 | 13 | 0 | 1 | 4 |
 | @jdsalasc/solvejs-env | 1.5.2 | 9 | 0 | 1 | 9 |

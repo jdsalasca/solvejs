@@ -15,6 +15,7 @@ Zero-dependency async/concurrency utilities for JavaScript and TypeScript.
 - `throttlePromise`
 - `createTaskQueue`
 - `createRateLimiter`
+- `createTokenBucketLimiter`
 
 ## When to use this package
 
@@ -33,7 +34,7 @@ npm i @jdsalasc/solvejs-async
 ## Quick example
 
 ```ts
-import { createTaskQueue, createRateLimiter, retry, timeout, pMap } from "@jdsalasc/solvejs-async";
+import { createTaskQueue, createRateLimiter, createTokenBucketLimiter, retry, timeout, pMap } from "@jdsalasc/solvejs-async";
 
 const data = await retry(
   () => timeout(fetch("https://api.example.com/items").then((r) => r.json()), 3000),
@@ -43,5 +44,7 @@ const data = await retry(
 const ids = await pMap(data.items, async (item) => item.id, { concurrency: 4 });
 const queue = createTaskQueue({ concurrency: 2 });
 const limiter = createRateLimiter({ maxCalls: 5, windowMs: 1000 });
+const burstLimiter = createTokenBucketLimiter({ capacity: 10, refillTokens: 2, refillIntervalMs: 1000 });
 await queue.add(() => limiter(() => fetch("https://api.example.com/reindex")));
+await burstLimiter(() => fetch("https://api.example.com/heavy-sync"), 3);
 ```
