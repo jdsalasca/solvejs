@@ -63,6 +63,15 @@ const TOPICS = [
     level: "Intermediate"
   },
   {
+    id: "env-config",
+    title: "Parse and Validate Environment Variables",
+    description: "Fail fast at startup with typed env parsing and required-key checks.",
+    path: "problems/env-config.html",
+    tags: ["env", "config", "backend", "startup"],
+    packages: ["@jdsalasc/solvejs-env"],
+    level: "Intermediate"
+  },
+  {
     id: "nextjs-integration",
     title: "Integrate SolveJS in Next.js",
     description: "Use validators and parsers in route handlers and server actions.",

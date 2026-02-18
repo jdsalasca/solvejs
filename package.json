@@ -25,7 +25,9 @@
     "example:next": "node examples/nextjs-route-handler/index.mjs",
     "example:next:test": "node --test examples/nextjs-route-handler/test.mjs",
     "example:express": "node examples/express-middleware/index.mjs",
-    "example:express:test": "node --test examples/express-middleware/test.mjs"
+    "example:express:test": "node --test examples/express-middleware/test.mjs",
+    "example:env": "node examples/env-bootstrap/index.mjs",
+    "example:env:test": "node --test examples/env-bootstrap/test.mjs"
   },
   "devDependencies": {
     "typescript": "^5.9.2"

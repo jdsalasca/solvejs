@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Parse and validate environment variables safely in JavaScript and TypeScript." />
+  <title>Parse and Validate Environment Variables | SolveJS</title>
+  <link rel="stylesheet" href="../styles.css" />
+</head>
+<body data-root="..">
+  <main class="page">
+    <section class="hero">
+      <h1>Parse and Validate Environment Variables</h1>
+      <p>Use <code>@jdsalasc/solvejs-env</code> to fail fast at startup with typed env parsing.</p>
+    </section>
+
+    <section class="layout">
+      <aside class="panel">
+        <h2>Cookbook Navigation</h2>
+        <nav data-cookbook-nav aria-label="Cookbook pages"></nav>
+      </aside>
+
+      <section class="panel">
+        <h2>Recipe</h2>
+        <pre><code>import { getEnvBoolean, getEnvEnum, getEnvNumber, getEnvString, validateRequiredEnv } from "@jdsalasc/solvejs-env";
+
+const missing = validateRequiredEnv(["DB_URL", "JWT_SECRET"], process.env);
+if (missing.length > 0) {
+  throw new Error(`Missing env vars: ${missing.join(", ")}`);
+}
+
+const nodeEnv = getEnvEnum("NODE_ENV", ["development", "test", "production"], process.env, {
+  defaultValue: "development"
+});
+const port = getEnvNumber("PORT", process.env, { defaultValue: 3000, integer: true, min: 1, max: 65535 });
+const dbUrl = getEnvString("DB_URL", process.env, { trim: true });
+const cacheEnabled = getEnvBoolean("ENABLE_CACHE", process.env, { defaultValue: false });</code></pre>
+        <p class="caption">Why this works: explicit startup validation prevents silent runtime misconfiguration.</p>
+        <h3>Quick Search</h3>
+        <input class="search-box" data-doc-search type="search" placeholder="Search more recipes" />
+        <div data-search-results></div>
+        <h3>Related Recipes</h3>
+        <div data-related-recipes></div>
+      </section>
+    </section>
+
+    <p class="back-link"><a class="inline-link" href="../index.html">Back to docs home</a></p>
+  </main>
+
+  <script src="../app.js"></script>
+</body>
+</html>

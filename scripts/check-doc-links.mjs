@@ -1,11 +1,23 @@
-import { existsSync, readFileSync } from "node:fs";
+import { existsSync, readFileSync, readdirSync, statSync } from "node:fs";
 import { dirname, join, normalize } from "node:path";
-import { execSync } from "node:child_process";
 
-function listHtmlFiles() {
-  const output = execSync("rg --files docs -g *.html", { encoding: "utf8" }).trim();
-  if (!output) return [];
-  return output.split(/\r?\n/).filter(Boolean);
+function listHtmlFiles(root) {
+  const files = [];
+  function walk(path) {
+    for (const entry of readdirSync(path)) {
+      const fullPath = join(path, entry);
+      const stats = statSync(fullPath);
+      if (stats.isDirectory()) {
+        walk(fullPath);
+        continue;
+      }
+      if (fullPath.endsWith(".html")) {
+        files.push(normalize(fullPath));
+      }
+    }
+  }
+  walk(root);
+  return files;
 }
 
 function extractLinks(html) {
@@ -27,7 +39,7 @@ function isSkippable(link) {
   );
 }
 
-const files = listHtmlFiles();
+const files = listHtmlFiles("docs");
 const failures = [];
 
 for (const file of files) {

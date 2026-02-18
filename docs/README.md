@@ -19,6 +19,8 @@ Static documentation for GitHub Pages with a searchable cookbook UX.
 - `string-format`
 - `regex-patterns`
 - `object-utils`
+- `async-control`
+- `env-config`
 
 ## Integration Guides
 
