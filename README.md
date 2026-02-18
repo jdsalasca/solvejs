@@ -41,7 +41,7 @@ npm i @jdsalasc/solvejs-date @jdsalasc/solvejs-validators @jdsalasc/solvejs-obje
 - `@jdsalasc/solvejs-validators`: `validateCellphoneNumber`, `validateUsername`, `validateUuidV4`.
 - `@jdsalasc/solvejs-objects`: `pick`, `omit`, `get`, `set`, `deepMerge`.
 - `@jdsalasc/solvejs-async`: `sleep`, `timeout`, `retry`, `pMap`, `createTaskQueue`, `createRateLimiter`.
-- `@jdsalasc/solvejs-env`: `getEnvString`, `getEnvNumber`, `getEnvBoolean`, `getEnvEnum`, `validateRequiredEnv`.
+- `@jdsalasc/solvejs-env`: `getEnvString`, `getEnvNumber`, `getEnvBoolean`, `getEnvEnum`, `getEnvArray`, `getEnvJson`, `validateRequiredEnv`.
 
 ## Quick Example
 

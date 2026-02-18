@@ -1,8 +1,10 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import {
+  getEnvArray,
   getEnvBoolean,
   getEnvEnum,
+  getEnvJson,
   getEnvNumber,
   getEnvString,
   validateRequiredEnv
@@ -42,4 +44,20 @@ test("getEnvEnum validates allowed values with optional case-insensitive mode", 
 test("validateRequiredEnv returns missing and empty names", () => {
   const env = { DB_URL: "postgres://x", API_KEY: " ", PORT: "3000" };
   assert.deepEqual(validateRequiredEnv(["DB_URL", "API_KEY", "JWT_SECRET", "PORT"], env), ["API_KEY", "JWT_SECRET"]);
+});
+
+test("getEnvArray parses comma-separated values with trimming", () => {
+  const env = { CORS_ORIGINS: " https://a.dev,https://b.dev , ,https://c.dev " };
+  assert.deepEqual(getEnvArray("CORS_ORIGINS", env), ["https://a.dev", "https://b.dev", "https://c.dev"]);
+  assert.deepEqual(getEnvArray("MISSING", env, { defaultValue: ["*"] }), ["*"]);
+  assert.throws(() => getEnvArray("EMPTY", { EMPTY: " , , " }), /at least one non-empty item/);
+});
+
+test("getEnvJson parses JSON values and throws for invalid payloads", () => {
+  const env = {
+    FEATURE_FLAGS: "{\"newCheckout\":true,\"maxRetries\":3}"
+  };
+  assert.deepEqual(getEnvJson("FEATURE_FLAGS", env), { newCheckout: true, maxRetries: 3 });
+  assert.deepEqual(getEnvJson("MISSING_JSON", env, { defaultValue: { enabled: false } }), { enabled: false });
+  assert.throws(() => getEnvJson("BROKEN_JSON", { BROKEN_JSON: "{invalid" }), /valid JSON/);
 });

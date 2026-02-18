@@ -22,6 +22,17 @@ type EnumOptions<T extends string> = {
   caseInsensitive?: boolean;
 };
 
+type ArrayOptions = {
+  defaultValue?: string[];
+  separator?: string;
+  trimItems?: boolean;
+  allowEmptyItems?: boolean;
+};
+
+type JsonOptions<T> = {
+  defaultValue?: T;
+};
+
 function readEnvRaw(name: string, env: EnvSource): string | undefined {
   return env[name];
 }
@@ -148,6 +159,61 @@ export function getEnvEnum<T extends string>(
   }
 
   throw new Error(`Environment variable ${name} must be one of: ${allowedValues.join(", ")}.`);
+}
+
+/**
+ * Reads and parses a delimited environment variable into a string array.
+ *
+ * @param name - Environment variable name.
+ * @param env - Source object, defaults to `process.env`.
+ * @param options - Array parsing options.
+ * @returns Parsed array of strings.
+ */
+export function getEnvArray(name: string, env: EnvSource = defaultEnvSource(), options: ArrayOptions = {}): string[] {
+  const raw = readEnvRaw(name, env);
+  if (raw === undefined || raw === null || raw.trim() === "") {
+    if (options.defaultValue !== undefined) {
+      return options.defaultValue;
+    }
+    throw new Error(`Missing required environment variable: ${name}`);
+  }
+
+  const separator = options.separator ?? ",";
+  const trimItems = options.trimItems ?? true;
+  const allowEmptyItems = options.allowEmptyItems ?? false;
+
+  const parts = raw.split(separator).map((part) => (trimItems ? part.trim() : part));
+  const filtered = allowEmptyItems ? parts : parts.filter((part) => part.length > 0);
+
+  if (!allowEmptyItems && filtered.length === 0) {
+    throw new Error(`Environment variable ${name} must contain at least one non-empty item.`);
+  }
+
+  return filtered;
+}
+
+/**
+ * Reads and parses a JSON environment variable.
+ *
+ * @param name - Environment variable name.
+ * @param env - Source object, defaults to `process.env`.
+ * @param options - JSON parsing options.
+ * @returns Parsed JSON value.
+ */
+export function getEnvJson<T>(name: string, env: EnvSource = defaultEnvSource(), options: JsonOptions<T> = {}): T {
+  const raw = readEnvRaw(name, env);
+  if (raw === undefined || raw === null || raw.trim() === "") {
+    if (options.defaultValue !== undefined) {
+      return options.defaultValue;
+    }
+    throw new Error(`Missing required environment variable: ${name}`);
+  }
+
+  try {
+    return JSON.parse(raw) as T;
+  } catch {
+    throw new Error(`Environment variable ${name} must contain valid JSON.`);
+  }
 }
 
 /**

@@ -3,7 +3,15 @@
 Use `@jdsalasc/solvejs-env` to fail fast at startup with typed env parsing.
 
 ```ts
-import { getEnvBoolean, getEnvEnum, getEnvNumber, getEnvString, validateRequiredEnv } from "@jdsalasc/solvejs-env";
+import {
+  getEnvArray,
+  getEnvBoolean,
+  getEnvEnum,
+  getEnvJson,
+  getEnvNumber,
+  getEnvString,
+  validateRequiredEnv
+} from "@jdsalasc/solvejs-env";
 
 const missing = validateRequiredEnv(["DB_URL", "JWT_SECRET"], process.env);
 if (missing.length > 0) {
@@ -16,6 +24,8 @@ const nodeEnv = getEnvEnum("NODE_ENV", ["development", "test", "production"], pr
 const port = getEnvNumber("PORT", process.env, { defaultValue: 3000, integer: true, min: 1, max: 65535 });
 const dbUrl = getEnvString("DB_URL", process.env, { trim: true });
 const cacheEnabled = getEnvBoolean("ENABLE_CACHE", process.env, { defaultValue: false });
+const corsOrigins = getEnvArray("CORS_ORIGINS", process.env, { defaultValue: ["http://localhost:3000"] });
+const featureFlags = getEnvJson("FEATURE_FLAGS", process.env, { defaultValue: { newCheckout: false } });
 ```
 
 Why this works:

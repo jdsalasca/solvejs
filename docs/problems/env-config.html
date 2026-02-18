@@ -22,7 +22,15 @@
 
       <section class="panel">
         <h2>Recipe</h2>
-        <pre><code>import { getEnvBoolean, getEnvEnum, getEnvNumber, getEnvString, validateRequiredEnv } from "@jdsalasc/solvejs-env";
+        <pre><code>import {
+  getEnvArray,
+  getEnvBoolean,
+  getEnvEnum,
+  getEnvJson,
+  getEnvNumber,
+  getEnvString,
+  validateRequiredEnv
+} from "@jdsalasc/solvejs-env";
 
 const missing = validateRequiredEnv(["DB_URL", "JWT_SECRET"], process.env);
 if (missing.length > 0) {
@@ -34,7 +42,9 @@ const nodeEnv = getEnvEnum("NODE_ENV", ["development", "test", "production"], pr
 });
 const port = getEnvNumber("PORT", process.env, { defaultValue: 3000, integer: true, min: 1, max: 65535 });
 const dbUrl = getEnvString("DB_URL", process.env, { trim: true });
-const cacheEnabled = getEnvBoolean("ENABLE_CACHE", process.env, { defaultValue: false });</code></pre>
+const cacheEnabled = getEnvBoolean("ENABLE_CACHE", process.env, { defaultValue: false });
+const corsOrigins = getEnvArray("CORS_ORIGINS", process.env, { defaultValue: ["http://localhost:3000"] });
+const featureFlags = getEnvJson("FEATURE_FLAGS", process.env, { defaultValue: { newCheckout: false } });</code></pre>
         <p class="caption">Why this works: explicit startup validation prevents silent runtime misconfiguration.</p>
         <h3>Quick Search</h3>
         <input class="search-box" data-doc-search type="search" placeholder="Search more recipes" />

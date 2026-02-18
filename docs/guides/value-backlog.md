@@ -1,0 +1,24 @@
+# SolveJS Value Backlog
+
+Updated on 2026-02-18.
+
+## Executed in this cycle
+
+1. Added `@jdsalasc/solvejs-env` package with typed startup parsing:
+   - `getEnvString`, `getEnvNumber`, `getEnvBoolean`, `getEnvEnum`, `validateRequiredEnv`
+2. Added async orchestration utilities:
+   - `createTaskQueue`, `createRateLimiter`
+3. Added business-math helpers in numbers:
+   - `calculateTaxAmount`, `applyDiscount`, `grossMargin`
+4. Raised test depth in critical packages and enforced baseline in CI.
+5. Added env cookbook page and runnable env bootstrap example.
+6. Expanded env parsing with:
+   - `getEnvArray`, `getEnvJson`
+
+## Next highest-value items
+
+1. `P0` Add token-bucket limiter in `solvejs-async` for smoother burst control.
+2. `P0` Add DSN/URL validator helpers in `solvejs-env` (`getEnvUrl`, `getEnvDsn`).
+3. `P1` Add fintech-ready invoice recipe combining numbers + env + validators.
+4. `P1` Add regional timezone matrix examples in date docs (DST edge cases).
+5. `P1` Add high-cardinality benchmark scenario for list transforms.

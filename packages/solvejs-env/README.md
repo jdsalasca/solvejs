@@ -11,6 +11,8 @@ Zero-dependency environment variable parsing and validation utilities for JavaSc
 - `getEnvNumber`
 - `getEnvBoolean`
 - `getEnvEnum`
+- `getEnvArray`
+- `getEnvJson`
 - `validateRequiredEnv`
 
 ## When to use this package
@@ -26,7 +28,15 @@ npm i @jdsalasc/solvejs-env
 ## Quick example
 
 ```ts
-import { getEnvBoolean, getEnvEnum, getEnvNumber, getEnvString, validateRequiredEnv } from "@jdsalasc/solvejs-env";
+import {
+  getEnvArray,
+  getEnvBoolean,
+  getEnvEnum,
+  getEnvJson,
+  getEnvNumber,
+  getEnvString,
+  validateRequiredEnv
+} from "@jdsalasc/solvejs-env";
 
 const missing = validateRequiredEnv(["DB_URL", "JWT_SECRET"]);
 if (missing.length > 0) {
@@ -37,4 +47,6 @@ const nodeEnv = getEnvEnum("NODE_ENV", ["development", "test", "production"], pr
 const port = getEnvNumber("PORT", process.env, { defaultValue: 3000, integer: true, min: 1, max: 65535 });
 const dbUrl = getEnvString("DB_URL");
 const enableCache = getEnvBoolean("ENABLE_CACHE", process.env, { defaultValue: false });
+const corsOrigins = getEnvArray("CORS_ORIGINS", process.env, { defaultValue: ["http://localhost:3000"] });
+const featureFlags = getEnvJson("FEATURE_FLAGS", process.env, { defaultValue: { newCheckout: false } });
 ```

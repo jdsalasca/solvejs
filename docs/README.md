@@ -31,6 +31,7 @@ Static documentation for GitHub Pages with a searchable cookbook UX.
 - `guides/package-inventory`
 - `guides/performance-and-size`
 - `guides/community-metrics`
+- `guides/value-backlog`
 - `guides/solvejs-vs-lodash`
 - `guides/solvejs-vs-datefns-validator`
 
