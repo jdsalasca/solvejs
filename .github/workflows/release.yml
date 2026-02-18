@@ -25,6 +25,7 @@ jobs:
           - packages/solvejs-validators
           - packages/solvejs-objects
           - packages/solvejs-async
+          - packages/solvejs-env
           - packages/solvejs
     steps:
       - name: Checkout

@@ -7,3 +7,4 @@ export * from "@jdsalasc/solvejs-numbers";
 export * from "@jdsalasc/solvejs-validators";
 export * from "@jdsalasc/solvejs-objects";
 export * from "@jdsalasc/solvejs-async";
+export * from "@jdsalasc/solvejs-env";

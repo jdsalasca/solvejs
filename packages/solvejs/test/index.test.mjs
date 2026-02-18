@@ -2,6 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import {
   deepMerge,
+  getEnvBoolean,
   formatDate,
   pMap,
   toKebabCase,
@@ -29,6 +30,7 @@ test("meta package re-exports symbols", async () => {
     deepMerge({ app: { env: "dev", flags: { a: true } } }, { app: { flags: { b: true } } }),
     { app: { env: "dev", flags: { a: true, b: true } } }
   );
+  assert.equal(getEnvBoolean("FEATURE_X", { FEATURE_X: "true" }), true);
   await sleep(1);
   assert.deepEqual(await pMap([1, 2, 3], async (x) => x * 2, { concurrency: 2 }), [2, 4, 6]);
 });

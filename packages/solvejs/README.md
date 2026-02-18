@@ -6,7 +6,7 @@
 
 Zero-dependency JavaScript and TypeScript utility suite for real production pain points.
 
-Includes date, string, list, regex, constants, numbers, validators, object, and async utilities.
+Includes date, string, list, regex, constants, numbers, validators, object, async, and env utilities.
 
 ## When to use this package
 
@@ -27,7 +27,7 @@ npm i @jdsalasc/solvejs
 ## Quick example
 
 ```ts
-import { parseDateStrict, slugify, uniqueBy, toNumber, deepMerge, retry } from "@jdsalasc/solvejs";
+import { parseDateStrict, slugify, uniqueBy, toNumber, deepMerge, retry, getEnvBoolean } from "@jdsalasc/solvejs";
 
 parseDateStrict("2026-02-07", "YYYY-MM-DD");
 slugify("Build Better JS Apps");
@@ -35,6 +35,7 @@ uniqueBy([{ id: "a" }, { id: "a" }], (x) => x.id);
 toNumber("1,200");
 deepMerge({ app: { env: "dev" } }, { app: { version: 2 } });
 await retry(() => fetch("https://example.com/health"), { retries: 2, delayMs: 150 });
+getEnvBoolean("ENABLE_CACHE", { ENABLE_CACHE: "true" });
 ```
 
 Docs cookbook and guides: `https://jdsalasca.github.io/solvejs/`

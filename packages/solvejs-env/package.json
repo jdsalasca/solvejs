@@ -1,7 +1,7 @@
 {
-  "name": "@jdsalasc/solvejs",
+  "name": "@jdsalasc/solvejs-env",
   "version": "1.5.2",
-  "description": "Zero-dependency JavaScript/TypeScript utility library for production apps: date parsing, string cleanup, list transforms, validators, numbers, regex, constants, objects, and async control.",
+  "description": "Zero-dependency JavaScript/TypeScript environment variable utilities for production: typed parsing, enum checks, and required key validation.",
   "license": "MIT",
   "type": "module",
   "sideEffects": false,
@@ -25,19 +25,7 @@
     "build:cjs": "tsc -p tsconfig.cjs.json && node ./scripts/rename-cjs.mjs",
     "clean": "node -e \"require('node:fs').rmSync('dist',{recursive:true,force:true})\"",
     "test": "npm run build && node --test test/*.test.mjs",
-    "lint": "tsc -p tsconfig.lint.json --noEmit"
-  },
-  "dependencies": {
-    "@jdsalasc/solvejs-date": "1.5.2",
-    "@jdsalasc/solvejs-string": "1.5.2",
-    "@jdsalasc/solvejs-list": "1.5.2",
-    "@jdsalasc/solvejs-regex": "1.5.2",
-    "@jdsalasc/solvejs-constants": "1.5.2",
-    "@jdsalasc/solvejs-numbers": "1.5.2",
-    "@jdsalasc/solvejs-validators": "1.5.2",
-    "@jdsalasc/solvejs-objects": "1.5.2",
-    "@jdsalasc/solvejs-async": "1.5.2",
-    "@jdsalasc/solvejs-env": "1.5.2"
+    "lint": "tsc -p tsconfig.esm.json --noEmit"
   },
   "publishConfig": {
     "access": "public"
@@ -55,17 +43,13 @@
     "node": ">=18"
   },
   "keywords": [
-    "javascript utility library",
-    "typescript utility library",
+    "javascript env utilities",
+    "typescript env utilities",
+    "environment variables",
+    "env parser",
+    "env validator",
+    "typed env",
     "zero dependency",
-    "date utilities",
-    "string utilities",
-    "array utilities",
-    "object utilities",
-    "async utilities",
-    "form validators",
-    "regex utilities",
-    "number utilities",
     "solvejs"
   ]
 }

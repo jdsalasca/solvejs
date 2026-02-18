@@ -1,0 +1,22 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
+    "noEmit": true,
+    "baseUrl": ".",
+    "paths": {
+      "@jdsalasc/solvejs-date": ["../solvejs-date/src/index.ts"],
+      "@jdsalasc/solvejs-string": ["../solvejs-string/src/index.ts"],
+      "@jdsalasc/solvejs-list": ["../solvejs-list/src/index.ts"],
+      "@jdsalasc/solvejs-regex": ["../solvejs-regex/src/index.ts"],
+      "@jdsalasc/solvejs-constants": ["../solvejs-constants/src/index.ts"],
+      "@jdsalasc/solvejs-numbers": ["../solvejs-numbers/src/index.ts"],
+      "@jdsalasc/solvejs-validators": ["../solvejs-validators/src/index.ts"],
+      "@jdsalasc/solvejs-objects": ["../solvejs-objects/src/index.ts"],
+      "@jdsalasc/solvejs-async": ["../solvejs-async/src/index.ts"],
+      "@jdsalasc/solvejs-env": ["../solvejs-env/src/index.ts"]
+    }
+  },
+  "include": ["src/**/*.ts"]
+}
