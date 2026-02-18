@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { debouncePromise, pMap, retry, sleep, throttlePromise, timeout } from "../dist/esm/index.js";
+import { createRateLimiter, createTaskQueue, debouncePromise, pMap, retry, sleep, throttlePromise, timeout } from "../dist/esm/index.js";
 
 test("sleep and timeout utilities", async () => {
   const start = Date.now();
@@ -81,4 +81,51 @@ test("throttlePromise runs at most once per window", async () => {
   assert.equal(second, undefined);
   assert.equal(third, 12);
   assert.equal(calls, 2);
+});
+
+test("createTaskQueue enforces concurrency and preserves all results", async () => {
+  const queue = createTaskQueue({ concurrency: 2 });
+  let active = 0;
+  let peak = 0;
+
+  const jobs = [1, 2, 3, 4, 5].map((value) =>
+    queue.add(async () => {
+      active += 1;
+      peak = Math.max(peak, active);
+      await sleep(5);
+      active -= 1;
+      return value * 10;
+    })
+  );
+
+  const results = await Promise.all(jobs);
+  assert.deepEqual(results, [10, 20, 30, 40, 50]);
+  assert.equal(peak <= 2, true);
+  assert.equal(queue.pending(), 0);
+  assert.equal(queue.running(), 0);
+});
+
+test("createRateLimiter caps executions inside a window", async () => {
+  const limiter = createRateLimiter({ maxCalls: 2, windowMs: 40 });
+  const startedAt = [];
+  const start = Date.now();
+
+  await Promise.all([
+    limiter(async () => {
+      startedAt.push(Date.now() - start);
+      return 1;
+    }),
+    limiter(async () => {
+      startedAt.push(Date.now() - start);
+      return 2;
+    }),
+    limiter(async () => {
+      startedAt.push(Date.now() - start);
+      return 3;
+    })
+  ]);
+
+  startedAt.sort((a, b) => a - b);
+  assert.equal(startedAt.length, 3);
+  assert.equal(startedAt[2] >= 35, true);
 });

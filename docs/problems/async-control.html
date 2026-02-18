@@ -11,7 +11,7 @@
   <main class="page">
     <section class="hero">
       <h1>Control Async Workflows</h1>
-      <p>Use <code>@jdsalasc/solvejs-async</code> to add retries, promise timeouts, and concurrency limits for production jobs.</p>
+      <p>Use <code>@jdsalasc/solvejs-async</code> to add retries, promise timeouts, queues, and rate limits for production jobs.</p>
     </section>
 
     <section class="layout">
@@ -22,14 +22,18 @@
 
       <section class="panel">
         <h2>Recipe</h2>
-        <pre><code>import { retry, timeout, pMap } from "@jdsalasc/solvejs-async";
+        <pre><code>import { retry, timeout, pMap, createTaskQueue, createRateLimiter } from "@jdsalasc/solvejs-async";
 
 const payload = await retry(
   () => timeout(fetch("https://api.example.com/items").then((r) => r.json()), 3000),
   { retries: 2, delayMs: 200, backoffFactor: 2 }
 );
 
-const ids = await pMap(payload.items, async (item) => item.id, { concurrency: 4 });</code></pre>
+const ids = await pMap(payload.items, async (item) => item.id, { concurrency: 4 });
+const queue = createTaskQueue({ concurrency: 2 });
+const limiter = createRateLimiter({ maxCalls: 5, windowMs: 1000 });
+
+await queue.add(() => limiter(() => fetch("https://api.example.com/reindex")));</code></pre>
         <p class="caption">Why this works: you get predictable retry/timeout behavior and controlled parallelism without external runtime dependencies.</p>
         <h3>Quick Search</h3>
         <input class="search-box" data-doc-search type="search" placeholder="Search more recipes" />

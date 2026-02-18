@@ -232,3 +232,106 @@ export function throttlePromise<TArgs extends unknown[], TResult>(
     }
   };
 }
+
+export type TaskQueueOptions = {
+  concurrency?: number;
+};
+
+export type TaskQueue = {
+  add: <T>(task: () => Promise<T> | T) => Promise<T>;
+  pending: () => number;
+  running: () => number;
+};
+
+/**
+ * Creates a lightweight async task queue with bounded concurrency.
+ *
+ * @param options - Queue options.
+ * @param options.concurrency - Maximum number of tasks running in parallel.
+ * @returns Queue controller with `add`, `pending`, and `running`.
+ */
+export function createTaskQueue(options: TaskQueueOptions = {}): TaskQueue {
+  const concurrency = options.concurrency ?? 1;
+  assertPositiveInteger(concurrency, "concurrency");
+
+  const queue: Array<() => void> = [];
+  let activeCount = 0;
+
+  const schedule = () => {
+    while (activeCount < concurrency && queue.length > 0) {
+      const run = queue.shift();
+      if (!run) return;
+      activeCount += 1;
+      run();
+    }
+  };
+
+  const add = <T>(task: () => Promise<T> | T): Promise<T> =>
+    new Promise<T>((resolve, reject) => {
+      queue.push(() => {
+        Promise.resolve()
+          .then(task)
+          .then(resolve, reject)
+          .finally(() => {
+            activeCount -= 1;
+            schedule();
+          });
+      });
+      schedule();
+    });
+
+  return {
+    add,
+    pending: () => queue.length,
+    running: () => activeCount
+  };
+}
+
+export type RateLimiterOptions = {
+  maxCalls: number;
+  windowMs: number;
+};
+
+/**
+ * Creates a fixed-window async rate limiter wrapper.
+ *
+ * @param options - Rate limiter options.
+ * @param options.maxCalls - Maximum executions allowed within the window.
+ * @param options.windowMs - Window duration in milliseconds.
+ * @returns Function that schedules work respecting the configured rate.
+ */
+export function createRateLimiter(options: RateLimiterOptions): <T>(task: () => Promise<T> | T) => Promise<T> {
+  const { maxCalls, windowMs } = options;
+  assertPositiveInteger(maxCalls, "maxCalls");
+  assertNonNegativeFinite(windowMs, "windowMs");
+
+  let chain = Promise.resolve();
+  const executionTimestamps: number[] = [];
+
+  return async <T>(task: () => Promise<T> | T): Promise<T> => {
+    const run = async () => {
+      const now = Date.now();
+      while (executionTimestamps.length > 0 && now - executionTimestamps[0] >= windowMs) {
+        executionTimestamps.shift();
+      }
+
+      if (executionTimestamps.length >= maxCalls) {
+        const earliest = executionTimestamps[0];
+        const waitMs = Math.max(0, windowMs - (now - earliest));
+        if (waitMs > 0) {
+          await sleep(waitMs);
+        }
+      }
+
+      executionTimestamps.push(Date.now());
+      return task();
+    };
+
+    const resultPromise = chain.then(run, run);
+    chain = resultPromise.then(
+      () => undefined,
+      () => undefined
+    );
+    return resultPromise;
+  };
+}

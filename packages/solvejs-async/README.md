@@ -13,17 +13,17 @@ Zero-dependency async/concurrency utilities for JavaScript and TypeScript.
 - `pMap`
 - `debouncePromise`
 - `throttlePromise`
+- `createTaskQueue`
+- `createRateLimiter`
 
 ## When to use this package
 
-Use it when you need predictable retry logic, promise time limits, and controlled async concurrency without adding heavy helper libraries.
+Use it when you need predictable retry logic, promise time limits, queues, and rate-limited async execution without heavy helper libraries.
 
 ## Limitations and Constraints
 
 - `throttlePromise` drops calls made during the throttle window.
 - `debouncePromise` cancels previous pending calls with a rejection.
-- Queueing/rate-limit orchestration is intentionally out of scope for now.
-
 ## Install
 
 ```bash
@@ -33,7 +33,7 @@ npm i @jdsalasc/solvejs-async
 ## Quick example
 
 ```ts
-import { retry, timeout, pMap } from "@jdsalasc/solvejs-async";
+import { createTaskQueue, createRateLimiter, retry, timeout, pMap } from "@jdsalasc/solvejs-async";
 
 const data = await retry(
   () => timeout(fetch("https://api.example.com/items").then((r) => r.json()), 3000),
@@ -41,4 +41,7 @@ const data = await retry(
 );
 
 const ids = await pMap(data.items, async (item) => item.id, { concurrency: 4 });
+const queue = createTaskQueue({ concurrency: 2 });
+const limiter = createRateLimiter({ maxCalls: 5, windowMs: 1000 });
+await queue.add(() => limiter(() => fetch("https://api.example.com/reindex")));
 ```
