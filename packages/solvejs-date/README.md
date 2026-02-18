@@ -39,3 +39,17 @@ const d = parseDateStrict("2026-02-07", "YYYY-MM-DD");
 const next = addDays(d!, 3);
 toIsoDate(next); // "2026-02-10"
 ```
+
+## DST/Timezone matrix quick check
+
+```ts
+import { diffInDays, parseIsoDate } from "@jdsalasc/solvejs-date";
+
+const usStart = parseIsoDate("2026-03-08T06:59:59.000Z");
+const usEnd = parseIsoDate("2026-03-09T06:59:59.000Z");
+const euStart = parseIsoDate("2026-03-29T00:59:59.000Z");
+const euEnd = parseIsoDate("2026-03-30T00:59:59.000Z");
+
+if (usStart && usEnd) diffInDays(usEnd, usStart); // 1
+if (euStart && euEnd) diffInDays(euEnd, euStart); // 1
+```

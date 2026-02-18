@@ -21,8 +21,10 @@ Updated on 2026-02-18.
 9. Added fintech-ready invoice recipe and runnable example:
    - `docs/problems/invoice-fintech.*`
    - `examples/invoice-workflow/*`
+10. Added regional timezone/DST matrix examples in date docs:
+   - `docs/problems/date-format.*`
+   - `packages/solvejs-date/README.md`
 
 ## Next highest-value items
 
-1. `P1` Add regional timezone matrix examples in date docs (DST edge cases).
-2. `P1` Add high-cardinality benchmark scenario for list transforms.
+1. `P1` Add high-cardinality benchmark scenario for list transforms.

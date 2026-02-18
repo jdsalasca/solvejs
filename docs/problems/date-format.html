@@ -41,6 +41,32 @@ if (parsed) {
   toIsoDate(inThreeDays); // "2026-02-10"
 }</code></pre>
         <p class="caption">Why this works: parsing is explicit, formatting tokens are stable, and all date math uses a consistent flow.</p>
+        <h3>Regional timezone/DST matrix (UTC-safe checks)</h3>
+        <pre><code>import { diffInDays, parseIsoDate } from "@jdsalasc/solvejs-date";
+
+const windows = [
+  { region: "US/Eastern DST starts", start: "2026-03-08T06:59:59.000Z", end: "2026-03-09T06:59:59.000Z" },
+  { region: "Europe/Madrid DST starts", start: "2026-03-29T00:59:59.000Z", end: "2026-03-30T00:59:59.000Z" },
+  { region: "America/Bogota (no DST)", start: "2026-03-08T00:00:00.000Z", end: "2026-03-09T00:00:00.000Z" }
+];
+
+for (const window of windows) {
+  const start = parseIsoDate(window.start);
+  const end = parseIsoDate(window.end);
+  if (!start || !end) throw new Error(`Invalid ISO window for ${window.region}`);
+  console.log(window.region, diffInDays(end, start)); // always 1
+}</code></pre>
+        <table>
+          <thead>
+            <tr><th>Region / Case</th><th>Start (UTC)</th><th>End (UTC)</th><th>Expected <code>diffInDays(end, start)</code></th></tr>
+          </thead>
+          <tbody>
+            <tr><td>US/Eastern DST starts (Mar 8, 2026)</td><td><code>2026-03-08T06:59:59.000Z</code></td><td><code>2026-03-09T06:59:59.000Z</code></td><td><code>1</code></td></tr>
+            <tr><td>Europe/Madrid DST starts (Mar 29, 2026)</td><td><code>2026-03-29T00:59:59.000Z</code></td><td><code>2026-03-30T00:59:59.000Z</code></td><td><code>1</code></td></tr>
+            <tr><td>America/Bogota (no DST baseline)</td><td><code>2026-03-08T00:00:00.000Z</code></td><td><code>2026-03-09T00:00:00.000Z</code></td><td><code>1</code></td></tr>
+          </tbody>
+        </table>
+        <p class="caption">Store UTC boundaries first, then convert for display only. For legal timezone calendars by city, pair with a dedicated timezone library.</p>
         <h3>Quick Search</h3>
         <input class="search-box" data-doc-search type="search" placeholder="Search more recipes" />
         <div data-search-results></div>
