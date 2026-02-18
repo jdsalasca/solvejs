@@ -89,6 +89,56 @@ jobs:
 
       - name: Create GitHub Release
         if: steps.token.outputs.has_token == 'true' && matrix.workspace == 'packages/solvejs'
+        id: gh_release
         uses: softprops/action-gh-release@v2
         with:
           generate_release_notes: true
+
+      - name: Add community traceability links
+        if: steps.token.outputs.has_token == 'true' && matrix.workspace == 'packages/solvejs'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const tag = context.ref.replace("refs/tags/", "");
+            const release = await github.rest.repos.getReleaseByTag({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              tag
+            });
+
+            const issues = await github.paginate(github.rest.issues.listForRepo, {
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              state: "all",
+              per_page: 100
+            });
+
+            const plainIssues = issues.filter((issue) => !issue.pull_request);
+            const votes = plainIssues
+              .filter((issue) => issue.title.startsWith("Community Vote "))
+              .sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+            const shipped = plainIssues
+              .filter((issue) => issue.title.startsWith("You asked, we shipped - "))
+              .sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+
+            const vote = votes[0];
+            const shippedIssue = shipped[0];
+            const marker = "## Community Traceability";
+            let body = release.data.body || "";
+
+            if (!body.includes(marker)) {
+              const lines = [
+                "",
+                marker,
+                vote ? `- Community vote: #${vote.number}` : "- Community vote: (not found)",
+                shippedIssue ? `- Shipped summary: #${shippedIssue.number}` : "- Shipped summary: (not found)"
+              ];
+              body += `\n${lines.join("\n")}\n`;
+
+              await github.rest.repos.updateRelease({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                release_id: release.data.id,
+                body
+              });
+            }

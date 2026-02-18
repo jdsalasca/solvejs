@@ -1,6 +1,6 @@
 # Next.js Route Handler Example
 
-Use SolveJS validators and number parsing in an API route.
+Executable route-handler style example using SolveJS validators and number parsing.
 
 ```ts
 import { validateUuidV4, toNumber } from "@jdsalasc/solvejs";
@@ -16,6 +16,14 @@ export async function POST(request: Request) {
   const amount = toNumber(body.amount);
   return NextResponse.json({ ok: true, id: body.id, amount });
 }
+```
+
+Run from repo root:
+
+```bash
+npm run build
+npm run example:next
+npm run example:next:test
 ```
 
 Docs: `docs/guides/nextjs-integration.html`

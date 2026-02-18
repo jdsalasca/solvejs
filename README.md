@@ -77,6 +77,7 @@ npm run benchmark
 - Community pain-point analysis: `COMMUNITY_PAIN_POINTS.md`
 - Monthly vote automation: `.github/workflows/community-vote.yml`
 - Monthly "You asked, we shipped" automation: `.github/workflows/community-shipped.yml`
+- PR template enforcement: `.github/workflows/pr-template-check.yml`
 - Community metrics automation: `.github/workflows/community-metrics.yml`
 - Community issue seeding automation: `.github/workflows/seed-community-issues.yml`
 - Docs cookbook: `https://jdsalasca.github.io/solvejs/?utm_source=github&utm_medium=readme&utm_campaign=community_growth`

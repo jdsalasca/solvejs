@@ -1,6 +1,6 @@
 # Express Middleware Example
 
-Use SolveJS structured validators in middleware.
+Executable middleware-style example using SolveJS structured validators.
 
 ```ts
 import express from "express";
@@ -20,6 +20,14 @@ function validatePhone(req, res, next) {
 app.post("/signup", validatePhone, (_req, res) => {
   res.json({ ok: true });
 });
+```
+
+Run from repo root:
+
+```bash
+npm run build
+npm run example:express
+npm run example:express:test
 ```
 
 Docs: `docs/guides/express-integration.html`
