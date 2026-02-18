@@ -33,6 +33,18 @@ type JsonOptions<T> = {
   defaultValue?: T;
 };
 
+type UrlOptions = {
+  defaultValue?: string;
+  allowedProtocols?: string[];
+  requireHostname?: boolean;
+};
+
+type DsnOptions = {
+  defaultValue?: string;
+  allowedProtocols?: string[];
+  requireAuth?: boolean;
+};
+
 function readEnvRaw(name: string, env: EnvSource): string | undefined {
   return env[name];
 }
@@ -40,6 +52,10 @@ function readEnvRaw(name: string, env: EnvSource): string | undefined {
 function defaultEnvSource(): EnvSource {
   const globalLike = globalThis as { process?: { env?: EnvSource } };
   return globalLike.process?.env ?? {};
+}
+
+function normalizeProtocol(protocol: string): string {
+  return protocol.endsWith(":") ? protocol.toLowerCase() : `${protocol.toLowerCase()}:`;
 }
 
 /**
@@ -214,6 +230,75 @@ export function getEnvJson<T>(name: string, env: EnvSource = defaultEnvSource(),
   } catch {
     throw new Error(`Environment variable ${name} must contain valid JSON.`);
   }
+}
+
+/**
+ * Reads and validates a URL environment variable.
+ *
+ * @param name - Environment variable name.
+ * @param env - Source object, defaults to `process.env`.
+ * @param options - URL parsing options.
+ * @returns Parsed URL instance.
+ */
+export function getEnvUrl(name: string, env: EnvSource = defaultEnvSource(), options: UrlOptions = {}): URL {
+  const raw = readEnvRaw(name, env);
+  const candidate = raw && raw.trim() ? raw.trim() : options.defaultValue;
+
+  if (!candidate) {
+    throw new Error(`Missing required environment variable: ${name}`);
+  }
+
+  let parsed: URL;
+  try {
+    parsed = new URL(candidate);
+  } catch {
+    throw new Error(`Environment variable ${name} must be a valid URL.`);
+  }
+
+  const allowedProtocols = options.allowedProtocols?.map(normalizeProtocol);
+  if (allowedProtocols && allowedProtocols.length > 0 && !allowedProtocols.includes(parsed.protocol.toLowerCase())) {
+    throw new Error(
+      `Environment variable ${name} must use one of: ${allowedProtocols.join(", ")}.`
+    );
+  }
+
+  const requireHostname = options.requireHostname ?? true;
+  if (requireHostname && !parsed.hostname) {
+    throw new Error(`Environment variable ${name} must include a hostname.`);
+  }
+
+  return parsed;
+}
+
+/**
+ * Reads and validates a DSN-style environment variable.
+ *
+ * @param name - Environment variable name.
+ * @param env - Source object, defaults to `process.env`.
+ * @param options - DSN parsing options.
+ * @returns Parsed DSN as URL instance.
+ */
+export function getEnvDsn(name: string, env: EnvSource = defaultEnvSource(), options: DsnOptions = {}): URL {
+  const allowedProtocols = options.allowedProtocols ?? [
+    "postgres",
+    "postgresql",
+    "mysql",
+    "mariadb",
+    "mongodb",
+    "redis",
+    "amqp"
+  ];
+  const parsed = getEnvUrl(name, env, {
+    defaultValue: options.defaultValue,
+    allowedProtocols,
+    requireHostname: true
+  });
+
+  if (options.requireAuth && (!parsed.username || !parsed.password)) {
+    throw new Error(`Environment variable ${name} must include username and password.`);
+  }
+
+  return parsed;
 }
 
 /**

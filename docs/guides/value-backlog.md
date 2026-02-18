@@ -14,11 +14,12 @@ Updated on 2026-02-18.
 5. Added env cookbook page and runnable env bootstrap example.
 6. Expanded env parsing with:
    - `getEnvArray`, `getEnvJson`
+7. Added URL/DSN startup validators:
+   - `getEnvUrl`, `getEnvDsn`
 
 ## Next highest-value items
 
 1. `P0` Add token-bucket limiter in `solvejs-async` for smoother burst control.
-2. `P0` Add DSN/URL validator helpers in `solvejs-env` (`getEnvUrl`, `getEnvDsn`).
-3. `P1` Add fintech-ready invoice recipe combining numbers + env + validators.
-4. `P1` Add regional timezone matrix examples in date docs (DST edge cases).
-5. `P1` Add high-cardinality benchmark scenario for list transforms.
+2. `P1` Add fintech-ready invoice recipe combining numbers + env + validators.
+3. `P1` Add regional timezone matrix examples in date docs (DST edge cases).
+4. `P1` Add high-cardinality benchmark scenario for list transforms.

@@ -6,7 +6,8 @@ test("loadConfig returns typed configuration", () => {
   const config = loadConfig({
     NODE_ENV: "test",
     PORT: "4000",
-    DB_URL: "postgres://localhost:5432/test",
+    DATABASE_DSN: "postgres://user:secret@localhost:5432/test",
+    API_BASE_URL: "https://api.solvejs.dev",
     JWT_SECRET: "token",
     ENABLE_CACHE: "false",
     CORS_ORIGINS: "http://localhost:3000,https://app.example.com",
@@ -15,6 +16,8 @@ test("loadConfig returns typed configuration", () => {
 
   assert.equal(config.nodeEnv, "test");
   assert.equal(config.port, 4000);
+  assert.equal(config.databaseDsn.includes("postgres://user:secret@localhost:5432/test"), true);
+  assert.equal(config.apiBaseUrl, "https://api.solvejs.dev/");
   assert.equal(config.enableCache, false);
   assert.deepEqual(config.corsOrigins, ["http://localhost:3000", "https://app.example.com"]);
   assert.deepEqual(config.featureFlags, { newCheckout: true });
@@ -25,7 +28,7 @@ test("loadConfig throws for missing required keys", () => {
     () =>
       loadConfig({
         PORT: "4000",
-        DB_URL: "postgres://localhost:5432/test"
+        DATABASE_DSN: "postgres://user:secret@localhost:5432/test"
       }),
     /Missing env vars/
   );

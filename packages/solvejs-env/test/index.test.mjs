@@ -1,12 +1,14 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import {
+  getEnvDsn,
   getEnvArray,
   getEnvBoolean,
   getEnvEnum,
   getEnvJson,
   getEnvNumber,
   getEnvString,
+  getEnvUrl,
   validateRequiredEnv
 } from "../dist/esm/index.js";
 
@@ -60,4 +62,28 @@ test("getEnvJson parses JSON values and throws for invalid payloads", () => {
   assert.deepEqual(getEnvJson("FEATURE_FLAGS", env), { newCheckout: true, maxRetries: 3 });
   assert.deepEqual(getEnvJson("MISSING_JSON", env, { defaultValue: { enabled: false } }), { enabled: false });
   assert.throws(() => getEnvJson("BROKEN_JSON", { BROKEN_JSON: "{invalid" }), /valid JSON/);
+});
+
+test("getEnvUrl parses URLs and enforces protocols", () => {
+  const env = { API_BASE_URL: "https://api.solvejs.dev/v1" };
+  const url = getEnvUrl("API_BASE_URL", env, { allowedProtocols: ["https"] });
+  assert.equal(url.protocol, "https:");
+  assert.equal(url.hostname, "api.solvejs.dev");
+  assert.equal(getEnvUrl("MISSING", env, { defaultValue: "http://localhost:3000" }).hostname, "localhost");
+  assert.throws(() => getEnvUrl("BAD_URL", { BAD_URL: "not-a-url" }), /valid URL/);
+  assert.throws(() => getEnvUrl("API_BASE_URL", env, { allowedProtocols: ["http"] }), /must use one of/);
+});
+
+test("getEnvDsn validates DSN protocol and optional credentials", () => {
+  const env = { DATABASE_DSN: "postgres://user:secret@localhost:5432/app" };
+  const dsn = getEnvDsn("DATABASE_DSN", env);
+  assert.equal(dsn.protocol, "postgres:");
+  assert.equal(dsn.hostname, "localhost");
+  assert.equal(dsn.username, "user");
+  assert.equal(dsn.password, "secret");
+  assert.throws(() => getEnvDsn("CACHE_DSN", { CACHE_DSN: "http://localhost:6379" }), /must use one of/);
+  assert.throws(
+    () => getEnvDsn("DATABASE_DSN", { DATABASE_DSN: "postgres://localhost:5432/app" }, { requireAuth: true }),
+    /username and password/
+  );
 });

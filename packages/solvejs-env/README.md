@@ -13,6 +13,8 @@ Zero-dependency environment variable parsing and validation utilities for JavaSc
 - `getEnvEnum`
 - `getEnvArray`
 - `getEnvJson`
+- `getEnvUrl`
+- `getEnvDsn`
 - `validateRequiredEnv`
 
 ## When to use this package
@@ -31,22 +33,26 @@ npm i @jdsalasc/solvejs-env
 import {
   getEnvArray,
   getEnvBoolean,
+  getEnvDsn,
   getEnvEnum,
   getEnvJson,
   getEnvNumber,
   getEnvString,
+  getEnvUrl,
   validateRequiredEnv
 } from "@jdsalasc/solvejs-env";
 
-const missing = validateRequiredEnv(["DB_URL", "JWT_SECRET"]);
+const missing = validateRequiredEnv(["DATABASE_DSN", "JWT_SECRET"]);
 if (missing.length > 0) {
   throw new Error(`Missing env keys: ${missing.join(", ")}`);
 }
 
 const nodeEnv = getEnvEnum("NODE_ENV", ["development", "test", "production"], process.env, { defaultValue: "development" });
 const port = getEnvNumber("PORT", process.env, { defaultValue: 3000, integer: true, min: 1, max: 65535 });
-const dbUrl = getEnvString("DB_URL");
+const jwtSecret = getEnvString("JWT_SECRET");
 const enableCache = getEnvBoolean("ENABLE_CACHE", process.env, { defaultValue: false });
 const corsOrigins = getEnvArray("CORS_ORIGINS", process.env, { defaultValue: ["http://localhost:3000"] });
 const featureFlags = getEnvJson("FEATURE_FLAGS", process.env, { defaultValue: { newCheckout: false } });
+const apiBaseUrl = getEnvUrl("API_BASE_URL", process.env, { defaultValue: "https://api.example.com", allowedProtocols: ["https"] });
+const databaseDsn = getEnvDsn("DATABASE_DSN", process.env, { requireAuth: true });
 ```
