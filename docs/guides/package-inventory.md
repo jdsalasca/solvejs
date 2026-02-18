@@ -6,14 +6,14 @@ Generated on 2026-02-18.
 |---|---:|---:|---:|---:|---:|
 | @jdsalasc/solvejs | 1.5.2 | 0 | 0 | 0 | 1 |
 | @jdsalasc/solvejs-async | 1.5.2 | 6 | 0 | 4 | 5 |
-| @jdsalasc/solvejs-constants | 1.5.2 | 1 | 6 | 0 | 1 |
+| @jdsalasc/solvejs-constants | 1.5.2 | 1 | 6 | 0 | 3 |
 | @jdsalasc/solvejs-date | 1.5.2 | 13 | 0 | 1 | 4 |
 | @jdsalasc/solvejs-list | 1.5.2 | 10 | 0 | 0 | 2 |
-| @jdsalasc/solvejs-numbers | 1.5.2 | 12 | 0 | 0 | 2 |
+| @jdsalasc/solvejs-numbers | 1.5.2 | 15 | 0 | 0 | 3 |
 | @jdsalasc/solvejs-objects | 1.5.2 | 6 | 0 | 0 | 3 |
 | @jdsalasc/solvejs-regex | 1.5.2 | 4 | 1 | 1 | 2 |
 | @jdsalasc/solvejs-string | 1.5.2 | 8 | 0 | 0 | 2 |
-| @jdsalasc/solvejs-validators | 1.5.2 | 28 | 0 | 5 | 2 |
+| @jdsalasc/solvejs-validators | 1.5.2 | 28 | 0 | 5 | 3 |
 
 ## Notes
 

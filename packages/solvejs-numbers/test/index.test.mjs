@@ -2,7 +2,10 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import {
   average,
+  applyDiscount,
+  calculateTaxAmount,
   clamp,
+  grossMargin,
   isBetween,
   median,
   percent,
@@ -35,4 +38,16 @@ test("numbers helpers", () => {
 test("randomInt returns value inside inclusive range", () => {
   const value = randomInt(1, 3);
   assert.equal(value >= 1 && value <= 3, true);
+});
+
+test("business-math helpers for tax, discount, and margin", () => {
+  assert.equal(calculateTaxAmount(100, 19), 19);
+  assert.equal(calculateTaxAmount(49.99, 8.25, 2), 4.12);
+  assert.equal(applyDiscount(200, 15), 170);
+  assert.equal(applyDiscount(49.99, 12.5, 2), 43.74);
+  assert.equal(grossMargin(1000, 700, 1), 30);
+
+  assert.throws(() => calculateTaxAmount(100, -1), /taxRatePercent/);
+  assert.throws(() => applyDiscount(100, 120), /discountPercent/);
+  assert.throws(() => grossMargin(0, 10), /gross margin/);
 });

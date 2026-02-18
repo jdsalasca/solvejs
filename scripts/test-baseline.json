@@ -2,11 +2,11 @@
   "defaultMinimum": 3,
   "packageMinimums": {
     "@jdsalasc/solvejs": 1,
-    "@jdsalasc/solvejs-constants": 1,
     "@jdsalasc/solvejs-list": 2,
-    "@jdsalasc/solvejs-numbers": 2,
     "@jdsalasc/solvejs-regex": 2,
     "@jdsalasc/solvejs-string": 2,
-    "@jdsalasc/solvejs-validators": 2
+    "@jdsalasc/solvejs-constants": 3,
+    "@jdsalasc/solvejs-numbers": 3,
+    "@jdsalasc/solvejs-validators": 3
   }
 }

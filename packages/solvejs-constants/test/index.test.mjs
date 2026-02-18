@@ -18,3 +18,12 @@ test("constants module", () => {
   assert.equal(HTTP_METHODS.POST, "POST");
   assert.equal(COMMON_HTTP_HEADERS.CONTENT_TYPE, "content-type");
 });
+
+test("parseBooleanString supports whitespace and mixed casing", () => {
+  assert.equal(parseBooleanString("  TrUe "), true);
+  assert.equal(parseBooleanString(" No "), false);
+});
+
+test("parseBooleanString throws on unsupported values", () => {
+  assert.throws(() => parseBooleanString("enabled"), /Unsupported boolean string value/);
+});

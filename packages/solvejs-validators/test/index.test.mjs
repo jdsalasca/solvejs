@@ -20,6 +20,8 @@ import {
   validateAddressLine,
   validateCellphoneNumber,
   validateCreditCardNumber,
+  validateEmail,
+  validateHttpUrl,
   validateIsoDateString,
   validateName,
   validatePostalCode
@@ -73,4 +75,13 @@ test("structured validators return codes and messages", () => {
   assert.equal(validateCellphoneNumber("+4915123456789", { country: "DE" }).ok, true);
   assert.equal(validateCreditCardNumber("1234").code, "INVALID_FORMAT");
   assert.equal(validateIsoDateString("2026-02-30").code, "INVALID_FORMAT");
+});
+
+test("structured validators expose actionable failure codes", () => {
+  assert.equal(validateEmail(" ").code, "EMPTY");
+  assert.equal(validateEmail("invalid-email").code, "INVALID_FORMAT");
+  assert.equal(validateHttpUrl("ftp://example.com").code, "INVALID_FORMAT");
+  assert.equal(validateHttpUrl("https://solvejs.dev").ok, true);
+  assert.equal(validatePostalCode("XXXXX", { country: "US" }).code, "INVALID_FORMAT");
+  assert.equal(validateAddressLine("Apt 😀 4").code, "INVALID_CHARACTERS");
 });

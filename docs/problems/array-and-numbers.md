@@ -4,7 +4,7 @@ Use `@jdsalasc/solvejs-list` and `@jdsalasc/solvejs-numbers` for practical data 
 
 ```ts
 import { uniqueBy, groupBy, sortBy } from "@jdsalasc/solvejs-list";
-import { toNumber, safeDivide, percentChange } from "@jdsalasc/solvejs-numbers";
+import { toNumber, safeDivide, percentChange, calculateTaxAmount, applyDiscount, grossMargin } from "@jdsalasc/solvejs-numbers";
 
 const rows = [{ id: "a", team: "x", value: "120" }, { id: "a", team: "x", value: "120" }, { id: "b", team: "y", value: "80" }];
 const uniqueRows = uniqueBy(rows, (r) => r.id);
@@ -16,6 +16,9 @@ const previous = toNumber(sorted[1].value);
 if (current !== null && previous !== null) {
   percentChange(current, previous);
   safeDivide(current, 0, 0);
+  calculateTaxAmount(current, 19);
+  applyDiscount(current, 10);
+  grossMargin(current, previous);
 }
 ```
 

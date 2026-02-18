@@ -196,6 +196,63 @@ export function percentChange(current: number, previous: number, decimals = 2): 
 }
 
 /**
+ * Calculates tax amount from a base amount and a tax rate.
+ *
+ * @param amount - Base amount before tax.
+ * @param taxRatePercent - Tax rate as percentage (for example 19 for 19%).
+ * @param decimals - Decimal precision for the tax amount.
+ * @returns Tax amount rounded to the desired precision.
+ * @throws {TypeError} If numeric inputs are not finite.
+ * @throws {RangeError} If `taxRatePercent` is negative.
+ */
+export function calculateTaxAmount(amount: number, taxRatePercent: number, decimals = 2): number {
+  assertFinite(amount, "amount");
+  assertFinite(taxRatePercent, "taxRatePercent");
+  if (taxRatePercent < 0) {
+    throw new RangeError("Expected taxRatePercent to be greater than or equal to 0.");
+  }
+  return roundTo((amount * taxRatePercent) / 100, decimals);
+}
+
+/**
+ * Applies a percentage discount to a base amount.
+ *
+ * @param amount - Base amount before discount.
+ * @param discountPercent - Discount percentage from 0 to 100.
+ * @param decimals - Decimal precision for the final amount.
+ * @returns Amount after applying discount.
+ * @throws {TypeError} If numeric inputs are not finite.
+ * @throws {RangeError} If `discountPercent` is outside [0, 100].
+ */
+export function applyDiscount(amount: number, discountPercent: number, decimals = 2): number {
+  assertFinite(amount, "amount");
+  assertFinite(discountPercent, "discountPercent");
+  if (discountPercent < 0 || discountPercent > 100) {
+    throw new RangeError("Expected discountPercent to be between 0 and 100.");
+  }
+  return roundTo(amount - (amount * discountPercent) / 100, decimals);
+}
+
+/**
+ * Computes gross margin percentage from revenue and cost.
+ *
+ * @param revenue - Total revenue amount.
+ * @param cost - Total cost amount.
+ * @param decimals - Decimal precision for the margin.
+ * @returns Gross margin percentage.
+ * @throws {TypeError} If numeric inputs are not finite.
+ * @throws {RangeError} If `revenue` is zero.
+ */
+export function grossMargin(revenue: number, cost: number, decimals = 2): number {
+  assertFinite(revenue, "revenue");
+  assertFinite(cost, "cost");
+  if (revenue === 0) {
+    throw new RangeError("Cannot compute gross margin when revenue is zero.");
+  }
+  return roundTo(((revenue - cost) / revenue) * 100, decimals);
+}
+
+/**
  * Checks if a value is inside an interval.
  *
  * @param value - Number to evaluate.

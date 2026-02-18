@@ -37,7 +37,7 @@ npm i @jdsalasc/solvejs-date @jdsalasc/solvejs-validators @jdsalasc/solvejs-obje
 - `@jdsalasc/solvejs-list`: `uniqueBy`, `groupBy`, `partition`, `sortBy`.
 - `@jdsalasc/solvejs-regex`: `REGEX_PATTERNS`, `validateByName`, `escapeRegex`.
 - `@jdsalasc/solvejs-constants`: `TIME`, `FILE_SIZE_BYTES`, `HTTP_METHODS`, `parseBooleanString`.
-- `@jdsalasc/solvejs-numbers`: `toNumber`, `safeDivide`, `percentChange`, `toCurrency`.
+- `@jdsalasc/solvejs-numbers`: `toNumber`, `safeDivide`, `percentChange`, `calculateTaxAmount`, `applyDiscount`, `grossMargin`, `toCurrency`.
 - `@jdsalasc/solvejs-validators`: `validateCellphoneNumber`, `validateUsername`, `validateUuidV4`.
 - `@jdsalasc/solvejs-objects`: `pick`, `omit`, `get`, `set`, `deepMerge`.
 - `@jdsalasc/solvejs-async`: `sleep`, `timeout`, `retry`, `pMap`.
