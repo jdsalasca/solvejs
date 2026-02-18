@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Build fintech-ready invoice totals using env parsing, validation, and safe number utilities." />
+  <title>Fintech Invoice Totals | SolveJS</title>
+  <link rel="stylesheet" href="../styles.css" />
+</head>
+<body data-root="..">
+  <main class="page">
+    <section class="hero">
+      <h1>Build Fintech-Ready Invoice Totals</h1>
+      <p>Use <code>@jdsalasc/solvejs</code> to combine typed env rules, input validation, and safe money math in invoice workflows.</p>
+    </section>
+
+    <section class="layout">
+      <aside class="panel">
+        <h2>Cookbook Navigation</h2>
+        <nav data-cookbook-nav aria-label="Cookbook pages"></nav>
+      </aside>
+
+      <section class="panel">
+        <h2>Recipe</h2>
+        <pre><code>import {
+  applyDiscount,
+  calculateTaxAmount,
+  getEnvEnum,
+  getEnvNumber,
+  roundTo,
+  sum,
+  toCurrency,
+  toNumber,
+  validateCellphoneNumber,
+  validateRequiredEnv,
+  validateUuidV4
+} from "@jdsalasc/solvejs";
+
+const required = validateRequiredEnv(["INVOICE_TAX_RATE", "INVOICE_CURRENCY"], process.env);
+if (required.length > 0) {
+  throw new Error(`Missing invoice env: ${required.join(", ")}`);
+}
+
+const taxRate = getEnvNumber("INVOICE_TAX_RATE", process.env, { min: 0, max: 100 });
+const discountRate = getEnvNumber("INVOICE_DISCOUNT_RATE", process.env, { defaultValue: 0, min: 0, max: 100 });
+const currency = getEnvEnum("INVOICE_CURRENCY", ["USD", "EUR", "COP"], process.env, { caseInsensitive: true });
+const locale = getEnvEnum("INVOICE_LOCALE", ["en-US", "es-CO", "es-ES"], process.env, { defaultValue: "en-US" });
+
+const payload = {
+  customerId: "550e8400-e29b-41d4-a716-446655440000",
+  customerPhone: "+573001112233",
+  lines: [{ amount: "1200.00" }, { amount: "300.00" }]
+};
+
+if (!validateUuidV4(payload.customerId).ok) throw new Error("Invalid customerId");
+if (!validateCellphoneNumber(payload.customerPhone).ok) throw new Error("Invalid customerPhone");
+
+const amounts = payload.lines.map((line) => {
+  const amount = toNumber(line.amount);
+  if (amount === null) throw new Error(`Invalid line amount: ${line.amount}`);
+  return amount;
+});
+
+const subtotal = roundTo(sum(amounts), 2);
+const discountedSubtotal = applyDiscount(subtotal, discountRate, 2);
+const taxAmount = calculateTaxAmount(discountedSubtotal, taxRate, 2);
+const total = roundTo(discountedSubtotal + taxAmount, 2);
+
+console.log({
+  subtotal,
+  discountRate,
+  taxRate,
+  taxAmount,
+  total,
+  formattedTotal: toCurrency(total, currency, locale)
+});</code></pre>
+        <p class="caption">Why this works: config is validated at startup, payloads are checked before math, and rounding is explicit at financial boundaries.</p>
+        <h3>Quick Search</h3>
+        <input class="search-box" data-doc-search type="search" placeholder="Search more recipes" />
+        <div data-search-results></div>
+        <h3>Related Recipes</h3>
+        <div data-related-recipes></div>
+      </section>
+    </section>
+
+    <p class="back-link"><a class="inline-link" href="../index.html">Back to docs home</a></p>
+  </main>
+
+  <script src="../app.js"></script>
+</body>
+</html>

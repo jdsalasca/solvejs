@@ -18,9 +18,11 @@ Updated on 2026-02-18.
    - `getEnvUrl`, `getEnvDsn`
 8. Added token-bucket limiter for burst smoothing:
    - `createTokenBucketLimiter`
+9. Added fintech-ready invoice recipe and runnable example:
+   - `docs/problems/invoice-fintech.*`
+   - `examples/invoice-workflow/*`
 
 ## Next highest-value items
 
-1. `P1` Add fintech-ready invoice recipe combining numbers + env + validators.
-2. `P1` Add regional timezone matrix examples in date docs (DST edge cases).
-3. `P1` Add high-cardinality benchmark scenario for list transforms.
+1. `P1` Add regional timezone matrix examples in date docs (DST edge cases).
+2. `P1` Add high-cardinality benchmark scenario for list transforms.

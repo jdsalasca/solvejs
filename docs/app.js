@@ -72,6 +72,15 @@ const TOPICS = [
     level: "Intermediate"
   },
   {
+    id: "invoice-fintech",
+    title: "Build Fintech-Ready Invoice Totals",
+    description: "Combine typed env rules, input validators, and safe money math for invoice pipelines.",
+    path: "problems/invoice-fintech.html",
+    tags: ["invoice", "fintech", "env", "validation", "numbers"],
+    packages: ["@jdsalasc/solvejs-env", "@jdsalasc/solvejs-validators", "@jdsalasc/solvejs-numbers"],
+    level: "Intermediate"
+  },
+  {
     id: "nextjs-integration",
     title: "Integrate SolveJS in Next.js",
     description: "Use validators and parsers in route handlers and server actions.",

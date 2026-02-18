@@ -27,7 +27,9 @@
     "example:express": "node examples/express-middleware/index.mjs",
     "example:express:test": "node --test examples/express-middleware/test.mjs",
     "example:env": "node examples/env-bootstrap/index.mjs",
-    "example:env:test": "node --test examples/env-bootstrap/test.mjs"
+    "example:env:test": "node --test examples/env-bootstrap/test.mjs",
+    "example:invoice": "node examples/invoice-workflow/index.mjs",
+    "example:invoice:test": "node --test examples/invoice-workflow/test.mjs"
   },
   "devDependencies": {
     "typescript": "^5.9.2"
