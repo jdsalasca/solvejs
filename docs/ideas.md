@@ -72,6 +72,20 @@ Execution order: maximize `Reach + Pain + Adoption leverage` while minimizing ma
   - Add incident-oriented examples (rate limits, flaky APIs).
 - Why impact: stronger backend reliability credibility.
 
+9. Error Code Contract Tests
+- Problem: changing error codes silently breaks UI/API mappings.
+- Build:
+  - Add contract tests validating stable error-code outputs.
+  - Publish machine-readable error catalog.
+- Why impact: improves trust for production integrations.
+
+10. Docs Snippet Integrity Gate
+- Problem: docs become stale and snippets break over time.
+- Build:
+  - Add script to validate snippet syntax/execution for critical examples.
+  - Run in CI on docs-related PRs.
+- Why impact: faster activation and fewer support issues.
+
 ## P1: Growth and Differentiation (1-2 months)
 
 1. SolveJS Compatibility Matrix
@@ -106,6 +120,14 @@ Execution order: maximize `Reach + Pain + Adoption leverage` while minimizing ma
 - Scope: document support policy, compatibility, release cadence.
 - Deliverable: trust-focused page for team leads and architects.
 
+9. Reliability Dashboard (Markdown-Generated)
+- Scope: monthly package reliability indicators.
+- Deliverable: generated table from tests, benchmarks, and issue trends.
+
+10. Contributor Fast-Path
+- Scope: contributor onboarding route for first and second PR.
+- Deliverable: guided task ladder with starter and intermediate issues.
+
 ## P2: Strategic Bets (2-4 months)
 
 1. SolveJS AI Prompt Pack for Code Assistants
@@ -131,6 +153,10 @@ Execution order: maximize `Reach + Pain + Adoption leverage` while minimizing ma
 6. Community Telemetry Loop
 - Scope: aggregate recurring issue themes into quarterly roadmap proposals.
 - Deliverable: automated report in `docs/guides/`.
+
+7. Vertical Playbooks by Industry
+- Scope: utility patterns for fintech, ecommerce, civic-tech, and edtech.
+- Deliverable: curated guides with domain-specific failure modes and recipes.
 
 ## UX Ideas for Docs and Community
 
@@ -250,6 +276,17 @@ Use this structure in issues/PRs:
 - Reduce validation-related issue recurrence by 30%.
 - Cut mean issue-to-release cycle by 25%.
 - Increase contributors opening second PR by 15%.
+
+## Persistence Strategy
+
+Keep backlog persisted in two synchronized artifacts:
+
+- Strategy and rationale in `docs/ideas.md`.
+- Executable tickets in `docs/community/issue-backlog.md` and seeded GitHub issues.
+
+Rule:
+
+- When adding a new top-priority idea, add matching issue seed in the same PR.
 
 ## Non-Negotiables
 

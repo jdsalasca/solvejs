@@ -16,7 +16,10 @@ jobs:
           script: |
             const labels = [
               { name: "good first issue", color: "7057ff", description: "Good for first-time contributors" },
-              { name: "help wanted", color: "008672", description: "Maintainers welcome contributions" }
+              { name: "help wanted", color: "008672", description: "Maintainers welcome contributions" },
+              { name: "priority:P0", color: "b60205", description: "Highest priority and immediate impact" },
+              { name: "priority:P1", color: "d93f0b", description: "Medium priority and near-term impact" },
+              { name: "priority:P2", color: "fbca04", description: "Strategic priority and longer-term impact" }
             ];
 
             for (const label of labels) {
@@ -31,18 +34,61 @@ jobs:
               }
             }
 
-            const seeds = [
-              { title: "docs: add Fastify integration recipe", labels: ["good first issue", "help wanted"] },
-              { title: "docs: add React form-validation recipe with structured error codes", labels: ["good first issue", "help wanted"] },
-              { title: "tests: add edge-case tests for @jdsalasc/solvejs-list groupBy", labels: ["good first issue", "help wanted"] },
-              { title: "tests: raise @jdsalasc/solvejs-constants baseline from 1 to 3 tests", labels: ["good first issue", "help wanted"] },
-              { title: "tests: raise @jdsalasc/solvejs-numbers baseline from 2 to 3 tests", labels: ["good first issue", "help wanted"] },
-              { title: "docs: add migration guide from lodash pick/omit/get/set to SolveJS", labels: ["good first issue", "help wanted"] },
-              { title: "docs: add validator locale examples for AR/CL/PE onboarding forms", labels: ["good first issue", "help wanted"] },
-              { title: "benchmarks: add high-cardinality dataset scenario for list package", labels: ["help wanted"] },
-              { title: "ci: add docs link-check status badge in README", labels: ["good first issue", "help wanted"] },
-              { title: "community: create monthly shipped-summary template improvements", labels: ["help wanted"] }
-            ];
+            const p0 = [
+              "validators: add EN/ES/PT error translator helpers",
+              "validators: document stable error code dictionary",
+              "date: add DST transition regression tests",
+              "date: add leap-year and month-end boundary tests",
+              "docs: add \"I need to...\" intent navigation page",
+              "docs: add copy-paste snippet verification notes",
+              "examples: add Next.js API validation end-to-end recipe",
+              "examples: add Express validation middleware recipe with structured errors",
+              "guides: add migration cookbook lodash -> SolveJS objects/list",
+              "guides: add migration cookbook date-fns -> SolveJS date",
+              "async: add retry-with-jitter production recipe",
+              "async: add timeout fallback and queue overload recipes",
+              "tests: strengthen @jdsalasc/solvejs-list groupBy edge coverage",
+              "tests: strengthen @jdsalasc/solvejs-numbers decimal precision edge coverage",
+              "ci: add docs snippet integrity check workflow"
+            ].map((title) => ({ title, labels: ["priority:P0", "help wanted"] }));
+
+            const p1 = [
+              "docs: add package chooser (problem -> package) page",
+              "docs: add troubleshooting matrix for validator/date/regex errors",
+              "scripts: generate compatibility matrix (Node + framework + bundler)",
+              "guides: publish compatibility matrix report",
+              "scripts: generate benchmark trend report over time",
+              "guides: publish performance observatory page",
+              "community: add monthly challenge template and scoreboard",
+              "community: add monthly \"you asked, we shipped\" digest template v2",
+              "templates: add backend starter template using SolveJS",
+              "templates: add frontend forms starter template using SolveJS",
+              "docs: add enterprise readiness page (support, cadence, compatibility)",
+              "ci: add changelog consistency check per package",
+              "tests: add contract tests for error-code stability",
+              "readme: add quick decision matrix by use-case",
+              "growth: add social snippets for top 10 production incidents"
+            ].map((title) => ({ title, labels: ["priority:P1", "help wanted"] }));
+
+            const p2 = [
+              "ai: create prompt pack for Gemini/Codex/Copilot with SolveJS patterns",
+              "community: automate quarterly roadmap synthesis from issue themes",
+              "validators: launch regional expansion onboarding kit for contributors",
+              "docs: add before/after refactor gallery for common code smells",
+              "benchmarks: add stress scenarios for high-cardinality datasets",
+              "governance: add package reliability score and publishing criteria",
+              "ops: add release-readiness checklist generator",
+              "analytics: track docs-to-install conversion events",
+              "platform: publish API error catalog as JSON + docs reference",
+              "ux: add interactive utility playground for top helpers"
+            ].map((title) => ({ title, labels: ["priority:P2", "help wanted"] }));
+
+            const seeds = [...p0, ...p1, ...p2].map((seed) => {
+              const labels = seed.labels.includes("good first issue")
+                ? seed.labels
+                : [...seed.labels, "good first issue"];
+              return { ...seed, labels };
+            });
 
             const openIssues = await github.paginate(github.rest.issues.listForRepo, {
               owner: context.repo.owner,
@@ -63,6 +109,8 @@ jobs:
                 title: seed.title,
                 labels: seed.labels,
                 body: [
+                  `Priority: ${seed.labels.find((label) => label.startsWith("priority:")) || "priority:P1"}`,
+                  "",
                   "## Problem",
                   "Describe current limitation and who it impacts.",
                   "",
@@ -72,7 +120,8 @@ jobs:
                   "## Definition of done",
                   "- [ ] Implementation complete",
                   "- [ ] Tests added/updated",
-                  "- [ ] Docs updated"
+                  "- [ ] Docs updated",
+                  "- [ ] Changelog updated (if behavior changed)"
                 ].join("\n")
               });
             }
