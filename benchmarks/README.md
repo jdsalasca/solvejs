@@ -14,6 +14,8 @@ Includes list-scale checks at `10k` and `100k` rows for:
 - `groupBy`
 - `sortBy`
 
+Includes high-cardinality list scenarios at `100k` and `250k` rows with near-unique IDs and large grouping-key sets.
+
 Generate benchmark and package-size docs snapshot:
 
 ```bash

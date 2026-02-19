@@ -36,3 +36,18 @@ function runListScaleBenchmarks(size) {
 
 runListScaleBenchmarks(10000);
 runListScaleBenchmarks(100000);
+
+function runListHighCardinalityBenchmarks(size) {
+  const rows = Array.from({ length: size }, (_, index) => ({
+    id: `txn-${index}`,
+    merchantId: `merchant-${index % Math.max(1000, Math.floor(size / 20))}`,
+    amount: (index * 17) % 100000
+  }));
+
+  run(`list.uniqueBy high-cardinality (${size})`, 1, () => uniqueBy(rows, (row) => row.id));
+  run(`list.groupBy high-cardinality (${size})`, 1, () => groupBy(rows, (row) => row.merchantId));
+  run(`list.sortBy high-cardinality (${size})`, 1, () => sortBy(rows, (row) => row.amount, "desc"));
+}
+
+runListHighCardinalityBenchmarks(100000);
+runListHighCardinalityBenchmarks(250000);
