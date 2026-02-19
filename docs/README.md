@@ -41,3 +41,11 @@ Static documentation for GitHub Pages with a searchable cookbook UX.
 - `growth/social-snippets-10x.md`
 - `growth/templates/*`
 - `community/issue-backlog.md`
+
+## Agent Execution Assets
+
+- `agent/README.md`
+- `agent/user-stories.md`
+- `agent/process-flows.md`
+- `agent/system-design.md`
+- `agent/execution-checklists.md`

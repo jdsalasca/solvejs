@@ -24,6 +24,19 @@ Ship zero-dependency JS/TS utilities that solve real production pain points with
 - Examples in `examples/`.
 - Automation scripts in `scripts/`.
 
+## Required Agent Context (Read First)
+
+Before implementing, agents must read:
+
+- `AGENTS.md`
+- `docs/ideas.md`
+- `docs/community/issue-backlog.md`
+- `docs/agent/README.md`
+- `docs/agent/user-stories.md`
+- `docs/agent/process-flows.md`
+- `docs/agent/system-design.md`
+- `docs/agent/execution-checklists.md`
+
 ## Mandatory Engineering Rules
 
 - Keep runtime dependencies at zero unless explicitly approved by maintainer.

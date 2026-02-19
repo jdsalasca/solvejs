@@ -57,4 +57,27 @@ Priority legend:
 9. `platform: publish API error catalog as JSON + docs reference`
 10. `ux: add interactive utility playground for top helpers`
 
+## Deep Execution Stories (Detailed and Agent-Ready)
+
+1. `story:SJ-P0-001 implement validation translator core with EN/ES/PT fallback behavior`
+2. `story:SJ-P0-001 add custom locale extension API and docs examples`
+3. `story:SJ-P0-002 create DST transition matrix for spring/fall boundary cases`
+4. `story:SJ-P0-002 add month-end billing cutoff scenarios for parse/format helpers`
+5. `story:SJ-P0-003 add intent navigator panel on docs homepage with top 15 intents`
+6. `story:SJ-P0-003 add persona routes (frontend forms, backend api, data processing)`
+7. `story:SJ-P0-004 implement docs snippet extraction and runtime validation script`
+8. `story:SJ-P0-004 wire snippet validation into CI workflow with clear failure output`
+9. `story:SJ-P0-005 add lodash migration map with caveats and anti-pattern notes`
+10. `story:SJ-P0-005 add date-fns migration map with timezone caveats`
+11. `story:SJ-P1-001 create compatibility matrix generator with Node LTS policy`
+12. `story:SJ-P1-001 publish generated compatibility matrix page in docs/guides`
+13. `story:SJ-P1-002 publish machine-readable error catalog JSON`
+14. `story:SJ-P1-002 add human-readable error dictionary reference page`
+15. `story:SJ-P1-003 create monthly challenge scaffold linked to open P0/P1 issues`
+16. `story:SJ-P1-003 add challenge scoreboard template and participation metrics`
+17. `story:SJ-P2-001 create AI prompt pack by package domain with guardrails`
+18. `story:SJ-P2-001 add anti-pattern prompt examples and expected output format`
+19. `story:SJ-P2-002 define reliability score formula and weighting strategy`
+20. `story:SJ-P2-002 generate package reliability report from existing scripts`
+
 Use `.github/workflows/seed-community-issues.yml` to create these issues automatically.

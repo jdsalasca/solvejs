@@ -288,6 +288,15 @@ Rule:
 
 - When adding a new top-priority idea, add matching issue seed in the same PR.
 
+## Execution Assets for Agents
+
+Use these assets to avoid ambiguous implementation:
+
+- `docs/agent/user-stories.md` for detailed story definitions.
+- `docs/agent/process-flows.md` for delivery and release flows.
+- `docs/agent/system-design.md` for architecture boundaries.
+- `docs/agent/execution-checklists.md` for go/no-go validation.
+
 ## Non-Negotiables
 
 - Keep runtime dependencies at zero unless explicit maintainer approval.

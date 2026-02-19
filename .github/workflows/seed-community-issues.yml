@@ -19,7 +19,9 @@ jobs:
               { name: "help wanted", color: "008672", description: "Maintainers welcome contributions" },
               { name: "priority:P0", color: "b60205", description: "Highest priority and immediate impact" },
               { name: "priority:P1", color: "d93f0b", description: "Medium priority and near-term impact" },
-              { name: "priority:P2", color: "fbca04", description: "Strategic priority and longer-term impact" }
+              { name: "priority:P2", color: "fbca04", description: "Strategic priority and longer-term impact" },
+              { name: "type:story", color: "1d76db", description: "Detailed executable story" },
+              { name: "type:epic", color: "5319e7", description: "Larger initiative made of multiple stories" }
             ];
 
             for (const label of labels) {
@@ -83,7 +85,33 @@ jobs:
               "ux: add interactive utility playground for top helpers"
             ].map((title) => ({ title, labels: ["priority:P2", "help wanted"] }));
 
-            const seeds = [...p0, ...p1, ...p2].map((seed) => {
+            const stories = [
+              "story:SJ-P0-001 implement validation translator core with EN/ES/PT fallback behavior",
+              "story:SJ-P0-001 add custom locale extension API and docs examples",
+              "story:SJ-P0-002 create DST transition matrix for spring/fall boundary cases",
+              "story:SJ-P0-002 add month-end billing cutoff scenarios for parse/format helpers",
+              "story:SJ-P0-003 add intent navigator panel on docs homepage with top 15 intents",
+              "story:SJ-P0-003 add persona routes (frontend forms, backend api, data processing)",
+              "story:SJ-P0-004 implement docs snippet extraction and runtime validation script",
+              "story:SJ-P0-004 wire snippet validation into CI workflow with clear failure output",
+              "story:SJ-P0-005 add lodash migration map with caveats and anti-pattern notes",
+              "story:SJ-P0-005 add date-fns migration map with timezone caveats",
+              "story:SJ-P1-001 create compatibility matrix generator with Node LTS policy",
+              "story:SJ-P1-001 publish generated compatibility matrix page in docs/guides",
+              "story:SJ-P1-002 publish machine-readable error catalog JSON",
+              "story:SJ-P1-002 add human-readable error dictionary reference page",
+              "story:SJ-P1-003 create monthly challenge scaffold linked to open P0/P1 issues",
+              "story:SJ-P1-003 add challenge scoreboard template and participation metrics",
+              "story:SJ-P2-001 create AI prompt pack by package domain with guardrails",
+              "story:SJ-P2-001 add anti-pattern prompt examples and expected output format",
+              "story:SJ-P2-002 define reliability score formula and weighting strategy",
+              "story:SJ-P2-002 generate package reliability report from existing scripts"
+            ].map((title) => {
+              const priority = title.includes("SJ-P0-") ? "priority:P0" : title.includes("SJ-P1-") ? "priority:P1" : "priority:P2";
+              return { title, labels: [priority, "help wanted", "type:story"] };
+            });
+
+            const seeds = [...p0, ...p1, ...p2, ...stories].map((seed) => {
               const labels = seed.labels.includes("good first issue")
                 ? seed.labels
                 : [...seed.labels, "good first issue"];
@@ -116,6 +144,21 @@ jobs:
                   "",
                   "## Proposed change",
                   "Provide a small, testable scope.",
+                  "",
+                  "## Acceptance criteria",
+                  "- [ ] Behavior defined and testable",
+                  "- [ ] Backward compatibility reviewed",
+                  "",
+                  "## Validation commands",
+                  "- [ ] npm run build",
+                  "- [ ] npm test",
+                  "- [ ] npm run test:baseline",
+                  "- [ ] npm run docs:check-links",
+                  "",
+                  "## References",
+                  "- AGENTS.md",
+                  "- docs/agent/user-stories.md",
+                  "- docs/agent/process-flows.md",
                   "",
                   "## Definition of done",
                   "- [ ] Implementation complete",
