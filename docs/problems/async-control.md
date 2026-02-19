@@ -18,3 +18,37 @@ const burstLimiter = createTokenBucketLimiter({ capacity: 10, refillTokens: 2, r
 await queue.add(() => limiter(() => fetch("https://api.example.com/reindex")));
 await burstLimiter(() => fetch("https://api.example.com/heavy-sync"), 3);
 ```
+
+## Token-cost by endpoint tier (production pattern)
+
+```ts
+import { createTokenBucketLimiter } from "@jdsalasc/solvejs-async";
+
+const limiter = createTokenBucketLimiter({
+  capacity: 20,
+  refillTokens: 10,
+  refillIntervalMs: 1000
+});
+
+const endpointCost = {
+  "/health": 1,
+  "/search": 2,
+  "/invoice/preview": 3,
+  "/invoice/finalize": 6,
+  "/batch/settlement": 10
+};
+
+async function callEndpoint(path: keyof typeof endpointCost) {
+  const cost = endpointCost[path];
+  return limiter(() => fetch(`https://api.example.com${path}`), cost);
+}
+```
+
+Suggested tiering:
+
+| Tier | Endpoint examples | Token cost |
+|---|---|---|
+| Low | `GET /health`, `GET /status` | `1` |
+| Medium | `GET /search`, `POST /quote` | `2-3` |
+| High | `POST /invoice/finalize`, `POST /payments/capture` | `5-7` |
+| Batch | `POST /batch/settlement`, `POST /rebuild-index` | `8-10` |

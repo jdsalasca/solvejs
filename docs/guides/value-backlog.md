@@ -27,7 +27,10 @@ Updated on 2026-02-18.
 11. Added high-cardinality benchmark scenario for list transforms:
    - `benchmarks/index.mjs` (`100k` and `250k`)
    - `docs/guides/performance-and-size.*`
+12. Added endpoint-tier token-cost cookbook examples for token-bucket limiter:
+   - `docs/problems/async-control.*`
+   - `packages/solvejs-async/README.md`
 
 ## Next highest-value items
 
-1. `P2` Add endpoint-tier token-cost cookbook examples for token-bucket limiter.
+1. `P2` Add fintech reconciliation recipe (CSV ingest + validation + safe math).

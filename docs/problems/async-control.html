@@ -37,6 +37,38 @@ const burstLimiter = createTokenBucketLimiter({ capacity: 10, refillTokens: 2, r
 await queue.add(() => limiter(() => fetch("https://api.example.com/reindex")));
 await burstLimiter(() => fetch("https://api.example.com/heavy-sync"), 3);</code></pre>
         <p class="caption">Why this works: you get predictable retry/timeout behavior and controlled parallelism without external runtime dependencies.</p>
+        <h3>Token-cost by endpoint tier (production pattern)</h3>
+        <pre><code>import { createTokenBucketLimiter } from "@jdsalasc/solvejs-async";
+
+const limiter = createTokenBucketLimiter({
+  capacity: 20,
+  refillTokens: 10,
+  refillIntervalMs: 1000
+});
+
+const endpointCost = {
+  "/health": 1,
+  "/search": 2,
+  "/invoice/preview": 3,
+  "/invoice/finalize": 6,
+  "/batch/settlement": 10
+};
+
+async function callEndpoint(path) {
+  const cost = endpointCost[path];
+  return limiter(() => fetch(`https://api.example.com${path}`), cost);
+}</code></pre>
+        <table>
+          <thead>
+            <tr><th>Tier</th><th>Endpoint examples</th><th>Token cost</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Low</td><td><code>GET /health</code>, <code>GET /status</code></td><td><code>1</code></td></tr>
+            <tr><td>Medium</td><td><code>GET /search</code>, <code>POST /quote</code></td><td><code>2-3</code></td></tr>
+            <tr><td>High</td><td><code>POST /invoice/finalize</code>, <code>POST /payments/capture</code></td><td><code>5-7</code></td></tr>
+            <tr><td>Batch</td><td><code>POST /batch/settlement</code>, <code>POST /rebuild-index</code></td><td><code>8-10</code></td></tr>
+          </tbody>
+        </table>
         <h3>Quick Search</h3>
         <input class="search-box" data-doc-search type="search" placeholder="Search more recipes" />
         <div data-search-results></div>

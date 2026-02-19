@@ -48,3 +48,21 @@ const burstLimiter = createTokenBucketLimiter({ capacity: 10, refillTokens: 2, r
 await queue.add(() => limiter(() => fetch("https://api.example.com/reindex")));
 await burstLimiter(() => fetch("https://api.example.com/heavy-sync"), 3);
 ```
+
+## Endpoint tier token costs (token-bucket)
+
+```ts
+import { createTokenBucketLimiter } from "@jdsalasc/solvejs-async";
+
+const limiter = createTokenBucketLimiter({ capacity: 20, refillTokens: 10, refillIntervalMs: 1000 });
+const endpointCost = {
+  "/health": 1,
+  "/search": 2,
+  "/invoice/preview": 3,
+  "/invoice/finalize": 6,
+  "/batch/settlement": 10
+} as const;
+
+await limiter(() => fetch("https://api.example.com/health"), endpointCost["/health"]);
+await limiter(() => fetch("https://api.example.com/batch/settlement"), endpointCost["/batch/settlement"]);
+```
