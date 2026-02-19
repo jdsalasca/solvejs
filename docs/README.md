@@ -49,3 +49,7 @@ Static documentation for GitHub Pages with a searchable cookbook UX.
 - `agent/process-flows.md`
 - `agent/system-design.md`
 - `agent/execution-checklists.md`
+- `agent/implementation-blueprint.md`
+- `agent/non-functional-requirements.md`
+- `agent/telemetry-spec.md`
+- `agent/gemini-codex-execution-prompts.md`

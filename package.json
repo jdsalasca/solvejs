@@ -20,6 +20,7 @@
     "report:perf": "node scripts/generate-performance-report.mjs",
     "metrics:community": "node scripts/generate-community-metrics.mjs",
     "growth:posts": "node scripts/generate-growth-posts.mjs",
+    "agent:blueprint:check": "node scripts/agent-blueprint-check.mjs",
     "test:baseline": "node scripts/check-test-baseline.mjs",
     "docs:check-links": "node scripts/check-doc-links.mjs",
     "example:next": "node examples/nextjs-route-handler/index.mjs",

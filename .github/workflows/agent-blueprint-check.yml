@@ -1,0 +1,37 @@
+name: Agent Blueprint Check
+
+on:
+  pull_request:
+    paths:
+      - "AGENTS.md"
+      - "docs/agent/**"
+      - "docs/community/issue-backlog.md"
+      - "scripts/agent-blueprint-check.mjs"
+      - ".github/workflows/agent-blueprint-check.yml"
+  push:
+    branches:
+      - main
+    paths:
+      - "AGENTS.md"
+      - "docs/agent/**"
+      - "docs/community/issue-backlog.md"
+      - "scripts/agent-blueprint-check.mjs"
+      - ".github/workflows/agent-blueprint-check.yml"
+  schedule:
+    - cron: "0 15 * * 1"
+  workflow_dispatch:
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Run agent blueprint check
+        run: node scripts/agent-blueprint-check.mjs

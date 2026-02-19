@@ -36,6 +36,10 @@ Before implementing, agents must read:
 - `docs/agent/process-flows.md`
 - `docs/agent/system-design.md`
 - `docs/agent/execution-checklists.md`
+- `docs/agent/implementation-blueprint.md`
+- `docs/agent/non-functional-requirements.md`
+- `docs/agent/telemetry-spec.md`
+- `docs/agent/gemini-codex-execution-prompts.md`
 
 ## Mandatory Engineering Rules
 
@@ -68,6 +72,12 @@ If you change growth or reporting artifacts, also run:
 ```bash
 npm run metrics:community
 npm run report:perf
+```
+
+If you change agent execution artifacts, also run:
+
+```bash
+npm run agent:blueprint:check
 ```
 
 If you change examples, run the corresponding checks:
