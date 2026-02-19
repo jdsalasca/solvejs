@@ -1,6 +1,6 @@
 {
   "name": "@jdsalasc/solvejs-objects",
-  "version": "1.5.2",
+  "version": "1.6.0",
   "description": "Zero-dependency JavaScript/TypeScript object utilities for production: pick, omit, hasOwn, nested get/set by path, and deepMerge for config/state.",
   "license": "MIT",
   "type": "module",
