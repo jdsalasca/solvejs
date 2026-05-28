@@ -1,7 +1,7 @@
 {
   "name": "@jdsalasc/solvejs-env",
-  "version": "1.7.2",
-  "description": "Zero-dependency JavaScript/TypeScript environment variable utilities for production: typed parsing, enum checks, and required key validation.",
+  "version": "1.8.0",
+  "description": "Typed TypeScript environment variable parsing for strings, numbers, booleans, enums, arrays, JSON, URLs, DSNs, and required config checks.",
   "license": "MIT",
   "type": "module",
   "sideEffects": false,

@@ -1,7 +1,7 @@
 {
   "name": "@jdsalasc/solvejs-validators",
-  "version": "1.7.2",
-  "description": "Zero-dependency JavaScript/TypeScript validators for forms and APIs with structured result codes: phone, postal, username, password, UUID v4, IPv4, and ISO date.",
+  "version": "1.8.0",
+  "description": "Structured TypeScript validators for forms and APIs with stable error codes, EN/ES/PT UI messages, and phone, postal, password, UUID, IP, URL checks.",
   "license": "MIT",
   "type": "module",
   "sideEffects": false,

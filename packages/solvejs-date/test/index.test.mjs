@@ -1,13 +1,16 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import {
+  addBusinessDays,
   addDays,
   daysInMonth,
   diffInDays,
   endOfDay,
   formatDate,
   fromUtcParts,
+  isBusinessDay,
   isValidDate,
+  isWeekend,
   isLeapYear,
   parseDateStrict,
   parseIsoDate,
@@ -69,4 +72,16 @@ test("fromUtcParts rejects invalid calendar parts", () => {
   assert.throws(() => fromUtcParts(2026, 2, 30), /valid calendar parts/i);
   assert.throws(() => fromUtcParts(2026, 4, 31), /valid calendar parts/i);
   assert.throws(() => fromUtcParts(2026.5, 2, 1), /integers/i);
+});
+
+test("business day helpers skip UTC weekends", () => {
+  const friday = new Date("2026-05-29T12:00:00.000Z");
+  const saturday = new Date("2026-05-30T12:00:00.000Z");
+
+  assert.equal(isBusinessDay(friday), true);
+  assert.equal(isWeekend(saturday), true);
+  assert.equal(toIsoDate(addBusinessDays(friday, 1)), "2026-06-01");
+  assert.equal(toIsoDate(addBusinessDays(new Date("2026-06-01T12:00:00.000Z"), -1)), "2026-05-29");
+  assert.equal(toIsoDate(addBusinessDays(friday, 0)), "2026-05-29");
+  assert.throws(() => addBusinessDays(friday, 1.5), /integer/i);
 });

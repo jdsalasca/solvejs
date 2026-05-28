@@ -13,11 +13,12 @@ Zero-dependency validators for JavaScript and TypeScript forms and API payloads.
 - `validateName`, `validateUsername`, `validateAddressLine`, `validatePostalCode` (country-aware)
 - `validateStrongPassword`, `validateCreditCardNumber`
 - `validateUuidV4`, `validateIpv4`, `validateIsoDateString`
+- `translateValidationResult` for EN/ES/PT UI messages
 - Boolean wrappers (`isX`) for quick checks
 
 ## When to use this package
 
-Use it when you need reusable validation rules with explicit error codes instead of plain true/false outputs.
+Use it when you need reusable validation rules with explicit error codes and UI-ready messages instead of plain true/false outputs.
 
 ## Limitations and Constraints
 
@@ -33,10 +34,11 @@ npm i @jdsalasc/solvejs-validators
 ## Quick example
 
 ```ts
-import { validateCellphoneNumber, validateUuidV4 } from "@jdsalasc/solvejs-validators";
+import { validateCellphoneNumber, validateUuidV4, translateValidationResult } from "@jdsalasc/solvejs-validators";
 
 validateCellphoneNumber("+573001234567", { country: "CO" });
 validateUuidV4("550e8400-e29b-41d4-a716-446655440000");
+translateValidationResult(validateCellphoneNumber("abc"), { locale: "es", fieldLabel: "Telefono" });
 // Postal code examples by country:
 // validatePostalCode("110111", { country: "CO" });
 // validatePostalCode("28013", { country: "ES" });

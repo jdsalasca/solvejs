@@ -1,7 +1,7 @@
 {
   "name": "@jdsalasc/solvejs-numbers",
-  "version": "1.7.2",
-  "description": "Zero-dependency JavaScript/TypeScript number utilities for production: parsing, clamp/round, safe division, percent change, median, and currency formatting.",
+  "version": "1.8.0",
+  "description": "Safer TypeScript number utilities for forms, analytics, pricing, percentages, rounding, currency formatting, and strict numeric parsing.",
   "license": "MIT",
   "type": "module",
   "sideEffects": false,

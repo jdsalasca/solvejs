@@ -306,6 +306,12 @@ export function toNumber(
   }
 
   const allowThousandsSeparator = options.allowThousandsSeparator ?? true;
+  if (allowThousandsSeparator && normalized.includes(",")) {
+    if (!/^[+-]?(?:\d{1,3}(?:,\d{3})+)(?:\.\d+)?$/.test(normalized)) {
+      return null;
+    }
+  }
+
   const candidate = allowThousandsSeparator ? normalized.replace(/,/g, "") : normalized;
 
   if (!/^[+-]?(?:\d+\.?\d*|\.\d+)$/.test(candidate)) {

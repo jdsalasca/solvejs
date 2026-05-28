@@ -134,6 +134,62 @@ export function addDays(date: Date, amount: number): Date {
 }
 
 /**
+ * Checks whether a date falls on a UTC weekend.
+ *
+ * @param date - Source date.
+ * @returns `true` when the date is Saturday or Sunday in UTC.
+ * @throws {TypeError} If `date` is invalid.
+ */
+export function isWeekend(date: Date): boolean {
+  if (!isDate(date)) {
+    throw new TypeError("Expected a valid Date instance.");
+  }
+  const day = date.getUTCDay();
+  return day === 0 || day === 6;
+}
+
+/**
+ * Checks whether a date falls on a UTC weekday.
+ *
+ * @param date - Source date.
+ * @returns `true` when the date is Monday through Friday in UTC.
+ * @throws {TypeError} If `date` is invalid.
+ */
+export function isBusinessDay(date: Date): boolean {
+  return !isWeekend(date);
+}
+
+/**
+ * Adds business days while skipping UTC Saturdays and Sundays.
+ *
+ * @param date - Source date.
+ * @param amount - Integer number of business days to add (can be negative).
+ * @returns A new Date with the business-day delta applied.
+ * @throws {TypeError} If `date` is invalid or `amount` is not an integer.
+ */
+export function addBusinessDays(date: Date, amount: number): Date {
+  if (!isDate(date)) {
+    throw new TypeError("Expected a valid Date instance.");
+  }
+  if (!Number.isInteger(amount)) {
+    throw new TypeError("Expected amount to be an integer.");
+  }
+
+  const direction = amount < 0 ? -1 : 1;
+  let remaining = Math.abs(amount);
+  let next = new Date(date.getTime());
+
+  while (remaining > 0) {
+    next = addDays(next, direction);
+    if (isBusinessDay(next)) {
+      remaining -= 1;
+    }
+  }
+
+  return next;
+}
+
+/**
  * Returns the UTC start of day for a date.
  *
  * @param date - Source date.

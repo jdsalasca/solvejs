@@ -16,7 +16,7 @@ Zero-dependency number utilities for JavaScript and TypeScript.
 
 ## When to use this package
 
-Use it when you need safer business math and robust number parsing for forms, analytics, and pricing logic.
+Use it when you need safer business math and stricter number parsing for forms, analytics, and pricing logic.
 
 ## Limitations and Constraints
 
@@ -35,6 +35,7 @@ npm i @jdsalasc/solvejs-numbers
 import { toNumber, safeDivide, percentChange, calculateTaxAmount, applyDiscount, grossMargin } from "@jdsalasc/solvejs-numbers";
 
 const revenue = toNumber("12,500");
+const invalid = toNumber("1,2,3"); // null
 const ratio = safeDivide(50, 0, 0);
 const growth = percentChange(120, 100); // 20
 const tax = calculateTaxAmount(199.99, 19); // 38

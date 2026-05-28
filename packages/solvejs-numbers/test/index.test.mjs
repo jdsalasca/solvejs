@@ -31,7 +31,10 @@ test("numbers helpers", () => {
   assert.equal(isBetween(5, 1, 10), true);
   assert.equal(toCurrency(10, "USD", "en-US"), "$10.00");
   assert.equal(toNumber("1,234.5"), 1234.5);
+  assert.equal(toNumber("12,345,678.9"), 12345678.9);
   assert.equal(toNumber(" 42 "), 42);
+  assert.equal(toNumber("1,2,3"), null);
+  assert.equal(toNumber("1,234", { allowThousandsSeparator: false }), null);
   assert.equal(toNumber("n/a"), null);
 });
 

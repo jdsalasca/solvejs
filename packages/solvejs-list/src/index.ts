@@ -82,6 +82,27 @@ export function groupBy<T, K extends PropertyKey>(values: readonly T[], selector
 }
 
 /**
+ * Counts values by a selector key.
+ *
+ * @param values - Input collection.
+ * @param selector - Function used to extract counting key.
+ * @returns Object whose keys map to occurrence counts.
+ */
+export function countBy<T, K extends PropertyKey>(values: readonly T[], selector: (value: T) => K): Record<K, number> {
+  return values.reduce((accumulator, value) => {
+    const key = selector(value);
+    const current = Object.prototype.hasOwnProperty.call(accumulator, key) ? accumulator[key] : 0;
+    Object.defineProperty(accumulator, key, {
+      value: current + 1,
+      enumerable: true,
+      configurable: true,
+      writable: true
+    });
+    return accumulator;
+  }, {} as Record<K, number>);
+}
+
+/**
  * Partitions values into two groups based on a predicate.
  *
  * @param values - Input collection.

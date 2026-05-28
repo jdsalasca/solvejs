@@ -15,6 +15,14 @@ export type ValidationResult = {
   message: string;
 };
 
+export type ValidationMessageLocale = "en" | "es" | "pt";
+
+export type TranslateValidationOptions = {
+  locale?: ValidationMessageLocale;
+  fieldLabel?: string;
+  messages?: Partial<Record<ValidationResultCode, string>>;
+};
+
 export type SupportedCountry = "ANY" | "US" | "CO" | "MX" | "ES" | "AR" | "CL" | "PE" | "BR" | "CA" | "UY" | "GB" | "DE";
 export type DirectionLocale = "en" | "es";
 export type PostalCountry = "US" | "CO" | "MX" | "ES" | "AR" | "CL" | "PE" | "BR" | "CA" | "UY" | "GB" | "DE";
@@ -88,12 +96,72 @@ const POSTAL_PATTERNS: Record<PostalCountry, RegExp> = {
   DE: /^\d{5}$/
 };
 
+const VALIDATION_MESSAGES: Record<ValidationMessageLocale, Record<ValidationResultCode, string>> = {
+  en: {
+    VALID: "{field} is valid.",
+    EMPTY: "{field} is required.",
+    INVALID_FORMAT: "{field} has an invalid format.",
+    TOO_SHORT: "{field} is too short.",
+    TOO_LONG: "{field} is too long.",
+    INVALID_CHARACTERS: "{field} contains unsupported characters.",
+    UNSUPPORTED_LOCALE: "{field} uses an unsupported locale.",
+    UNSUPPORTED_COUNTRY: "{field} uses an unsupported country.",
+    CHECKSUM_FAILED: "{field} failed the checksum validation."
+  },
+  es: {
+    VALID: "{field} es valido.",
+    EMPTY: "{field} es obligatorio.",
+    INVALID_FORMAT: "{field} tiene un formato invalido.",
+    TOO_SHORT: "{field} es demasiado corto.",
+    TOO_LONG: "{field} es demasiado largo.",
+    INVALID_CHARACTERS: "{field} contiene caracteres no permitidos.",
+    UNSUPPORTED_LOCALE: "{field} usa un idioma no soportado.",
+    UNSUPPORTED_COUNTRY: "{field} usa un pais no soportado.",
+    CHECKSUM_FAILED: "{field} no paso la validacion de checksum."
+  },
+  pt: {
+    VALID: "{field} e valido.",
+    EMPTY: "{field} e obrigatorio.",
+    INVALID_FORMAT: "{field} tem um formato invalido.",
+    TOO_SHORT: "{field} e muito curto.",
+    TOO_LONG: "{field} e muito longo.",
+    INVALID_CHARACTERS: "{field} contem caracteres nao permitidos.",
+    UNSUPPORTED_LOCALE: "{field} usa um idioma nao suportado.",
+    UNSUPPORTED_COUNTRY: "{field} usa um pais nao suportado.",
+    CHECKSUM_FAILED: "{field} falhou na validacao de checksum."
+  }
+};
+
 function ok(message = "Validation passed."): ValidationResult {
   return { ok: true, code: "VALID", message };
 }
 
 function fail(code: Exclude<ValidationResultCode, "VALID">, message: string): ValidationResult {
   return { ok: false, code, message };
+}
+
+/**
+ * Translates a structured validation result into a UI-ready message.
+ *
+ * @param result - Validation result returned by any `validateX` helper.
+ * @param options - Translation options.
+ * @param options.locale - Built-in locale (`en`, `es`, or `pt`).
+ * @param options.fieldLabel - Human field label used in the message.
+ * @param options.messages - Optional code-specific message overrides.
+ * @returns A validation result with the translated message.
+ */
+export function translateValidationResult(
+  result: ValidationResult,
+  options: TranslateValidationOptions = {}
+): ValidationResult {
+  const locale = options.locale ?? "en";
+  const fieldLabel = options.fieldLabel ?? "Value";
+  const template = options.messages?.[result.code] ?? VALIDATION_MESSAGES[locale][result.code];
+
+  return {
+    ...result,
+    message: template.replace("{field}", fieldLabel)
+  };
 }
 
 /**

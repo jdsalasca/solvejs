@@ -1,7 +1,7 @@
 {
   "name": "@jdsalasc/solvejs-date",
-  "version": "1.7.2",
-  "description": "Zero-dependency JavaScript/TypeScript date utilities for production: strict parsing, UTC-safe formatting, unix timestamp conversion, date math, and calendar helpers.",
+  "version": "1.8.0",
+  "description": "UTC-safe TypeScript date utilities for strict parsing, formatting, calendar math, business days, timestamps, and deadline logic without dependencies.",
   "license": "MIT",
   "type": "module",
   "sideEffects": false,

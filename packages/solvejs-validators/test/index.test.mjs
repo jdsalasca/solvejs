@@ -24,7 +24,8 @@ import {
   validateHttpUrl,
   validateIsoDateString,
   validateName,
-  validatePostalCode
+  validatePostalCode,
+  translateValidationResult
 } from "../dist/esm/index.js";
 
 test("boolean validators keep compatibility", () => {
@@ -84,4 +85,26 @@ test("structured validators expose actionable failure codes", () => {
   assert.equal(validateHttpUrl("https://solvejs.dev").ok, true);
   assert.equal(validatePostalCode("XXXXX", { country: "US" }).code, "INVALID_FORMAT");
   assert.equal(validateAddressLine("Apt 😀 4").code, "INVALID_CHARACTERS");
+});
+
+test("validation results can be translated for UI messages", () => {
+  const emptyEmail = validateEmail(" ");
+  assert.deepEqual(translateValidationResult(emptyEmail, { locale: "es", fieldLabel: "Correo" }), {
+    ok: false,
+    code: "EMPTY",
+    message: "Correo es obligatorio."
+  });
+
+  const invalidName = validateName("A");
+  assert.equal(
+    translateValidationResult(invalidName, { locale: "pt", fieldLabel: "Nome" }).message,
+    "Nome e muito curto."
+  );
+  assert.equal(
+    translateValidationResult(validateEmail("bad"), {
+      fieldLabel: "Email",
+      messages: { INVALID_FORMAT: "{field} needs a business email format." }
+    }).message,
+    "Email needs a business email format."
+  );
 });

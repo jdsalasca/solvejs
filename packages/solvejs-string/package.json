@@ -1,7 +1,7 @@
 {
   "name": "@jdsalasc/solvejs-string",
-  "version": "1.7.2",
-  "description": "Zero-dependency JavaScript/TypeScript string utilities for production: slugify, case transforms, HTML stripping, masking, and safe truncation.",
+  "version": "1.8.0",
+  "description": "Small TypeScript string utilities for slugs, case conversion, masking, truncation, title case, and HTML cleanup in production apps.",
   "license": "MIT",
   "type": "module",
   "sideEffects": false,

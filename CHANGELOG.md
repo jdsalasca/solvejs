@@ -1,5 +1,14 @@
 # Changelog
 
+## 1.8.0 - 2026-05-28
+
+- Added validator UX translations with `translateValidationResult` for EN/ES/PT field-aware messages.
+- Added business-day date helpers: `addBusinessDays`, `isBusinessDay`, and `isWeekend`.
+- Added `countBy` for list aggregation and analytics-style transformations.
+- Hardened `toNumber` so malformed thousands separators such as `1,2,3` return `null` instead of parsing as `123`.
+- Improved npm package descriptions for clearer adoption positioning across all published packages.
+- Added a market audit for bugs, useful functions, and high-demand utility opportunities.
+
 ## 1.7.2 - 2026-05-28
 
 - Hardened object path helpers against unsafe prototype segments such as `__proto__`, `constructor`, and `prototype`.

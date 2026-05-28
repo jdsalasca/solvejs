@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { chunk, compact, difference, groupBy, intersection, keyBy, partition, sortBy, unique, uniqueBy } from "../dist/esm/index.js";
+import { chunk, compact, countBy, difference, groupBy, intersection, keyBy, partition, sortBy, unique, uniqueBy } from "../dist/esm/index.js";
 
 test("array/list helpers", () => {
   assert.deepEqual(unique([1, 1, 2, 3, 3]), [1, 2, 3]);
@@ -35,4 +35,13 @@ test("groupBy and keyBy safely handle special object keys", () => {
   assert.deepEqual(keyed.__proto__, { id: "__proto__", value: 1 });
   assert.deepEqual(keyed.constructor, { id: "constructor", value: 2 });
   assert.equal(Object.getPrototypeOf(keyed), Object.prototype);
+});
+
+test("countBy counts derived keys and supports special object keys", () => {
+  assert.deepEqual(countBy(["open", "closed", "open"], value => value), { open: 2, closed: 1 });
+
+  const counted = countBy(["a", "b", "c"], value => (value === "a" ? "__proto__" : "constructor"));
+  assert.equal(counted.__proto__, 1);
+  assert.equal(counted.constructor, 2);
+  assert.equal(Object.getPrototypeOf(counted), Object.prototype);
 });
