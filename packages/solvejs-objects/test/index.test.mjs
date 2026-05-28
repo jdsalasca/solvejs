@@ -43,3 +43,28 @@ test("deepMerge does not mutate source objects and replaces arrays", () => {
   assert.deepEqual(right, { app: { flags: { b: true }, list: [3] } });
   assert.deepEqual(output, { app: { flags: { a: true, b: true }, list: [3] } });
 });
+
+test("object helpers guard unsafe prototype path segments", () => {
+  assert.equal(get({}, "constructor", "fallback"), "fallback");
+  assert.equal(get({}, "__proto__.polluted", "fallback"), "fallback");
+  assert.throws(() => set({}, "__proto__.polluted", true), /unsafe segment/i);
+  assert.equal({}.polluted, undefined);
+});
+
+test("object helpers skip unsafe object keys", () => {
+  const source = {};
+  Object.defineProperty(source, "__proto__", {
+    value: "blocked",
+    enumerable: true
+  });
+  Object.defineProperty(source, "constructor", {
+    value: "blocked",
+    enumerable: true
+  });
+  source.safe = true;
+
+  assert.deepEqual(pick(source, ["__proto__", "constructor", "safe"]), { safe: true });
+  assert.deepEqual(omit(source, []), { safe: true });
+  assert.deepEqual(deepMerge({}, source), { safe: true });
+  assert.equal({}.polluted, undefined);
+});

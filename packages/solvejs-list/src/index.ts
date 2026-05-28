@@ -68,8 +68,13 @@ export function chunk<T>(values: readonly T[], size: number): T[][] {
 export function groupBy<T, K extends PropertyKey>(values: readonly T[], selector: (value: T) => K): Record<K, T[]> {
   return values.reduce((accumulator, value) => {
     const key = selector(value);
-    if (!accumulator[key]) {
-      accumulator[key] = [];
+    if (!Object.prototype.hasOwnProperty.call(accumulator, key)) {
+      Object.defineProperty(accumulator, key, {
+        value: [],
+        enumerable: true,
+        configurable: true,
+        writable: true
+      });
     }
     accumulator[key].push(value);
     return accumulator;
@@ -105,7 +110,12 @@ export function partition<T>(values: readonly T[], predicate: (value: T) => bool
  */
 export function keyBy<T, K extends PropertyKey>(values: readonly T[], selector: (value: T) => K): Record<K, T> {
   return values.reduce((accumulator, value) => {
-    accumulator[selector(value)] = value;
+    Object.defineProperty(accumulator, selector(value), {
+      value,
+      enumerable: true,
+      configurable: true,
+      writable: true
+    });
     return accumulator;
   }, {} as Record<K, T>);
 }

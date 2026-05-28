@@ -8,6 +8,16 @@ function isPlainObject(value: unknown): value is Record<string, unknown> {
   return Object.prototype.toString.call(value) === "[object Object]";
 }
 
+function isUnsafeKey(key: PropertyKey): boolean {
+  return key === "__proto__" || key === "constructor" || key === "prototype";
+}
+
+function assertSafePathSegments(segments: readonly string[]): void {
+  if (segments.some(isUnsafeKey)) {
+    throw new TypeError("Path contains an unsafe segment.");
+  }
+}
+
 /**
  * Safely checks whether an object owns a property.
  *
@@ -29,7 +39,7 @@ export function hasOwn(value: unknown, key: PropertyKey): boolean {
 export function pick<T extends object, K extends keyof T>(value: T, keys: readonly K[]): Pick<T, K> {
   const output = {} as Pick<T, K>;
   for (const key of keys) {
-    if (hasOwn(value, key)) {
+    if (!isUnsafeKey(key) && hasOwn(value, key)) {
       output[key] = value[key];
     }
   }
@@ -48,7 +58,7 @@ export function omit<T extends object, K extends keyof T>(value: T, keys: readon
   const output: Record<PropertyKey, unknown> = {};
 
   for (const key of Reflect.ownKeys(value)) {
-    if (!blocked.has(key)) {
+    if (!isUnsafeKey(key) && !blocked.has(key)) {
       output[key] = (value as Record<PropertyKey, unknown>)[key];
     }
   }
@@ -76,7 +86,7 @@ export function get<T>(value: unknown, path: string, fallback?: T): T | undefine
   let current: unknown = value;
 
   for (const segment of segments) {
-    if (current == null || !(segment in Object(current))) {
+    if (isUnsafeKey(segment) || current == null || !hasOwn(Object(current), segment)) {
       return fallback;
     }
     current = (current as Record<string, unknown>)[segment];
@@ -107,6 +117,7 @@ export function set<T extends object>(value: T, path: string, nextValue: unknown
   if (segments.length === 0) {
     throw new TypeError("Expected path to be a non-empty dot path.");
   }
+  assertSafePathSegments(segments);
 
   let cursor: Record<string, unknown> = value as Record<string, unknown>;
   for (let index = 0; index < segments.length - 1; index += 1) {
@@ -137,6 +148,9 @@ export function deepMerge<T extends Record<string, unknown>>(
 
   for (const source of sources) {
     for (const [key, value] of Object.entries(source)) {
+      if (isUnsafeKey(key)) {
+        continue;
+      }
       const existing = output[key];
       if (isPlainObject(existing) && isPlainObject(value)) {
         output[key] = deepMerge(existing, value);

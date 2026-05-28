@@ -62,3 +62,11 @@ test("timezone offsets and DST-like boundaries keep UTC-safe behavior", () => {
   assert.ok(monthBoundary);
   assert.equal(toIsoDate(addDays(monthBoundary, 1)), "2026-04-02");
 });
+
+test("fromUtcParts rejects invalid calendar parts", () => {
+  assert.throws(() => fromUtcParts(2026, 13, 1), /valid calendar parts/i);
+  assert.throws(() => fromUtcParts(2026, 0, 1), /valid calendar parts/i);
+  assert.throws(() => fromUtcParts(2026, 2, 30), /valid calendar parts/i);
+  assert.throws(() => fromUtcParts(2026, 4, 31), /valid calendar parts/i);
+  assert.throws(() => fromUtcParts(2026.5, 2, 1), /integers/i);
+});

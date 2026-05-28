@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.7.2 - 2026-05-28
+
+- Hardened object path helpers against unsafe prototype segments such as `__proto__`, `constructor`, and `prototype`.
+- Fixed list grouping/keying helpers so special object keys do not mutate prototypes or break accumulator behavior.
+- Tightened `fromUtcParts` to reject invalid calendar parts instead of silently overflowing dates.
+- Added regression coverage for prototype-pollution hardening and invalid UTC date construction.
+
 ## 1.5.2 - 2026-02-07
 
 - Added `Limitations and Constraints` sections across all package READMEs for clearer adoption expectations.

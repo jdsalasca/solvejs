@@ -24,3 +24,15 @@ test("array/list helpers edge cases", () => {
   assert.deepEqual(sortBy([{ n: 1 }, { n: 2 }], item => item.n, "desc"), [{ n: 2 }, { n: 1 }]);
   assert.deepEqual(partition([], () => true), [[], []]);
 });
+
+test("groupBy and keyBy safely handle special object keys", () => {
+  const grouped = groupBy(["a", "b", "c"], value => (value === "a" ? "__proto__" : "constructor"));
+  assert.deepEqual(grouped.__proto__, ["a"]);
+  assert.deepEqual(grouped.constructor, ["b", "c"]);
+  assert.equal(Array.isArray(Object.getPrototypeOf(grouped)), false);
+
+  const keyed = keyBy([{ id: "__proto__", value: 1 }, { id: "constructor", value: 2 }], item => item.id);
+  assert.deepEqual(keyed.__proto__, { id: "__proto__", value: 1 });
+  assert.deepEqual(keyed.constructor, { id: "constructor", value: 2 });
+  assert.equal(Object.getPrototypeOf(keyed), Object.prototype);
+});

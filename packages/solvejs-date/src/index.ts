@@ -160,7 +160,21 @@ export function fromUtcParts(year: number, month: number, day: number): Date {
   if (!Number.isInteger(year) || !Number.isInteger(month) || !Number.isInteger(day)) {
     throw new TypeError("Expected year, month, and day to be integers.");
   }
-  return new Date(Date.UTC(year, month - 1, day));
+
+  if (month < 1 || month > 12 || day < 1 || day > 31) {
+    throw new RangeError("Expected month and day to be valid calendar parts.");
+  }
+
+  const candidate = new Date(Date.UTC(year, month - 1, day));
+  if (
+    candidate.getUTCFullYear() !== year ||
+    candidate.getUTCMonth() !== month - 1 ||
+    candidate.getUTCDate() !== day
+  ) {
+    throw new RangeError("Expected month and day to be valid calendar parts.");
+  }
+
+  return candidate;
 }
 
 /**
