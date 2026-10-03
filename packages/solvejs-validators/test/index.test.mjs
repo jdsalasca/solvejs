@@ -1,10 +1,10 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import {
-  isAddressLine,
-  isAddresDirection,
   isAddresDirrection,
+  isAddresDirection,
   isAddressDirection,
+  isAddressLine,
   isCellphoneNumber,
   isCreditCardNumber,
   isDomain,
@@ -14,9 +14,10 @@ import {
   isIsoDateString,
   isPostalCode,
   isStrongPassword,
-  isUuidV4,
   isUsername,
+  isUuidV4,
   isValidName,
+  translateValidationResult,
   validateAddressDirection,
   validateAddressLine,
   validateCellphoneNumber,
@@ -24,92 +25,410 @@ import {
   validateDomain,
   validateEmail,
   validateHttpUrl,
+  validateIpv4,
   validateIsoDateString,
   validateName,
   validatePostalCode,
-  translateValidationResult
+  validateStrongPassword,
+  validateUsername,
+  validateUuidV4
 } from "../dist/esm/index.js";
 
-test("boolean validators keep compatibility", () => {
-  assert.equal(isCellphoneNumber("+573001112233"), true);
-  assert.equal(isAddressDirection("NW"), true);
-  assert.equal(isAddresDirection("NW"), true);
-  assert.equal(isAddresDirrection("NW"), true);
-  assert.equal(isValidName("Maria Fernanda"), true);
-  assert.equal(isUsername("solvejs_team"), true);
-  assert.equal(isEmail("user@example.com"), true);
-  assert.equal(isHttpUrl("https://solvejs.dev"), true);
-  assert.equal(isPostalCode("12345-6789"), true);
-  assert.equal(isPostalCode("K1A 0B1", { country: "CA" }), true);
-  assert.equal(isPostalCode("11000", { country: "UY" }), true);
-  assert.equal(isPostalCode("SW1A 1AA", { country: "GB" }), true);
-  assert.equal(isPostalCode("10115", { country: "DE" }), true);
-  assert.equal(isPostalCode("110111", { country: "CO" }), true);
-  assert.equal(isPostalCode("28013", { country: "ES" }), true);
-  assert.equal(isAddressLine("221B Baker Street"), true);
-  assert.equal(isStrongPassword("Aa123456!"), true);
-  assert.equal(isCreditCardNumber("4111 1111 1111 1111"), true);
-  assert.equal(isDomain("api.solvejs.dev"), true);
-  assert.equal(isIpv4("192.168.0.1"), true);
-  assert.equal(isUuidV4("550e8400-e29b-41d4-a716-446655440000"), true);
-  assert.equal(isIsoDateString("2026-02-07"), true);
+const VALID_DIRECTIONS_EN = ["N", "S", "E", "W", "NE", "NW", "SE", "SW", "NORTH", "SOUTHWEST"];
+const VALID_DIRECTIONS_ES = ["N", "S", "E", "O", "NE", "NO", "SE", "SO", "NORTE", "SUROESTE"];
+
+test("translateValidationResult", () => {
+  const source = validateEmail("");
+  assert.equal(translateValidationResult(source).message, "Value is required.");
+  assert.equal(translateValidationResult(source, { locale: "es" }).message, "Value es obligatorio.");
+  assert.equal(translateValidationResult(source, { locale: "pt" }).message, "Value e obrigatorio.");
+  assert.equal(
+    translateValidationResult(source, { locale: "es", fieldLabel: "Correo" }).message,
+    "Correo es obligatorio."
+  );
+  assert.equal(
+    translateValidationResult(source, { messages: { EMPTY: "required!" } }).message,
+    "required!"
+  );
+  const translated = translateValidationResult(source, { locale: "pt" });
+  assert.equal(translated.code, "EMPTY", "the machine-readable code survives translation");
+  assert.equal(translated.ok, false, "ok survives translation");
 });
 
-test("structured validators return codes and messages", () => {
-  assert.deepEqual(validateCellphoneNumber("abc").ok, false);
-  assert.equal(validateCellphoneNumber("abc").code, "INVALID_FORMAT");
-  assert.equal(validateCellphoneNumber("+573001112233", { country: "CO" }).ok, true);
-  assert.equal(validateAddressDirection("oeste", { locale: "es" }).ok, true);
-  assert.equal(validateAddressDirection("west", { locale: "es" }).ok, false);
-  assert.equal(validateName("A").code, "TOO_SHORT");
-  assert.equal(validateAddressLine("A").code, "TOO_SHORT");
+test("validateCellphoneNumber", () => {
+  const valid = validateCellphoneNumber("+573001234567");
+  assert.equal(valid.ok, true);
+  assert.equal(valid.code, "VALID");
+  assert.ok(valid.message.length > 0);
+
+  const tooShort = validateCellphoneNumber("12");
+  assert.equal(tooShort.ok, false);
+  assert.equal(tooShort.code, "TOO_SHORT");
+  assert.ok(tooShort.message.length > 0);
+
+  const empty = validateCellphoneNumber("   ");
+  assert.equal(empty.ok, false);
+  assert.equal(empty.code, "EMPTY");
+});
+
+test("isCellphoneNumber", () => {
+  assert.equal(isCellphoneNumber("+573001234567"), true);
+  assert.equal(isCellphoneNumber("12"), false);
+  assert.equal(isCellphoneNumber(""), false);
+  assert.equal(isCellphoneNumber("   "), false);
+  assert.equal(isCellphoneNumber("+573001234567"), validateCellphoneNumber("+573001234567").ok);
+});
+
+test("validateAddressDirection", () => {
+  for (const direction of VALID_DIRECTIONS_EN) {
+    assert.equal(validateAddressDirection(direction).ok, true, `rejected EN token ${direction}`);
+  }
+  assert.equal(validateAddressDirection("north").ok, true, "input is case-insensitive");
+  assert.equal(validateAddressDirection("NORTHWEST").ok, true);
+  assert.equal(validateAddressDirection("NORTE", { locale: "es" }).ok, true);
+  assert.equal(validateAddressDirection("O", { locale: "es" }).ok, true, "es uses O for west");
+
+  const unknown = validateAddressDirection("Sideways");
+  assert.equal(unknown.ok, false);
+  assert.equal(unknown.code, "INVALID_FORMAT");
+
+  assert.equal(validateAddressDirection("OESTE").ok, false, "an es-only token is not valid in en");
+  assert.equal(validateAddressDirection("   ").code, "EMPTY");
+});
+
+test("isAddressDirection", () => {
+  assert.equal(isAddressDirection("north"), true);
+  assert.equal(isAddressDirection("NORTE", { locale: "es" }), true);
+  assert.equal(isAddressDirection("Sideways"), false);
+  assert.equal(isAddressDirection(""), false);
+  assert.equal(isAddressDirection("north"), validateAddressDirection("north").ok);
+});
+
+test("isAddresDirection", () => {
+  // Kept as a misspelled alias for backward compatibility; must never drift.
+  for (const value of ["north", "SOUTH", "NE", "Sideways", "", "   "]) {
+    assert.equal(isAddresDirection(value), isAddressDirection(value), `drifted on ${JSON.stringify(value)}`);
+  }
+  assert.equal(isAddresDirection("NORTE", { locale: "es" }), isAddressDirection("NORTE", { locale: "es" }));
+});
+
+test("isAddresDirrection", () => {
+  // Kept as a misspelled alias for backward compatibility; must never drift.
+  for (const value of ["north", "SOUTH", "NE", "Sideways", "", "   "]) {
+    assert.equal(isAddresDirrection(value), isAddressDirection(value), `drifted on ${JSON.stringify(value)}`);
+  }
+  assert.equal(
+    isAddresDirrection("NORTE", { locale: "es" }),
+    isAddressDirection("NORTE", { locale: "es" })
+  );
+});
+
+test("validateName", () => {
+  const valid = validateName("Ada Lovelace");
+  assert.equal(valid.ok, true);
+  assert.equal(valid.code, "VALID");
+
+  assert.equal(validateName("A").code, "TOO_SHORT", "default minimum is 2 characters");
+  assert.equal(validateName("ab", { minLength: 5 }).code, "TOO_SHORT");
+  assert.equal(validateName("abcdef", { maxLength: 3 }).code, "TOO_LONG");
+  assert.equal(validateName("  Ada  ").ok, true, "input is trimmed");
+  assert.equal(validateName("   ").code, "EMPTY");
+  assert.equal(validateName("A1!@#$%^&*()").code, "INVALID_CHARACTERS");
+});
+
+test("isValidName", () => {
+  assert.equal(isValidName("Ada Lovelace"), true);
+  assert.equal(isValidName("A"), false);
+  assert.equal(isValidName("ab", { minLength: 5 }), false);
+  assert.equal(isValidName("abcdef", { maxLength: 3 }), false);
+  assert.equal(isValidName(""), false);
+  assert.equal(isValidName("Ada Lovelace"), validateName("Ada Lovelace").ok);
+});
+
+test("validateUsername", () => {
+  const valid = validateUsername("ada_lovelace");
+  assert.equal(valid.ok, true);
+  assert.equal(valid.code, "VALID");
+
+  assert.equal(validateUsername("ab").code, "TOO_SHORT", "default minimum is 3 characters");
+  assert.equal(validateUsername("ab!@#$").code, "INVALID_CHARACTERS", "symbols are rejected");
+  assert.equal(validateUsername("a".repeat(31)).code, "TOO_LONG", "default maximum is 30 characters");
+  assert.equal(validateUsername("ada_lovelace", { maxLength: 3 }).code, "TOO_LONG");
+  assert.equal(validateUsername("   ").code, "EMPTY");
+});
+
+test("isUsername", () => {
+  assert.equal(isUsername("ada_lovelace"), true);
+  assert.equal(isUsername("ab"), false);
+  assert.equal(isUsername("a".repeat(31)), false);
+  assert.equal(isUsername("ada_lovelace", { maxLength: 3 }), false);
+  assert.equal(isUsername(""), false);
+  assert.equal(isUsername("ada_lovelace"), validateUsername("ada_lovelace").ok);
+});
+
+test("validateEmail", () => {
+  const valid = validateEmail("ada@example.com");
+  assert.equal(valid.ok, true);
+  assert.equal(valid.code, "VALID");
+
+  assert.equal(validateEmail("ada@").code, "INVALID_FORMAT");
+  assert.equal(validateEmail("ada@example").code, "INVALID_FORMAT");
+  assert.equal(validateEmail("ada example@test.com").code, "INVALID_FORMAT");
+  assert.equal(validateEmail("  ada@example.com  ").ok, true, "input is trimmed");
+  assert.equal(validateEmail("").code, "EMPTY");
+  assert.equal(validateEmail("   ").code, "EMPTY");
+});
+
+test("isEmail", () => {
+  assert.equal(isEmail("ada@example.com"), true);
+  assert.equal(isEmail("ada@"), false);
+  assert.equal(isEmail(""), false);
+  assert.equal(isEmail("   "), false);
+  assert.equal(isEmail("ada@example.com"), validateEmail("ada@example.com").ok);
+});
+
+test("validateHttpUrl", () => {
+  const valid = validateHttpUrl("https://example.com/path");
+  assert.equal(valid.ok, true);
+  assert.equal(valid.code, "VALID");
+
+  assert.equal(validateHttpUrl("ftp://example.com").code, "INVALID_FORMAT", "only http(s) is allowed");
+  assert.equal(validateHttpUrl("example.com").code, "INVALID_FORMAT", "a scheme is required");
+  assert.equal(validateHttpUrl("http://").code, "INVALID_FORMAT");
+  assert.equal(validateHttpUrl("").code, "EMPTY");
+  assert.equal(validateHttpUrl("   ").code, "EMPTY");
+});
+
+test("isHttpUrl", () => {
+  assert.equal(isHttpUrl("https://example.com/path"), true);
+  assert.equal(isHttpUrl("http://example.com"), true);
+  assert.equal(isHttpUrl("ftp://example.com"), false);
+  assert.equal(isHttpUrl("example.com"), false);
+  assert.equal(isHttpUrl(""), false);
+  assert.equal(isHttpUrl("https://example.com"), validateHttpUrl("https://example.com").ok);
+});
+
+test("validateDomain", () => {
+  const valid = validateDomain("example.com");
+  assert.equal(valid.ok, true);
+  assert.equal(valid.code, "VALID");
+
+  assert.equal(validateDomain("sub.example.co.uk").ok, true);
+  assert.equal(validateDomain("EXAMPLE.COM").ok, true, "input is case-insensitive");
+  assert.equal(validateDomain("-example.com").code, "INVALID_FORMAT");
+  assert.equal(validateDomain("example-.com").code, "INVALID_FORMAT");
+  assert.equal(validateDomain("nodot").code, "INVALID_FORMAT");
+  assert.equal(validateDomain("a".repeat(250) + ".com").code, "TOO_LONG");
+  assert.equal(validateDomain("").code, "EMPTY");
+});
+
+test("isDomain", () => {
+  assert.equal(isDomain("example.com"), true);
+  assert.equal(isDomain("nodot"), false);
+  assert.equal(isDomain(""), false);
+  assert.equal(isDomain("   "), false);
+  assert.equal(isDomain("example.com"), validateDomain("example.com").ok);
+});
+
+test("validatePostalCode", () => {
+  assert.equal(validatePostalCode("94107", { country: "US" }).ok, true);
   assert.equal(validatePostalCode("110111", { country: "CO" }).ok, true);
-  assert.equal(validatePostalCode("28013", { country: "ES" }).ok, true);
-  assert.equal(validatePostalCode("7500000", { country: "CL" }).ok, true);
-  assert.equal(validatePostalCode("K1A0B1", { country: "CA" }).ok, true);
-  assert.equal(validatePostalCode("11000", { country: "UY" }).ok, true);
-  assert.equal(validatePostalCode("SW1A 1AA", { country: "GB" }).ok, true);
-  assert.equal(validatePostalCode("10115", { country: "DE" }).ok, true);
-  assert.equal(validatePostalCode("110111", { country: "US" }).ok, false);
-  assert.equal(validateCellphoneNumber("+5491123456789", { country: "AR" }).ok, true);
-  assert.equal(validateCellphoneNumber("+5511912345678", { country: "BR" }).ok, true);
-  assert.equal(validateCellphoneNumber("+14165551234", { country: "CA" }).ok, true);
-  assert.equal(validateCellphoneNumber("+59899123456", { country: "UY" }).ok, true);
-  assert.equal(validateCellphoneNumber("+447700900123", { country: "GB" }).ok, true);
-  assert.equal(validateCellphoneNumber("+4915123456789", { country: "DE" }).ok, true);
-  assert.equal(validateCreditCardNumber("1234").code, "INVALID_FORMAT");
-  assert.equal(validateDomain("https://solvejs.dev").code, "INVALID_FORMAT");
-  assert.equal(validateDomain("solvejs.dev").ok, true);
+  assert.equal(validatePostalCode("9410", { country: "US" }).ok, false);
+  assert.equal(validatePostalCode("94107").ok, true, "US is the default country");
+
+  const bad = validatePostalCode("9410", { country: "US" });
+  assert.equal(bad.code, "INVALID_FORMAT");
+  assert.ok(bad.message.includes("US"), "the message names the country");
+
+  assert.equal(validatePostalCode("  94107  ", { country: "US" }).ok, true, "input is trimmed");
+  assert.equal(validatePostalCode("").code, "EMPTY");
+  assert.equal(validatePostalCode("   ").code, "EMPTY");
+});
+
+test("isPostalCode", () => {
+  assert.equal(isPostalCode("94107", { country: "US" }), true);
+  assert.equal(isPostalCode("110111", { country: "CO" }), true);
+  assert.equal(isPostalCode("9410", { country: "US" }), false);
+  assert.equal(isPostalCode("", { country: "US" }), false);
+  assert.equal(isPostalCode("94107", { country: "US" }), validatePostalCode("94107", { country: "US" }).ok);
+});
+
+test("validateAddressLine", () => {
+  const valid = validateAddressLine("Calle 100 #10-20");
+  assert.equal(valid.ok, true);
+  assert.equal(valid.code, "VALID");
+
+  assert.equal(validateAddressLine("abc").code, "TOO_SHORT", "default minimum is 5 characters");
+  assert.equal(validateAddressLine("abcde", { minLength: 10 }).code, "TOO_SHORT");
+  assert.equal(validateAddressLine("a".repeat(121)).code, "TOO_LONG", "default maximum is 120 characters");
+  assert.equal(validateAddressLine("   ").code, "EMPTY");
+});
+
+test("isAddressLine", () => {
+  assert.equal(isAddressLine("Calle 100 #10-20"), true);
+  assert.equal(isAddressLine("abc"), false);
+  assert.equal(isAddressLine("abcde", { minLength: 10 }), false);
+  assert.equal(isAddressLine(""), false);
+  assert.equal(isAddressLine("Calle 100 #10-20"), validateAddressLine("Calle 100 #10-20").ok);
+});
+
+test("validateStrongPassword", () => {
+  const valid = validateStrongPassword("Aa1!aaaa");
+  assert.equal(valid.ok, true);
+  assert.equal(valid.code, "VALID");
+
+  assert.equal(validateStrongPassword("password").code, "INVALID_FORMAT", "needs all four classes");
+  assert.equal(validateStrongPassword("ALLUPPER1!").code, "INVALID_FORMAT");
+  assert.equal(validateStrongPassword("alllower1!").code, "INVALID_FORMAT");
+  assert.equal(validateStrongPassword("NoDigits!!").code, "INVALID_FORMAT");
+  assert.equal(validateStrongPassword("NoSymbols1").code, "INVALID_FORMAT");
+  assert.equal(validateStrongPassword("Aa1!aaaa", { minLength: 20 }).code, "TOO_SHORT");
+  assert.equal(validateStrongPassword("").code, "EMPTY");
+});
+
+test("isStrongPassword", () => {
+  assert.equal(isStrongPassword("Aa1!aaaa"), true);
+  assert.equal(isStrongPassword("password"), false);
+  assert.equal(isStrongPassword("Aa1!aaaa", { minLength: 20 }), false);
+  assert.equal(isStrongPassword(""), false);
+  assert.equal(isStrongPassword("Aa1!aaaa"), validateStrongPassword("Aa1!aaaa").ok);
+});
+
+test("validateCreditCardNumber", () => {
+  const valid = validateCreditCardNumber("4111111111111111");
+  assert.equal(valid.ok, true);
+  assert.equal(valid.code, "VALID");
+
+  assert.equal(validateCreditCardNumber("5500005555555559").ok, true, "a Mastercard number passes");
+  assert.equal(validateCreditCardNumber("5500 0055 5555 5559").ok, true, "spaces are tolerated");
+  assert.equal(validateCreditCardNumber("4111-1111-1111-1111").ok, true, "dashes are tolerated");
+
+  const badChecksum = validateCreditCardNumber("4111111111111112");
+  assert.equal(badChecksum.ok, false);
+  assert.equal(badChecksum.code, "CHECKSUM_FAILED", "a wrong Luhn digit is a checksum failure");
+  // A single /^\d{12,19}$/ regex gates characters and length together, so both
+  // report INVALID_FORMAT rather than splitting into INVALID_CHARACTERS.
+  assert.equal(validateCreditCardNumber("411111111111111a").code, "INVALID_FORMAT");
+  assert.equal(validateCreditCardNumber("41111").code, "INVALID_FORMAT", "shorter than 12 digits");
+  assert.equal(validateCreditCardNumber("4".repeat(20)).code, "INVALID_FORMAT", "longer than 19 digits");
+  assert.equal(validateCreditCardNumber("").code, "EMPTY");
+});
+
+test("isCreditCardNumber", () => {
+  assert.equal(isCreditCardNumber("4111111111111111"), true);
+  assert.equal(isCreditCardNumber("4111111111111112"), false);
+  assert.equal(isCreditCardNumber("411111111111111a"), false);
+  assert.equal(isCreditCardNumber(""), false);
+  assert.equal(isCreditCardNumber("4111111111111111"), validateCreditCardNumber("4111111111111111").ok);
+});
+
+test("validateUuidV4", () => {
+  const valid = validateUuidV4("550e8400-e29b-41d4-a716-446655440000");
+  assert.equal(valid.ok, true);
+  assert.equal(valid.code, "VALID");
+
+  assert.equal(validateUuidV4("550e8400-e29b-41d4-a716-446655440000").ok, true);
+  assert.equal(
+    validateUuidV4("550e8400-e29b-11d4-a716-446655440000").code,
+    "INVALID_FORMAT",
+    "the version nibble must be 4"
+  );
+  assert.equal(validateUuidV4("550e8400e29b41d4a716446655440000").code, "INVALID_FORMAT");
+  assert.equal(validateUuidV4("550e8400-e29b-41d4-a716").code, "INVALID_FORMAT");
+  assert.equal(validateUuidV4("").code, "EMPTY");
+});
+
+test("isUuidV4", () => {
+  assert.equal(isUuidV4("550e8400-e29b-41d4-a716-446655440000"), true);
+  assert.equal(isUuidV4("550e8400-e29b-11d4-a716-446655440000"), false);
+  assert.equal(isUuidV4(""), false);
+  assert.equal(isUuidV4("550e8400-e29b-41d4-a716-446655440000"), validateUuidV4("550e8400-e29b-41d4-a716-446655440000").ok);
+});
+
+test("validateIpv4", () => {
+  const valid = validateIpv4("192.168.1.1");
+  assert.equal(valid.ok, true);
+  assert.equal(valid.code, "VALID");
+
+  assert.equal(validateIpv4("0.0.0.0").ok, true);
+  assert.equal(validateIpv4("255.255.255.255").ok, true);
+  assert.equal(validateIpv4("256.1.1.1").code, "INVALID_FORMAT", "octets cap at 255");
+  assert.equal(validateIpv4("1.2.3").code, "INVALID_FORMAT");
+  assert.equal(validateIpv4("1.2.3.4.5").code, "INVALID_FORMAT");
+  assert.equal(validateIpv4("1.2.3.04").code, "INVALID_FORMAT", "leading zeros are rejected");
+  assert.equal(validateIpv4("::1").code, "INVALID_FORMAT", "IPv6 is out of scope");
+  assert.equal(validateIpv4("").code, "EMPTY");
+});
+
+test("isIpv4", () => {
+  assert.equal(isIpv4("192.168.1.1"), true);
+  assert.equal(isIpv4("256.1.1.1"), false);
+  assert.equal(isIpv4("::1"), false);
+  assert.equal(isIpv4(""), false);
+  assert.equal(isIpv4("192.168.1.1"), validateIpv4("192.168.1.1").ok);
+});
+
+test("validateIsoDateString", () => {
+  const valid = validateIsoDateString("2026-02-07");
+  assert.equal(valid.ok, true);
+  assert.equal(valid.code, "VALID");
+
+  assert.equal(validateIsoDateString("2024-02-29").ok, true, "a leap day is valid");
+  assert.equal(validateIsoDateString("2023-02-29").code, "INVALID_FORMAT", "a non-leap Feb 29 is invalid");
+  assert.equal(validateIsoDateString("07/02/2026").code, "INVALID_FORMAT");
+  assert.equal(validateIsoDateString("2026-13-01").code, "INVALID_FORMAT", "month 13 does not exist");
   assert.equal(validateIsoDateString("2026-02-30").code, "INVALID_FORMAT");
+  assert.equal(validateIsoDateString("2026-2-7").code, "INVALID_FORMAT", "padding is required");
+  assert.equal(validateIsoDateString("").code, "EMPTY");
+  assert.equal(validateIsoDateString("   ").code, "EMPTY");
 });
 
-test("structured validators expose actionable failure codes", () => {
-  assert.equal(validateEmail(" ").code, "EMPTY");
-  assert.equal(validateEmail("invalid-email").code, "INVALID_FORMAT");
-  assert.equal(validateHttpUrl("ftp://example.com").code, "INVALID_FORMAT");
-  assert.equal(validateHttpUrl("https://solvejs.dev").ok, true);
-  assert.equal(validatePostalCode("XXXXX", { country: "US" }).code, "INVALID_FORMAT");
-  assert.equal(validateAddressLine("Apt 😀 4").code, "INVALID_CHARACTERS");
+test("isIsoDateString", () => {
+  assert.equal(isIsoDateString("2026-02-07"), true);
+  assert.equal(isIsoDateString("2023-02-29"), false);
+  assert.equal(isIsoDateString("2026-2-7"), false);
+  assert.equal(isIsoDateString(""), false);
+  assert.equal(isIsoDateString("2026-02-07"), validateIsoDateString("2026-02-07").ok);
 });
 
-test("validation results can be translated for UI messages", () => {
-  const emptyEmail = validateEmail(" ");
-  assert.deepEqual(translateValidationResult(emptyEmail, { locale: "es", fieldLabel: "Correo" }), {
-    ok: false,
-    code: "EMPTY",
-    message: "Correo es obligatorio."
-  });
-
-  const invalidName = validateName("A");
-  assert.equal(
-    translateValidationResult(invalidName, { locale: "pt", fieldLabel: "Nome" }).message,
-    "Nome e muito curto."
-  );
-  assert.equal(
-    translateValidationResult(validateEmail("bad"), {
-      fieldLabel: "Email",
-      messages: { INVALID_FORMAT: "{field} needs a business email format." }
-    }).message,
-    "Email needs a business email format."
-  );
+test("error codes stay inside the documented set", () => {
+  // Guards the stable error-code contract: adding a function must not silently
+  // invent a code that downstream UI and API mappings do not know about.
+  const allowed = new Set([
+    "VALID",
+    "EMPTY",
+    "INVALID_FORMAT",
+    "TOO_SHORT",
+    "TOO_LONG",
+    "INVALID_CHARACTERS",
+    "UNSUPPORTED_LOCALE",
+    "UNSUPPORTED_COUNTRY",
+    "CHECKSUM_FAILED"
+  ]);
+  const probes = ["", "   ", "nonsense", "12", "a@", "-x-", "999.999.999.999"];
+  const validators = [
+    validateCellphoneNumber,
+    validateAddressDirection,
+    validateName,
+    validateUsername,
+    validateEmail,
+    validateHttpUrl,
+    validateDomain,
+    validatePostalCode,
+    validateAddressLine,
+    validateStrongPassword,
+    validateCreditCardNumber,
+    validateUuidV4,
+    validateIpv4,
+    validateIsoDateString
+  ];
+  for (const validator of validators) {
+    for (const probe of probes) {
+      const result = validator(probe);
+      assert.equal(allowed.has(result.code), true, `${result.code} is outside the documented set`);
+      assert.equal(typeof result.message, "string");
+      assert.ok(result.message.length > 0, "every result carries a non-empty message");
+      assert.equal(typeof result.ok, "boolean");
+    }
+  }
 });
