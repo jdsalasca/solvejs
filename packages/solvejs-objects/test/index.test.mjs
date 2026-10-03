@@ -131,3 +131,41 @@ test("deepMerge", () => {
 
   assert.throws(() => deepMerge({ a: 1 }, null), TypeError);
 });
+
+test("deepMerge refuses prototype-polluting keys", () => {
+  const polluted = JSON.parse('{"__proto__": {"polluted": true}}');
+  const merged = deepMerge({}, polluted);
+
+  assert.equal({}.polluted, undefined, "the global prototype is untouched");
+  assert.equal(Object.prototype.polluted, undefined);
+  assert.equal(merged.polluted, undefined, "the payload is not copied onto the result");
+  assert.deepEqual(Object.keys(merged), [], "the unsafe top-level key is dropped entirely");
+
+  const constructorPayload = JSON.parse('{"constructor": {"prototype": {"polluted": true}}}');
+  deepMerge({}, constructorPayload);
+  assert.equal({}.polluted, undefined, "a constructor.prototype payload is refused too");
+
+  assert.deepEqual(
+    deepMerge({ a: 1 }, JSON.parse('{"__proto__": {"x": 1}, "b": 2}')),
+    { a: 1, b: 2 },
+    "safe keys around an unsafe one still merge"
+  );
+});
+
+test("a nested unsafe key is inert rather than removed", () => {
+  // deepMerge only inspects keys where it actually merges. A nested plain object
+  // with no counterpart on the target is assigned as-is, so its `__proto__` own
+  // property survives as data. That is harmless: an own `__proto__` property does
+  // not touch the prototype chain.
+  const payload = JSON.parse('{"outer": {"__proto__": {"deep": true}}}');
+  const merged = deepMerge({}, payload);
+
+  assert.equal({}.deep, undefined, "no prototype pollution");
+  assert.equal(Object.prototype.deep, undefined);
+  assert.equal(merged.outer.deep, undefined, "the nested value is not readable through the prototype");
+
+  // Where a merge does happen, the guard applies at that level too.
+  const intoExisting = deepMerge({ outer: { keep: 1 } }, JSON.parse('{"outer": {"__proto__": {"deep": true}}}'));
+  assert.equal({}.deep, undefined);
+  assert.deepEqual(intoExisting, { outer: { keep: 1 } }, "the unsafe key is skipped at merge time");
+});

@@ -432,3 +432,57 @@ test("error codes stay inside the documented set", () => {
     }
   }
 });
+
+test("validateCellphoneNumber rejects unsupported country presets", () => {
+  const bad = validateCellphoneNumber("+573001234567", { country: "ZZ" });
+  assert.equal(bad.ok, false);
+  assert.equal(bad.code, "UNSUPPORTED_COUNTRY");
+  assert.ok(bad.message.includes("ZZ"), "the message names the preset");
+
+  assert.equal(validateCellphoneNumber("+573001234567", { country: "CO" }).ok, true, "a supported preset still works");
+});
+
+test("validateCellphoneNumber enforces the digit bounds", () => {
+  const tooLong = validateCellphoneNumber("+5730012345678999");
+  assert.equal(tooLong.ok, false);
+  assert.equal(tooLong.code, "TOO_LONG");
+
+  const narrowed = validateCellphoneNumber("+573001234567", { maxDigits: 10 });
+  assert.equal(narrowed.ok, false);
+  assert.equal(narrowed.code, "TOO_LONG", "maxDigits narrows the accepted length");
+
+  assert.equal(
+    validateCellphoneNumber("+5730012345", { minDigits: 10, maxDigits: 12 }).ok,
+    true,
+    "explicit bounds are respected"
+  );
+});
+
+test("validateAddressDirection rejects an unsupported locale", () => {
+  const bad = validateAddressDirection("north", { locale: "fr" });
+  assert.equal(bad.ok, false);
+  assert.equal(bad.code, "UNSUPPORTED_LOCALE");
+  assert.ok(bad.message.includes("fr"), "the message names the locale");
+
+  assert.equal(isAddressDirection("north", { locale: "fr" }), false, "the boolean wrapper agrees");
+  assert.equal(validateAddressDirection("north", { locale: "en" }).ok, true);
+});
+
+test("validatePostalCode rejects an unsupported country", () => {
+  const bad = validatePostalCode("94107", { country: "ZZ" });
+  assert.equal(bad.ok, false);
+  assert.equal(bad.code, "UNSUPPORTED_COUNTRY");
+  assert.ok(bad.message.includes("ZZ"), "the message names the country");
+
+  assert.equal(isPostalCode("94107", { country: "ZZ" }), false, "the boolean wrapper agrees");
+});
+
+test("validateAddressLine rejects unsupported characters", () => {
+  const bad = validateAddressLine("Calle 100 #10-20 <script>");
+  assert.equal(bad.ok, false);
+  assert.equal(bad.code, "INVALID_CHARACTERS");
+
+  assert.equal(isAddressLine("Calle 100 #10-20 <script>"), false, "the boolean wrapper agrees");
+  assert.equal(validateAddressLine("Calle 100 #10-20").ok, true);
+  assert.equal(validateAddressLine("Av. Siempre Viva 742, apto 3B").ok, true, "accents and punctuation are allowed");
+});

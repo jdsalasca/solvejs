@@ -57,6 +57,25 @@ set({ "a.b": 1 }, "a.b", 2);      // { "a.b": 1, a: { b: 2 } }
 Read and write such a key with `pick`/`omit` instead. Prototype-polluting segments (`__proto__`,
 `constructor`, `prototype`) are rejected with `Path contains an unsafe segment.`
 
+### deepMerge guards keys only where it merges
+
+`deepMerge` drops unsafe keys at every level where it actually merges two objects. A nested plain
+object with no counterpart on the target is assigned as a whole, so an own `__proto__` property
+inside it is carried over as ordinary data:
+
+```ts
+const payload = JSON.parse('{"outer": {"__proto__": {"deep": true}}}');
+
+deepMerge({}, payload);                          // { outer: { __proto__: { deep: true } } }
+({}).deep;                                       // undefined, no pollution
+
+deepMerge({ outer: { keep: 1 } }, payload);      // { outer: { keep: 1 } }, unsafe key skipped
+```
+
+Neither form pollutes the prototype chain, because an own `__proto__` property is data rather than
+an assignment to the prototype. If you need the key gone from the output as well, strip it yourself
+or run the result through a schema that rejects unknown keys.
+
 ## Install
 
 ```bash

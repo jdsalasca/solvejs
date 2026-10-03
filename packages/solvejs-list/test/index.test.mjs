@@ -165,3 +165,31 @@ test("sortBy", () => {
 
   assert.deepEqual(sortBy(rows, (row) => row.n, "asc"), sorted, "asc is the default order");
 });
+
+test("sortBy is stable for equal keys", () => {
+  const rows = [
+    { group: "a", order: 2, id: "first" },
+    { group: "a", order: 1, id: "second" },
+    { group: "a", order: 2, id: "third" },
+    { group: "a", order: 1, id: "fourth" }
+  ];
+
+  const ascending = sortBy(rows, (row) => row.order);
+  assert.deepEqual(
+    ascending.map((row) => row.id),
+    ["second", "fourth", "first", "third"],
+    "rows with an equal key keep their original relative order"
+  );
+
+  const descending = sortBy(rows, (row) => row.order, "desc");
+  assert.deepEqual(
+    descending.map((row) => row.id),
+    ["first", "third", "second", "fourth"],
+    "stability holds in descending order too"
+  );
+
+  assert.deepEqual(sortBy(rows, (row) => row.group), rows, "one distinct key leaves the order untouched");
+
+  const repeated = sortBy(rows, (row) => row.order);
+  assert.deepEqual(repeated, ascending, "sorting twice gives the same result");
+});

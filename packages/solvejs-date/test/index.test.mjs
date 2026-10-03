@@ -272,3 +272,58 @@ test("date arithmetic is deterministic across host timezones", () => {
     else process.env.TZ = original;
   }
 });
+
+test("parseDateStrict rejects an input that does not match the requested format", () => {
+  // The MM-DD-YYYY branch is reached only when the other two formats miss.
+  assert.equal(parseDateStrict("02-07-2026", "MM-DD-YYYY").toISOString(), "2026-02-07T00:00:00.000Z");
+  assert.equal(parseDateStrict("12-25-2026", "MM-DD-YYYY").toISOString(), "2026-12-25T00:00:00.000Z");
+
+  // A value shaped like one of the other formats is not silently reinterpreted.
+  assert.equal(parseDateStrict("2026-02-07", "MM-DD-YYYY"), null);
+  assert.equal(parseDateStrict("07/02/2026", "MM-DD-YYYY"), null);
+  assert.equal(parseDateStrict("07-02-2026", "MM-DD-YYYY").toISOString(), "2026-07-02T00:00:00.000Z", "7 February written month-first is 2 July");
+  assert.equal(parseDateStrict("nonsense", "MM-DD-YYYY"), null);
+  assert.equal(parseDateStrict("2-7-2026", "MM-DD-YYYY"), null, "padding is required");
+  assert.equal(parseDateStrict("13-07-2026", "MM-DD-YYYY"), null, "a 13th month is rejected");
+  assert.equal(parseDateStrict("02-30-2026", "MM-DD-YYYY"), null, "an impossible day is rejected");
+});
+
+test("addDays and addBusinessDays require an integer amount", () => {
+  const date = day("2024-03-08");
+  assert.throws(() => addDays(date, 1.5), /amount to be an integer/);
+  assert.throws(() => addDays(date, NaN), /amount to be an integer/);
+  assert.throws(() => addDays(date, Infinity), /amount to be an integer/);
+  assert.throws(() => addBusinessDays(date, 1.5), /amount to be an integer/);
+  assert.throws(() => addBusinessDays(date, NaN), /amount to be an integer/);
+
+  assert.throws(() => addDays("2024-03-08", 1), /valid Date instance/);
+  assert.throws(() => addBusinessDays("2024-03-08", 1), /valid Date instance/);
+});
+
+test("fromUtcParts validates its parts", () => {
+  assert.throws(() => fromUtcParts(2024.5, 1, 1), /year, month, and day to be integers/);
+  assert.throws(() => fromUtcParts(2024, 1.5, 1), /year, month, and day to be integers/);
+  assert.throws(() => fromUtcParts(2024, 1, NaN), /year, month, and day to be integers/);
+
+  assert.throws(() => fromUtcParts(2024, 0, 1), /valid calendar parts/);
+  assert.throws(() => fromUtcParts(2024, 13, 1), /valid calendar parts/);
+  assert.throws(() => fromUtcParts(2024, 1, 0), /valid calendar parts/);
+  assert.throws(() => fromUtcParts(2024, 1, 32), /valid calendar parts/);
+
+  // A day inside the month range but impossible for that month is rejected rather
+  // than rolled over, which is the whole point of this constructor.
+  assert.throws(() => fromUtcParts(2024, 2, 30), /valid calendar parts/);
+  assert.throws(() => fromUtcParts(2023, 2, 29), /valid calendar parts/);
+  assert.throws(() => fromUtcParts(2024, 4, 31), /valid calendar parts/);
+  assert.equal(fromUtcParts(2024, 2, 29).toISOString(), "2024-02-29T00:00:00.000Z");
+});
+
+test("isLeapYear and daysInMonth require integer arguments", () => {
+  assert.throws(() => isLeapYear(2024.5), /year to be an integer/);
+  assert.throws(() => isLeapYear("2024"), /year to be an integer/);
+  assert.throws(() => isLeapYear(NaN), /year to be an integer/);
+
+  assert.throws(() => daysInMonth(2024.5, 1), /year and month to be integers/);
+  assert.throws(() => daysInMonth(2024, 1.5), /year and month to be integers/);
+  assert.throws(() => daysInMonth("2024", 1), /year and month to be integers/);
+});

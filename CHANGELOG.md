@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Documented that `deepMerge` in `@jdsalasc/solvejs-objects` drops prototype-polluting keys only at levels where it merges two objects; a nested plain object with no counterpart on the target is assigned whole, so an own `__proto__` property inside it is carried as inert data. No prototype pollution is possible either way, because an own `__proto__` property is data rather than a prototype assignment. Behavior is unchanged. Migration impact: none.
+
 - `npm run report:health` now measures the test trust table itself instead of copying hand-written numbers, and rewrites both `package-health-report.md` and `.html` from that single measurement. Line coverage is read back from `npm run report:perf` output so the two reports cannot disagree. Repeated runs are idempotent, and CRLF checkouts are handled. The markdown now has explicit `## Test Trust` and `## Package Status` sections.
 
 - Documented that in `@jdsalasc/solvejs-async` a `debouncePromise` call superseded by a newer call rejects immediately with `Error: Debounced by a newer call.` and that validation is synchronous for `sleep`/`debouncePromise`/`createRateLimiter`/`createTokenBucketLimiter` but arrives as a rejected promise for `retry`/`pMap`. Behavior is unchanged. Migration impact: none.
