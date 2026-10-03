@@ -55,7 +55,15 @@ halfway cases are asymmetric:
 ```ts
 roundTo(1.005, 2);  // 1.01  positive halves round up
 roundTo(-1.005, 2); // -1     negative halves round toward zero
+
+// The same asymmetry is visible without any float noise at all:
+roundTo(2.5);   // 3
+roundTo(-2.5);  // -2, not -3
 ```
+
+`roundTo` takes no rounding mode, so if you need symmetric half-away-from-zero rounding on negative
+values, do it yourself at the call site. For money, prefer `@jdsalasc/solvejs-money`, which works in
+integer minor units and has no halfway case to get wrong.
 
 If your domain needs symmetric halves-away-from-zero rounding on negative values, round the
 absolute value and reapply the sign instead of relying on `roundTo`.
