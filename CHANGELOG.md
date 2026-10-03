@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Added new package `@jdsalasc/solvejs-http` with `getStatusText`, `isIdempotentMethod`, `isRetryableStatus`, `isRetryableError`, `calculateBackoffDelay`, `normalizeHeaderName`, `parseContentType`, `negotiateContentType` and a `HttpError`. Backoff accepts an injectable deterministic mode, and content negotiation honours quality values plus both wildcard forms with the server's order breaking a tie. Migration impact: none, new package.
+
 - Added new package `@jdsalasc/solvejs-money` with `fromDecimal`, `toDecimal`, `addMoney`, `subtractMoney`, `sumMoney`, `multiplyMoney`, `percentageOf`, `applyPercentage`, `allocateAmount`, `formatMoney` and a `MoneyError`. Amounts are integer minor units throughout, `allocateAmount` uses the largest-remainder method so a split always sums back exactly, and any fractional result is settled by an explicit rounding mode. `fromDecimal` refuses input precision beyond the currency's own digits rather than rounding it silently. Migration impact: none, new package.
 
 - Added new package `@jdsalasc/solvejs-errors` with `AppError`, `createError`, `isAppError`, `getErrorCode`, `getStatusForCode`, `normalizeError`, `asError`, `serializeError`, `errorToResponse`, `toResult` and `aggregateErrors`. Codes are a closed set that maps to an HTTP status, an unknown code maps to `500` rather than to a success status, and serialisation omits stacks and causes unless asked. This enforces in code the error contract `AGENTS.md` requires in prose. Migration impact: none, new package.

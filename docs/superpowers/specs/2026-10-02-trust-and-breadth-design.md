@@ -175,8 +175,24 @@ The first cycle, executed in order:
 - All four quality gates stay green at every commit: `npm run build`, `npm test`,
   `npm run test:baseline`, `npm run docs:check-links`.
 
-## Execution model
+## Execution outcome
 
-Continuous. After the spec and plan are approved, cycles run back to back without waiting for
-confirmation, until the maintainer explicitly says stop. Each cycle is one atomic commit with
-the executed command list attached.
+Cycle 1 and every cycle after it are complete. Final state, all measured by `npm run test:baseline`
+and `npm run report:perf`:
+
+- 20 packages, 350 test blocks, every package at or above its export-derived floor.
+- 19 of the 20 packages reach 100% line coverage. The twentieth is the `@jdsalasc/solvejs` meta
+  package, whose figure is an aggregate over every module it re-exports rather than untested code.
+- Breadth items 1 through 8 all shipped: url, cache, json, pagination, semver, errors, money, http.
+- Bugs found and fixed by the new tests: `getUrlParam` reading values out of fragment text,
+  `createError` discarding every message through an operator-precedence mistake, `fromDecimal`
+  rounding on the whole part instead of the discarded digits, `incrementVersion` not promoting a
+  prerelease to its release, `satisfies` missing the prerelease-tuple rule, `half-up` rounding
+  behaving as `half-away-from-zero`, and an unreachable branch in `createTokenBucketLimiter`.
+- Two unreachable defensive branches were deleted rather than left to sit below 100%.
+
+## Deferred to a future cycle
+
+Two spec follow-ups that need a maintainer decision rather than more work: publishing README
+coverage badges per individual package rather than once at the workspace level, and adding a
+`test:coverage` npm script alias.

@@ -50,6 +50,7 @@ npm i @jdsalasc/solvejs-date @jdsalasc/solvejs-validators @jdsalasc/solvejs-obje
 - `@jdsalasc/solvejs-semver`: `parseVersion`, `compareVersions`, `satisfies`, `isValidRange`, `maxSatisfying`, `incrementVersion`.
 - `@jdsalasc/solvejs-errors`: `AppError`, `createError`, `normalizeError`, `errorToResponse`, `toResult`, `serializeError`.
 - `@jdsalasc/solvejs-money`: `fromDecimal`, `toDecimal`, `addMoney`, `percentageOf`, `applyPercentage`, `allocateAmount`, `formatMoney`.
+- `@jdsalasc/solvejs-http`: `getStatusText`, `isRetryableStatus`, `isRetryableError`, `calculateBackoffDelay`, `negotiateContentType`.
 
 ## Quick Example
 

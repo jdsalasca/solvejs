@@ -16,3 +16,4 @@ export * from "@jdsalasc/solvejs-pagination";
 export * from "@jdsalasc/solvejs-semver";
 export * from "@jdsalasc/solvejs-errors";
 export * from "@jdsalasc/solvejs-money";
+export * from "@jdsalasc/solvejs-http";
