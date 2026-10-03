@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Added new package `@jdsalasc/solvejs-errors` with `AppError`, `createError`, `isAppError`, `getErrorCode`, `getStatusForCode`, `normalizeError`, `asError`, `serializeError`, `errorToResponse`, `toResult` and `aggregateErrors`. Codes are a closed set that maps to an HTTP status, an unknown code maps to `500` rather than to a success status, and serialisation omits stacks and causes unless asked. This enforces in code the error contract `AGENTS.md` requires in prose. Migration impact: none, new package.
+
 - Added new package `@jdsalasc/solvejs-semver` with `parseVersion`, `isValidVersion`, `compareVersions`, `satisfies`, `isValidRange`, `maxSatisfying`, `incrementVersion`, `formatVersion`, `diffVersions`, and a `SemverError`. Caret, tilde, wildcard, comparator, AND and OR ranges are supported, and the specification's prerelease-tuple rule is implemented, so `1.0.0-beta` satisfies `^1.0.0-alpha` while `1.0.1-beta` does not. A patch bump on a prerelease promotes it to the release, matching `node-semver`. Migration impact: none, new package.
 
 - Added new package `@jdsalasc/solvejs-pagination` with `pageToOffset`, `offsetToPage`, `pageCount`, `clampPage`, `offsetToCursor`, `cursorToOffset`, `paginate`, `withPagination`, and a `PaginationError`. `paginate` clamps an out-of-range page by default and `withPagination` wraps an already-sliced page rather than slicing it, both documented in the package README. Migration impact: none, new package.

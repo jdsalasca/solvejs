@@ -33,6 +33,7 @@
     "@jdsalasc/solvejs-constants": "1.9.0",
     "@jdsalasc/solvejs-date": "1.9.0",
     "@jdsalasc/solvejs-env": "1.9.0",
+    "@jdsalasc/solvejs-errors": "0.1.0",
     "@jdsalasc/solvejs-json": "0.1.0",
     "@jdsalasc/solvejs-list": "1.9.0",
     "@jdsalasc/solvejs-numbers": "1.9.0",
