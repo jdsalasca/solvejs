@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Added new package `@jdsalasc/solvejs-money` with `fromDecimal`, `toDecimal`, `addMoney`, `subtractMoney`, `sumMoney`, `multiplyMoney`, `percentageOf`, `applyPercentage`, `allocateAmount`, `formatMoney` and a `MoneyError`. Amounts are integer minor units throughout, `allocateAmount` uses the largest-remainder method so a split always sums back exactly, and any fractional result is settled by an explicit rounding mode. `fromDecimal` refuses input precision beyond the currency's own digits rather than rounding it silently. Migration impact: none, new package.
+
 - Added new package `@jdsalasc/solvejs-errors` with `AppError`, `createError`, `isAppError`, `getErrorCode`, `getStatusForCode`, `normalizeError`, `asError`, `serializeError`, `errorToResponse`, `toResult` and `aggregateErrors`. Codes are a closed set that maps to an HTTP status, an unknown code maps to `500` rather than to a success status, and serialisation omits stacks and causes unless asked. This enforces in code the error contract `AGENTS.md` requires in prose. Migration impact: none, new package.
 
 - Added new package `@jdsalasc/solvejs-semver` with `parseVersion`, `isValidVersion`, `compareVersions`, `satisfies`, `isValidRange`, `maxSatisfying`, `incrementVersion`, `formatVersion`, `diffVersions`, and a `SemverError`. Caret, tilde, wildcard, comparator, AND and OR ranges are supported, and the specification's prerelease-tuple rule is implemented, so `1.0.0-beta` satisfies `^1.0.0-alpha` while `1.0.1-beta` does not. A patch bump on a prerelease promotes it to the release, matching `node-semver`. Migration impact: none, new package.

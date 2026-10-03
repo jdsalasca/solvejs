@@ -6,12 +6,12 @@ This report lists each package, its practical utilities, current status, known i
 
 ## Test Trust
 
-18 packages, 314 test blocks. The minimum for each package is derived
+19 packages, 333 test blocks. The minimum for each package is derived
 from its exported function count by `npm run test:baseline`.
 
 | Package | Function exports | Test blocks | Line coverage |
 |---|---|---|---|
-| `@jdsalasc/solvejs` | 0 (re-exports) | 1 | 47.74% |
+| `@jdsalasc/solvejs` | 0 (re-exports) | 1 | 47.44% |
 | `@jdsalasc/solvejs-async` | 10 | 21 | 100.00% |
 | `@jdsalasc/solvejs-cache` | 5 | 28 | 100.00% |
 | `@jdsalasc/solvejs-constants` | 1 | 9 | 100.00% |
@@ -20,6 +20,7 @@ from its exported function count by `npm run test:baseline`.
 | `@jdsalasc/solvejs-errors` | 10 | 17 | 100.00% |
 | `@jdsalasc/solvejs-json` | 9 | 20 | 100.00% |
 | `@jdsalasc/solvejs-list` | 12 | 13 | 100.00% |
+| `@jdsalasc/solvejs-money` | 10 | 19 | 100.00% |
 | `@jdsalasc/solvejs-numbers` | 16 | 16 | 100.00% |
 | `@jdsalasc/solvejs-objects` | 7 | 9 | 100.00% |
 | `@jdsalasc/solvejs-pagination` | 8 | 15 | 100.00% |
@@ -54,6 +55,7 @@ One row per package, refreshed by hand as behaviour changes.
 | `@jdsalasc/solvejs-pagination` | `pageToOffset`, `offsetToPage`, `pageCount`, `clampPage`, `offsetToCursor`, `cursorToOffset`, `paginate`, `withPagination`, `PaginationError`. | 0.1.0, 15 test blocks, 100.00% line coverage, not yet published to npm. | None critical identified. | New, so no battle-testing yet. | Publish 0.1.0 once the meta package reaches a release. |
 | `@jdsalasc/solvejs-semver` | `parseVersion`, `isValidVersion`, `compareVersions`, `satisfies`, `isValidRange`, `maxSatisfying`, `incrementVersion`, `formatVersion`, `diffVersions`, `SemverError`. | 0.1.0, 24 test blocks, 100.00% line coverage, not yet published to npm. | None critical identified. | New, so no battle-testing yet. | Publish 0.1.0 once the meta package reaches a release. |
 | `@jdsalasc/solvejs-errors` | `AppError`, `createError`, `isAppError`, `getErrorCode`, `getStatusForCode`, `normalizeError`, `asError`, `serializeError`, `errorToResponse`, `toResult`, `aggregateErrors`. | 0.1.0, 17 test blocks, 100.00% line coverage, not yet published to npm. | None critical identified. | New, so no battle-testing yet. | Publish 0.1.0 once the meta package reaches a release. |
+| `@jdsalasc/solvejs-money` | `fromDecimal`, `toDecimal`, `addMoney`, `subtractMoney`, `sumMoney`, `multiplyMoney`, `percentageOf`, `applyPercentage`, `allocateAmount`, `formatMoney`, `MoneyError`. | 0.1.0, 19 test blocks, 100.00% line, branch and function coverage, not yet published to npm. | None critical identified. | `formatMoney` routes through `Intl`, so amounts are display-only. | Publish 0.1.0 once the meta package reaches a release. |
 
 ## Cross-Package Gaps
 

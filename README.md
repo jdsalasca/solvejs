@@ -49,6 +49,7 @@ npm i @jdsalasc/solvejs-date @jdsalasc/solvejs-validators @jdsalasc/solvejs-obje
 - `@jdsalasc/solvejs-pagination`: `pageToOffset`, `offsetToPage`, `pageCount`, `clampPage`, `paginate`, `withPagination`.
 - `@jdsalasc/solvejs-semver`: `parseVersion`, `compareVersions`, `satisfies`, `isValidRange`, `maxSatisfying`, `incrementVersion`.
 - `@jdsalasc/solvejs-errors`: `AppError`, `createError`, `normalizeError`, `errorToResponse`, `toResult`, `serializeError`.
+- `@jdsalasc/solvejs-money`: `fromDecimal`, `toDecimal`, `addMoney`, `percentageOf`, `applyPercentage`, `allocateAmount`, `formatMoney`.
 
 ## Quick Example
 

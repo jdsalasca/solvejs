@@ -15,3 +15,4 @@ export * from "@jdsalasc/solvejs-json";
 export * from "@jdsalasc/solvejs-pagination";
 export * from "@jdsalasc/solvejs-semver";
 export * from "@jdsalasc/solvejs-errors";
+export * from "@jdsalasc/solvejs-money";

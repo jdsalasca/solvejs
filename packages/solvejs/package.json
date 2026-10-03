@@ -37,6 +37,7 @@
     "@jdsalasc/solvejs-json": "0.1.0",
     "@jdsalasc/solvejs-list": "1.9.0",
     "@jdsalasc/solvejs-numbers": "1.9.0",
+    "@jdsalasc/solvejs-money": "0.1.0",
     "@jdsalasc/solvejs-pagination": "0.1.0",
     "@jdsalasc/solvejs-objects": "1.9.0",
     "@jdsalasc/solvejs-regex": "1.9.0",
