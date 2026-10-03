@@ -20,35 +20,48 @@
       </aside>
       <section class="panel">
         <h2>Benchmark Snapshot</h2>
-        <ul class="topic-list"><li>date.formatDate: 47.48ms for 100.000 iterations</li>
-<li>string.toKebabCase: 105.80ms for 100.000 iterations</li>
-<li>list.unique: 18.44ms for 100.000 iterations</li>
-<li>numbers.percent: 4.79ms for 100.000 iterations</li>
-<li>validators.isCellphoneNumber: 18.24ms for 100.000 iterations</li>
-<li>url.buildUrl: 372.29ms for 100.000 iterations</li>
-<li>url.stringifyQuery: 96.84ms for 100.000 iterations</li>
-<li>url.parseQuery: 88.83ms for 100.000 iterations</li>
-<li>cache.stableKey: 364.21ms for 100.000 iterations</li>
-<li>json.stableStringify: 261.76ms for 100.000 iterations</li>
-<li>json.safeJsonParse: 96.08ms for 100.000 iterations</li>
-<li>json.deepClone: 89.61ms for 100.000 iterations</li>
-<li>json.deepEqual: 88.90ms for 100.000 iterations</li>
-<li>cache.createLruCache.get (10000): 0.23ms for 1 iterations</li>
-<li>cache.createTtlCache.get (10000): 0.08ms for 1 iterations</li>
+        <ul class="topic-list"><li>date.formatDate: 44.56ms for 100.000 iterations</li>
+<li>string.toKebabCase: 103.88ms for 100.000 iterations</li>
+<li>list.unique: 22.15ms for 100.000 iterations</li>
+<li>numbers.percent: 5.49ms for 100.000 iterations</li>
+<li>validators.isCellphoneNumber: 18.31ms for 100.000 iterations</li>
+<li>url.buildUrl: 341.43ms for 100.000 iterations</li>
+<li>url.stringifyQuery: 96.18ms for 100.000 iterations</li>
+<li>url.parseQuery: 84.01ms for 100.000 iterations</li>
+<li>cache.stableKey: 406.39ms for 100.000 iterations</li>
+<li>json.stableStringify: 256.62ms for 100.000 iterations</li>
+<li>json.safeJsonParse: 55.56ms for 100.000 iterations</li>
+<li>json.deepClone: 83.18ms for 100.000 iterations</li>
+<li>json.deepEqual: 109.16ms for 100.000 iterations</li>
+<li>pagination.offsetToCursor: 2.70ms for 100.000 iterations</li>
+<li>semver.parseVersion: 116.39ms for 100.000 iterations</li>
+<li>semver.satisfies: 337.17ms for 100.000 iterations</li>
+<li>semver.compareVersions: 96.79ms for 100.000 iterations</li>
+<li>errors.createError: 1635.79ms for 100.000 iterations</li>
+<li>errors.normalizeError: 2428.61ms for 100.000 iterations</li>
+<li>errors.serializeError: 3238.11ms for 100.000 iterations</li>
+<li>money.fromDecimal: 25.00ms for 100.000 iterations</li>
+<li>money.addMoney: 41.74ms for 100.000 iterations</li>
+<li>money.percentageOf: 31.76ms for 100.000 iterations</li>
+<li>http.calculateBackoffDelay: 45.80ms for 100.000 iterations</li>
+<li>http.parseContentType: 76.08ms for 100.000 iterations</li>
+<li>http.negotiateContentType: 144.81ms for 100.000 iterations</li>
+<li>cache.createLruCache.get (10000): 0.19ms for 1 iterations</li>
+<li>cache.createTtlCache.get (10000): 0.05ms for 1 iterations</li>
 <li>cache.createLruCache.get (100000): 0.02ms for 1 iterations</li>
 <li>cache.createTtlCache.get (100000): 0.01ms for 1 iterations</li>
-<li>list.uniqueBy (10000): 2.08ms for 1 iterations</li>
-<li>list.groupBy (10000): 1.75ms for 1 iterations</li>
-<li>list.sortBy (10000): 0.98ms for 1 iterations</li>
-<li>list.uniqueBy (100000): 18.07ms for 1 iterations</li>
-<li>list.groupBy (100000): 19.95ms for 1 iterations</li>
-<li>list.sortBy (100000): 4.72ms for 1 iterations</li>
-<li>list.uniqueBy high-cardinality (100000): 57.58ms for 1 iterations</li>
-<li>list.groupBy high-cardinality (100000): 44.31ms for 1 iterations</li>
-<li>list.sortBy high-cardinality (100000): 21.41ms for 1 iterations</li>
-<li>list.uniqueBy high-cardinality (250000): 190.50ms for 1 iterations</li>
-<li>list.groupBy high-cardinality (250000): 168.66ms for 1 iterations</li>
-<li>list.sortBy high-cardinality (250000): 72.10ms for 1 iterations</li></ul>
+<li>list.uniqueBy (10000): 2.68ms for 1 iterations</li>
+<li>list.groupBy (10000): 1.96ms for 1 iterations</li>
+<li>list.sortBy (10000): 0.94ms for 1 iterations</li>
+<li>list.uniqueBy (100000): 19.71ms for 1 iterations</li>
+<li>list.groupBy (100000): 24.59ms for 1 iterations</li>
+<li>list.sortBy (100000): 4.30ms for 1 iterations</li>
+<li>list.uniqueBy high-cardinality (100000): 50.52ms for 1 iterations</li>
+<li>list.groupBy high-cardinality (100000): 48.98ms for 1 iterations</li>
+<li>list.sortBy high-cardinality (100000): 21.19ms for 1 iterations</li>
+<li>list.uniqueBy high-cardinality (250000): 247.24ms for 1 iterations</li>
+<li>list.groupBy high-cardinality (250000): 409.00ms for 1 iterations</li>
+<li>list.sortBy high-cardinality (250000): 156.02ms for 1 iterations</li></ul>
         <h2>Test Coverage</h2>
         <div style="overflow:auto">
           <table style="width:100%; border-collapse: collapse;">
@@ -89,7 +102,7 @@
 <tr><td><code>@jdsalasc/solvejs-constants</code></td><td>1.9.0</td><td>3.33 KB</td><td>12.06 KB</td><td>7</td></tr>
 <tr><td><code>@jdsalasc/solvejs-date</code></td><td>1.9.0</td><td>6.77 KB</td><td>45.08 KB</td><td>7</td></tr>
 <tr><td><code>@jdsalasc/solvejs-env</code></td><td>1.9.0</td><td>6.10 KB</td><td>43.97 KB</td><td>7</td></tr>
-<tr><td><code>@jdsalasc/solvejs-errors</code></td><td>0.1.0</td><td>7.61 KB</td><td>39.63 KB</td><td>7</td></tr>
+<tr><td><code>@jdsalasc/solvejs-errors</code></td><td>0.1.0</td><td>8.07 KB</td><td>40.66 KB</td><td>7</td></tr>
 <tr><td><code>@jdsalasc/solvejs-http</code></td><td>0.1.0</td><td>9.66 KB</td><td>48.11 KB</td><td>7</td></tr>
 <tr><td><code>@jdsalasc/solvejs-json</code></td><td>0.1.0</td><td>8.87 KB</td><td>48.82 KB</td><td>7</td></tr>
 <tr><td><code>@jdsalasc/solvejs-list</code></td><td>1.9.0</td><td>4.70 KB</td><td>26.32 KB</td><td>7</td></tr>
@@ -98,8 +111,8 @@
 <tr><td><code>@jdsalasc/solvejs-objects</code></td><td>1.9.0</td><td>5.03 KB</td><td>24.44 KB</td><td>7</td></tr>
 <tr><td><code>@jdsalasc/solvejs-pagination</code></td><td>0.1.0</td><td>6.82 KB</td><td>39.91 KB</td><td>7</td></tr>
 <tr><td><code>@jdsalasc/solvejs-regex</code></td><td>1.9.0</td><td>3.09 KB</td><td>11.87 KB</td><td>7</td></tr>
-<tr><td><code>@jdsalasc/solvejs-schema</code></td><td>1.9.0</td><td>8.34 KB</td><td>54.64 KB</td><td>7</td></tr>
-<tr><td><code>@jdsalasc/solvejs-semver</code></td><td>0.1.0</td><td>11.09 KB</td><td>71.40 KB</td><td>7</td></tr>
+<tr><td><code>@jdsalasc/solvejs-schema</code></td><td>1.9.0</td><td>8.60 KB</td><td>55.32 KB</td><td>7</td></tr>
+<tr><td><code>@jdsalasc/solvejs-semver</code></td><td>0.1.0</td><td>11.33 KB</td><td>72.10 KB</td><td>7</td></tr>
 <tr><td><code>@jdsalasc/solvejs-string</code></td><td>1.9.0</td><td>3.93 KB</td><td>18.52 KB</td><td>7</td></tr>
 <tr><td><code>@jdsalasc/solvejs-url</code></td><td>0.1.0</td><td>6.89 KB</td><td>35.64 KB</td><td>7</td></tr>
 <tr><td><code>@jdsalasc/solvejs-validators</code></td><td>1.9.0</td><td>10.71 KB</td><td>82.55 KB</td><td>7</td></tr></tbody>

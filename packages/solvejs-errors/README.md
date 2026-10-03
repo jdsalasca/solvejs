@@ -136,3 +136,28 @@ before reading `result.value`.
 
 That is deliberate: a typo in a code should fail at the throw site, not at the client. Use
 `normalizeError` with an explicit `code` only from a fixed set too.
+### Creating an error is not free, so do not do it in a hot path
+
+Measured on this repository's benchmark, 100,000 iterations:
+
+| Operation | Total | Per call |
+| --- | --- | --- |
+| `money.fromDecimal` | 31ms | 0.3us |
+| `pagination.offsetToCursor` | 2ms | 0.02us |
+| `errors.createError` | 1895ms | 19us |
+| `errors.normalizeError` | 2991ms | 30us |
+
+The gap is V8 capturing a stack trace on every `new Error()`, which no amount of tuning in this
+package removes. In a request path that is fine; inside a loop over a million rows it is not. Throw
+the code and build the `AppError` once at the boundary:
+
+```ts
+// In a loop, return or record a code instead of allocating an error per row.
+const failures = rows.filter((row) => !isValid(row)).map((row) => row.code);
+
+// At the boundary, turn them into one error.
+throw aggregateErrors(failures.map((code) => createError(code)), "Validation failed.");
+```
+
+`toResult` does not avoid the cost either, because it still constructs an `AppError` on failure. It
+buys you the absence of a `try`/`catch`, not speed.
