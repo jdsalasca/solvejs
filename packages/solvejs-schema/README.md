@@ -47,6 +47,22 @@ User.safeParse({ id: "u1", age: 21, role: "admin" });
 // { success: true, data: { id: "u1", age: 21 } }   `role` is removed
 ```
 
+### An absent optional key is present with value undefined
+
+An optional field that is missing from the input is set to `undefined` rather than omitted from the
+result object. `JSON.stringify` hides this, but `Object.keys` and `in` do not:
+
+```ts
+const User = s.object({ id: s.string(), nick: s.string().optional() });
+const user = User.parse({ id: "u1" });
+
+"nick" in user;              // true
+Object.keys(user);           // ["id", "nick"]
+JSON.stringify(user);        // '{"id":"u1"}'
+```
+
+Compare with `Object.hasOwn` or destructure with a default when you need to tell absent from empty.
+
 ## Install
 
 ```bash
