@@ -44,5 +44,8 @@ jobs:
       - name: Generate performance and size report
         run: npm run report:perf
 
+      - name: Generate package health report
+        run: npm run report:health
+
       - name: Test
         run: npm test

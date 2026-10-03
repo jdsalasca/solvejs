@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="description" content="SolveJS package health report with status, weak points, and roadmap actions." />
+  <meta name="description" content="SolveJS package health report with measured test trust and coverage." />
   <title>Package Health Report | SolveJS</title>
   <link rel="stylesheet" href="../styles.css" />
 </head>
@@ -11,39 +11,58 @@
   <main class="page">
     <section class="hero">
       <h1>Package Health Report</h1>
-      <p>Updated on 2026-02-07 (revalidated after v1.4.1 release fixes). Status snapshot and prioritized improvements.</p>
+      <p>Updated on 2026-10-03. Measured test trust, coverage, and prioritized improvements.</p>
     </section>
-
     <section class="layout">
       <aside class="panel">
         <h2>Cookbook Navigation</h2>
         <nav data-cookbook-nav aria-label="Cookbook pages"></nav>
       </aside>
       <section class="panel">
+        <h2>Test Trust</h2>
+        <p>157 test blocks across 13 packages. The minimum for each package is derived from its exported function count by <code>npm run test:baseline</code>.</p>
+        <div style="overflow:auto">
+          <table style="width:100%; border-collapse: collapse;">
+            <thead>
+              <tr><th align="left">Package</th><th align="left">Function exports</th><th align="left">Test blocks</th><th align="left">Line coverage</th></tr>
+            </thead>
+            <tbody>
+              <tr><td><code>@jdsalasc/solvejs</code></td><td>0 (re-exports)</td><td>1</td><td>52.88%</td></tr>
+              <tr><td><code>@jdsalasc/solvejs-async</code></td><td>10</td><td>10</td><td>93.65%</td></tr>
+              <tr><td><code>@jdsalasc/solvejs-constants</code></td><td>1</td><td>9</td><td>100.00%</td></tr>
+              <tr><td><code>@jdsalasc/solvejs-date</code></td><td>18</td><td>19</td><td>95.05%</td></tr>
+              <tr><td><code>@jdsalasc/solvejs-env</code></td><td>10</td><td>10</td><td>90.70%</td></tr>
+              <tr><td><code>@jdsalasc/solvejs-list</code></td><td>12</td><td>12</td><td>98.93%</td></tr>
+              <tr><td><code>@jdsalasc/solvejs-numbers</code></td><td>16</td><td>16</td><td>100.00%</td></tr>
+              <tr><td><code>@jdsalasc/solvejs-objects</code></td><td>7</td><td>7</td><td>98.76%</td></tr>
+              <tr><td><code>@jdsalasc/solvejs-regex</code></td><td>5</td><td>15</td><td>100.00%</td></tr>
+              <tr><td><code>@jdsalasc/solvejs-schema</code></td><td>1</td><td>6</td><td>86.94%</td></tr>
+              <tr><td><code>@jdsalasc/solvejs-string</code></td><td>9</td><td>10</td><td>100.00%</td></tr>
+              <tr><td><code>@jdsalasc/solvejs-url</code></td><td>8</td><td>10</td><td>99.00%</td></tr>
+              <tr><td><code>@jdsalasc/solvejs-validators</code></td><td>31</td><td>32</td><td>98.37%</td></tr>
+            </tbody>
+          </table>
+        </div>
         <h2>Package Status</h2>
         <div style="overflow:auto">
           <table style="width:100%; border-collapse: collapse;">
             <thead>
-              <tr>
-                <th align="left">Package</th>
-                <th align="left">Practical utilities</th>
-                <th align="left">Current status</th>
-                <th align="left">Known issues</th>
-                <th align="left">Weak points</th>
-                <th align="left">Next improvements</th>
-              </tr>
+              <tr><th align="left">Package</th><th align="left">Practical utilities</th><th align="left">Current status</th><th align="left">Known issues</th><th align="left">Weak points</th><th align="left">Next improvements</th></tr>
             </thead>
             <tbody>
-              <tr><td><code>@jdsalasc/solvejs</code></td><td>Single import surface for all SolveJS domains.</td><td>1.4.1 in repo and npm, tests passing locally.</td><td>None critical identified.</td><td>No tree-shake guidance in README.</td><td>Add import-size examples and migration guide.</td></tr>
-              <tr><td><code>@jdsalasc/solvejs-date</code></td><td><code>parseDateStrict</code>, <code>parseIsoDate</code>, <code>parseUnixTimestamp</code>, <code>formatDate</code>.</td><td>1.4.1 stable with tests.</td><td>None critical identified.</td><td>Limited DST/timezone coverage improved, but still not exhaustive for all locales.</td><td>Expand timezone-offset matrix by region examples.</td></tr>
-              <tr><td><code>@jdsalasc/solvejs-string</code></td><td><code>slugify</code>, <code>stripHtml</code>, <code>truncate</code>, <code>mask</code>.</td><td>1.4.1 stable with tests.</td><td>None critical identified.</td><td>Unicode/locale edge coverage improved, still room for language-specific casing nuances.</td><td>Add locale-specific caveats section in docs.</td></tr>
-              <tr><td><code>@jdsalasc/solvejs-list</code></td><td><code>uniqueBy</code>, <code>groupBy</code>, <code>partition</code>, <code>sortBy</code>.</td><td>1.4.1 stable with tests.</td><td>None critical identified.</td><td>Baseline benchmark guidance added; more real-world data profiles still needed.</td><td>Add dataset-shape benchmark scenarios (high-cardinality keys).</td></tr>
-              <tr><td><code>@jdsalasc/solvejs-regex</code></td><td><code>REGEX_PATTERNS</code>, <code>validateByName</code>, <code>escapeRegex</code>.</td><td>1.4.1 stable with tests.</td><td>None critical identified.</td><td>Pattern catalog can be wider for global use cases.</td><td>Add patterns plus false-positive examples.</td></tr>
-              <tr><td><code>@jdsalasc/solvejs-constants</code></td><td><code>TIME</code>, <code>FILE_SIZE_BYTES</code>, <code>HTTP_METHODS</code>, <code>COMMON_HTTP_HEADERS</code>.</td><td>1.4.1 stable with tests.</td><td>None critical identified.</td><td>Docs naming mismatch can confuse users.</td><td>Align docs with exported identifiers exactly.</td></tr>
-              <tr><td><code>@jdsalasc/solvejs-numbers</code></td><td><code>toNumber</code>, <code>safeDivide</code>, <code>percentChange</code>, <code>toCurrency</code>.</td><td>1.4.1 stable with tests.</td><td>None critical identified.</td><td>Precision caveats now documented; add worked financial examples next.</td><td>Add tax/discount/invoice reference examples.</td></tr>
-              <tr><td><code>@jdsalasc/solvejs-validators</code></td><td><code>validate*</code>/<code>is*</code> for phone, postal, username, UUID, IPv4, ISO date.</td><td>1.4.1 stable, locale matrix documented.</td><td>Legacy typo aliases kept for compatibility.</td><td>Country coverage expanded (CA/UY), still partial globally.</td><td>Continue expansion with prioritized country sets.</td></tr>
-              <tr><td><code>@jdsalasc/solvejs-objects</code></td><td><code>pick</code>, <code>omit</code>, <code>get</code>, <code>set</code>, <code>deepMerge</code>.</td><td>1.4.1 available in npm and locally tested.</td><td>None critical identified.</td><td>Nested path and mutation tests improved; symbol-key path support remains limited.</td><td>Evaluate safe support for bracket/symbol path notation.</td></tr>
-              <tr><td><code>@jdsalasc/solvejs-async</code></td><td><code>sleep</code>, <code>timeout</code>, <code>retry</code>, <code>pMap</code>, <code>debouncePromise</code>, <code>throttlePromise</code>, <code>createTaskQueue</code>, <code>createRateLimiter</code>, <code>createTokenBucketLimiter</code>.</td><td>Integrated in monorepo flow and meta package.</td><td>None critical identified.</td><td>Burst controls are now available; add guidance for weighted token costs by endpoint tier.</td><td>Add per-endpoint token-cost cookbook examples.</td></tr>
+              <tr><td><code>@jdsalasc/solvejs</code></td><td>Single import surface for all SolveJS domains.</td><td>1.9.0 in repo, 157 test blocks, tests passing locally.</td><td>None critical identified.</td><td>Re-export aggregate coverage reads low for the reason above.</td><td>Publish per-package coverage badges rather than one workspace figure.</td></tr>
+              <tr><td><code>@jdsalasc/solvejs-date</code></td><td><code>parseDateStrict</code>, <code>parseIsoDate</code>, <code>parseUnixTimestamp</code>, <code>formatDate</code>, <code>addDays</code>, <code>diffInDays</code>, business-day helpers.</td><td>1.9.0, 19 test blocks.</td><td><code>parseIsoDate</code> is lenient and inherits <code>new Date()</code> rollover and M/D/Y parsing; documented.</td><td>Day math reads the UTC calendar of the input <code>Date</code>, so local-midnight inputs shift a day in eastern timezones.</td><td>Consider an explicit local-calendar option in a future major.</td></tr>
+              <tr><td><code>@jdsalasc/solvejs-string</code></td><td><code>slugify</code>, <code>stripHtml</code>, <code>truncate</code>, <code>mask</code>, casing helpers.</td><td>1.9.0, 100% line coverage.</td><td>None critical identified.</td><td>Acronym runs are not split by the casing helpers; documented.</td><td>Locale-specific casing caveats once a second locale is requested.</td></tr>
+              <tr><td><code>@jdsalasc/solvejs-list</code></td><td><code>unique</code>, <code>uniqueBy</code>, <code>chunk</code>, <code>groupBy</code>, <code>countBy</code>, <code>pluck</code>, <code>partition</code>, <code>sortBy</code>.</td><td>1.9.0, 98.93% line coverage.</td><td>None critical identified.</td><td><code>intersection</code> and <code>difference</code> keep left-hand duplicates, unlike lodash; documented.</td><td>Keep the lodash comparison page in sync with that note.</td></tr>
+              <tr><td><code>@jdsalasc/solvejs-regex</code></td><td><code>REGEX_PATTERNS</code>, <code>validateByName</code>, <code>validateWithPattern</code>, <code>escapeRegex</code>, <code>literalRegex</code>.</td><td>1.9.0, 100% line coverage.</td><td>None critical identified.</td><td>Pattern catalogue is deliberately small.</td><td>Add patterns only together with a false-positive example.</td></tr>
+              <tr><td><code>@jdsalasc/solvejs-constants</code></td><td><code>TIME</code>, <code>FILE_SIZE_BYTES</code>, <code>HTTP_METHODS</code>, <code>HTTP_STATUS</code>, <code>CONTENT_TYPES</code>, <code>parseBooleanString</code>.</td><td>1.9.0, 100% line coverage.</td><td><code>parseBooleanString</code> throws on an unrecognised value; documented.</td><td>None blocking.</td><td>Nothing queued.</td></tr>
+              <tr><td><code>@jdsalasc/solvejs-numbers</code></td><td><code>toNumber</code>, <code>safeDivide</code>, <code>percentChange</code>, <code>toCurrency</code>, <code>roundTo</code>, <code>clamp</code>, tax and discount helpers.</td><td>1.9.0, 100% line coverage.</td><td>None critical identified.</td><td><code>roundTo</code> is asymmetric on exact negative halfway values; documented.</td><td>Add worked financial examples.</td></tr>
+              <tr><td><code>@jdsalasc/solvejs-validators</code></td><td>Structured validators (<code>validate*</code> + <code>is*</code>) for phone, postal, username, URL, UUID, IPv4, ISO date, plus EN/ES/PT translation.</td><td>1.9.0, 32 test blocks, 98.37% line coverage.</td><td>Two misspelled aliases kept for backward compatibility, covered by drift tests.</td><td>Country coverage is broad but still not global.</td><td>Continue expansion with prioritised country sets.</td></tr>
+              <tr><td><code>@jdsalasc/solvejs-objects</code></td><td><code>pick</code>, <code>omit</code>, <code>hasOwn</code>, <code>get</code>, <code>set</code>, <code>mapValues</code>, <code>deepMerge</code>.</td><td>1.9.0, 98.76% line coverage.</td><td><code>set</code> mutates in place and returns the same reference, unlike <code>_.set</code>; documented.</td><td>Paths are dot-only, so a literal dotted key is unreachable by path.</td><td>Consider a bracket-notation option in a future major.</td></tr>
+              <tr><td><code>@jdsalasc/solvejs-async</code></td><td><code>sleep</code>, <code>timeout</code>, <code>timeoutFallback</code>, <code>retry</code>, <code>pMap</code>, <code>debouncePromise</code>, <code>throttlePromise</code>, <code>createTaskQueue</code>, <code>createRateLimiter</code>, <code>createTokenBucketLimiter</code>.</td><td>1.9.0, 10 test blocks, 93.65% line coverage.</td><td>None critical identified.</td><td>Lowest coverage of the leaf packages, mostly in the limiter error branches.</td><td>Next trust target: raise above 95%.</td></tr>
+              <tr><td><code>@jdsalasc/solvejs-env</code></td><td><code>getEnvString</code>, <code>getEnvNumber</code>, <code>getEnvBoolean</code>, <code>getEnvObject</code>, <code>getEnvUrl</code>, <code>getEnvDsn</code>, <code>validateRequiredEnv</code>.</td><td>1.9.0, 10 test blocks, 90.70% line coverage.</td><td>None critical identified.</td><td>Second-lowest coverage, in the optional-URL and DSN branches.</td><td>Next trust target: raise above 95%.</td></tr>
+              <tr><td><code>@jdsalasc/solvejs-schema</code></td><td><code>s</code> builders for string, number, boolean, literal, array, object, union and refine; <code>safeParse</code>, <code>toJsonSchema</code>, <code>SchemaError</code>.</td><td>1.9.0, 86.94% line coverage, the lowest of the leaf packages.</td><td><code>safeParse</code> is fail-fast and returns one issue; documented.</td><td>Array bounds and coercion branches are under-tested.</td><td>Next trust target: raise above 95%.</td></tr>
+              <tr><td><code>@jdsalasc/solvejs-url</code></td><td><code>buildUrl</code>, <code>joinUrl</code>, <code>stringifyQuery</code>, <code>parseQuery</code>, <code>withQuery</code>, <code>omitQuery</code>, <code>getUrlParam</code>, <code>replacePathParam</code>, <code>UrlError</code>.</td><td>0.1.0, 10 test blocks, 99.00% line coverage, not yet published to npm.</td><td>None critical identified.</td><td>New, so no battle-testing yet.</td><td>Publish 0.1.0 once the meta package reaches a release.</td></tr>
             </tbody>
           </table>
         </div>
@@ -53,10 +72,10 @@
     <section class="panel">
       <h2>Priority Order</h2>
       <ol class="topic-list">
-        <li>Increase edge-case tests in <code>date</code>, <code>string</code>, and <code>objects</code>.</li>
-        <li>Add linting baseline and enforce in CI.</li>
-        <li>Add limitations/constraints section in each package README.</li>
-        <li>Publish bundle-size and performance snapshots for adoption decisions.</li>
+        <li>Raise <code>solvejs-schema</code>, <code>solvejs-env</code>, and <code>solvejs-async</code> coverage above 95%.</li>
+        <li>Add the queued breadth packages: cache, json, pagination, semver, errors, money, http.</li>
+        <li>Add a limitations section to any package README that lacks one.</li>
+        <li>Decide whether coverage becomes a gating threshold.</li>
       </ol>
     </section>
 

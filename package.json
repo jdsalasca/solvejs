@@ -9,7 +9,7 @@
     "packages/*"
   ],
   "scripts": {
-"build": "node scripts/run-workspaces.mjs build",
+    "build": "node scripts/run-workspaces.mjs build",
     "test": "node scripts/run-workspaces.mjs test",
     "lint": "npm run --workspaces lint",
     "benchmark": "npm run build && node benchmarks/index.mjs",
@@ -28,7 +28,8 @@
     "example:env": "node examples/env-bootstrap/index.mjs",
     "example:env:test": "node --test examples/env-bootstrap/test.mjs",
     "example:invoice": "node examples/invoice-workflow/index.mjs",
-    "example:invoice:test": "node --test examples/invoice-workflow/test.mjs"
+    "example:invoice:test": "node --test examples/invoice-workflow/test.mjs",
+    "report:health": "node scripts/generate-health-report.mjs"
   },
   "devDependencies": {
     "typescript": "^5.9.2"

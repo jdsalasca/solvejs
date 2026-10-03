@@ -61,6 +61,32 @@ s.object({ id: s.string(), age: s.number({ coerce: true }).int() }).safeParse({ 
 buildUrl("https://api.example.com", { path: "users", query: { page: 2 } });
 ```
 
+## Package Size and Test Coverage
+
+Measured, not estimated. Regenerate both with `npm run report:perf`; never edit them by hand.
+
+| Package | Version | Gzipped tarball | Unpacked | Lines covered |
+|---|---:|---:|---:|---:|
+| `@jdsalasc/solvejs` | 1.9.0 | 2.48 KB | 6.97 KB | 52.88% |
+| `@jdsalasc/solvejs-async` | 1.9.0 | 8.57 KB | 51.96 KB | 93.65% |
+| `@jdsalasc/solvejs-constants` | 1.9.0 | 3.33 KB | 12.06 KB | 100.00% |
+| `@jdsalasc/solvejs-date` | 1.9.0 | 6.77 KB | 45.08 KB | 95.05% |
+| `@jdsalasc/solvejs-env` | 1.9.0 | 5.61 KB | 42.77 KB | 90.70% |
+| `@jdsalasc/solvejs-list` | 1.9.0 | 4.70 KB | 26.32 KB | 98.93% |
+| `@jdsalasc/solvejs-numbers` | 1.9.0 | 6.67 KB | 45.00 KB | 100.00% |
+| `@jdsalasc/solvejs-objects` | 1.9.0 | 4.69 KB | 23.54 KB | 98.76% |
+| `@jdsalasc/solvejs-regex` | 1.9.0 | 3.09 KB | 11.87 KB | 100.00% |
+| `@jdsalasc/solvejs-schema` | 1.9.0 | 7.86 KB | 52.45 KB | 86.94% |
+| `@jdsalasc/solvejs-string` | 1.9.0 | 3.93 KB | 18.52 KB | 100.00% |
+| `@jdsalasc/solvejs-url` | 0.1.0 | 6.68 KB | 34.85 KB | 99.00% |
+| `@jdsalasc/solvejs-validators` | 1.9.0 | 10.71 KB | 82.55 KB | 98.37% |
+
+Coverage comes from the Node built-in test runner, so it adds no dependency. Full per-package
+line, branch and function figures live in `docs/guides/performance-and-size.md`.
+
+Every package must keep at least one test block per exported function. `npm run test:baseline`
+derives that floor from the export count, so CI fails if a function is added without a test.
+
 ## Development
 
 ```bash

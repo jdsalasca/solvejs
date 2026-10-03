@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+- Added measured test coverage to `npm run report:perf`, using the Node built-in coverage runner so no dependency is needed, and published a per-package size and coverage table in the root README.
+- Added `npm run report:health`, which generates `docs/guides/package-health-report.html` from the markdown source so the two cannot drift. Wired into CI. The health report now carries a measured test-trust table instead of hand-maintained claims.
+- Rewrote `docs/guides/package-health-report.md` against the v1.9.0 state: 157 test blocks across 13 packages, every package at or above its export-derived floor, and the three lowest-coverage packages named as the next targets. Migration impact: none, documentation only.
+
 - `npm run test:baseline` now derives each package's minimum test count from its number of exported
   functions instead of hand-maintained values, so the floor rises automatically when a function is
   added. The gate enforces density (`tests >= exports`); it does not prove every individual export
