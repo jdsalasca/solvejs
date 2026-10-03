@@ -12,6 +12,8 @@ function formatBytes(bytes) {
 }
 
 function runBenchmarks() {
+  // Benchmarks import from each package's dist/, which a previous `clean` removes.
+  run("npm run build");
   const raw = run("node benchmarks/index.mjs");
   return raw
     .trim()

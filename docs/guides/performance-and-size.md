@@ -1,42 +1,43 @@
 # SolveJS Performance and Size Report
 
-Generated on 2026-02-19.
+Generated on 2026-10-03.
 
 ## Benchmark Snapshot
 
-- date.formatDate: 19.69ms for 100.000 iterations
-- string.toKebabCase: 38.07ms for 100.000 iterations
-- list.unique: 6.60ms for 100.000 iterations
-- numbers.percent: 1.50ms for 100.000 iterations
-- validators.isCellphoneNumber: 6.85ms for 100.000 iterations
-- list.uniqueBy (10000): 0.73ms for 1 iterations
-- list.groupBy (10000): 0.61ms for 1 iterations
-- list.sortBy (10000): 0.29ms for 1 iterations
-- list.uniqueBy (100000): 6.29ms for 1 iterations
-- list.groupBy (100000): 9.29ms for 1 iterations
-- list.sortBy (100000): 1.35ms for 1 iterations
-- list.uniqueBy high-cardinality (100000): 18.44ms for 1 iterations
-- list.groupBy high-cardinality (100000): 13.90ms for 1 iterations
-- list.sortBy high-cardinality (100000): 6.79ms for 1 iterations
-- list.uniqueBy high-cardinality (250000): 43.86ms for 1 iterations
-- list.groupBy high-cardinality (250000): 36.99ms for 1 iterations
-- list.sortBy high-cardinality (250000): 20.06ms for 1 iterations
+- date.formatDate: 40.76ms for 100.000 iterations
+- string.toKebabCase: 77.56ms for 100.000 iterations
+- list.unique: 14.96ms for 100.000 iterations
+- numbers.percent: 3.91ms for 100.000 iterations
+- validators.isCellphoneNumber: 11.95ms for 100.000 iterations
+- list.uniqueBy (10000): 1.48ms for 1 iterations
+- list.groupBy (10000): 1.27ms for 1 iterations
+- list.sortBy (10000): 0.75ms for 1 iterations
+- list.uniqueBy (100000): 30.74ms for 1 iterations
+- list.groupBy (100000): 6.59ms for 1 iterations
+- list.sortBy (100000): 2.35ms for 1 iterations
+- list.uniqueBy high-cardinality (100000): 27.47ms for 1 iterations
+- list.groupBy high-cardinality (100000): 29.47ms for 1 iterations
+- list.sortBy high-cardinality (100000): 13.80ms for 1 iterations
+- list.uniqueBy high-cardinality (250000): 133.61ms for 1 iterations
+- list.groupBy high-cardinality (250000): 115.50ms for 1 iterations
+- list.sortBy high-cardinality (250000): 44.26ms for 1 iterations
 
 ## Package Size Snapshot (`npm pack --workspaces --dry-run`)
 
 | Package | Version | Tarball Size | Unpacked Size | Files |
 |---|---:|---:|---:|---:|
-| @jdsalasc/solvejs | 1.5.2 | 2.36 KB | 6.46 KB | 7 |
-| @jdsalasc/solvejs-async | 1.5.2 | 8.01 KB | 48.74 KB | 7 |
-| @jdsalasc/solvejs-constants | 1.5.2 | 2.77 KB | 9.36 KB | 7 |
-| @jdsalasc/solvejs-date | 1.5.2 | 5.17 KB | 33.70 KB | 7 |
-| @jdsalasc/solvejs-env | 1.5.2 | 5.14 KB | 39.09 KB | 7 |
-| @jdsalasc/solvejs-list | 1.5.2 | 3.94 KB | 20.46 KB | 7 |
-| @jdsalasc/solvejs-numbers | 1.5.2 | 6.02 KB | 40.84 KB | 7 |
-| @jdsalasc/solvejs-objects | 1.5.2 | 3.67 KB | 18.55 KB | 7 |
-| @jdsalasc/solvejs-regex | 1.5.2 | 2.90 KB | 10.56 KB | 7 |
-| @jdsalasc/solvejs-string | 1.5.2 | 3.38 KB | 16.47 KB | 7 |
-| @jdsalasc/solvejs-validators | 1.5.2 | 9.03 KB | 70.55 KB | 7 |
+| @jdsalasc/solvejs | 1.9.0 | 2.45 KB | 6.76 KB | 7 |
+| @jdsalasc/solvejs-async | 1.9.0 | 8.57 KB | 51.96 KB | 7 |
+| @jdsalasc/solvejs-constants | 1.9.0 | 3.33 KB | 12.06 KB | 7 |
+| @jdsalasc/solvejs-date | 1.9.0 | 5.92 KB | 43.46 KB | 7 |
+| @jdsalasc/solvejs-env | 1.9.0 | 5.61 KB | 42.77 KB | 7 |
+| @jdsalasc/solvejs-list | 1.9.0 | 4.44 KB | 25.58 KB | 7 |
+| @jdsalasc/solvejs-numbers | 1.9.0 | 6.44 KB | 44.51 KB | 7 |
+| @jdsalasc/solvejs-objects | 1.9.0 | 4.19 KB | 22.38 KB | 7 |
+| @jdsalasc/solvejs-regex | 1.9.0 | 3.09 KB | 11.87 KB | 7 |
+| @jdsalasc/solvejs-schema | 1.9.0 | 7.50 KB | 51.61 KB | 7 |
+| @jdsalasc/solvejs-string | 1.9.0 | 3.52 KB | 17.51 KB | 7 |
+| @jdsalasc/solvejs-validators | 1.9.0 | 10.71 KB | 82.55 KB | 7 |
 
 ## Notes
 
