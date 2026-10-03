@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Documented two `@jdsalasc/solvejs-env` inconsistencies: `getEnvEnum` takes `allowedValues` as its second positional argument while every other getter takes the env source there, and a present-but-blank value falls back to `defaultValue` in every getter except `getEnvString`, which raises `cannot be empty`. Behavior is unchanged. Migration impact: none.
+
 - Documented that in `@jdsalasc/solvejs-schema` an absent optional field is set to `undefined` on the parsed result rather than omitted, so `"key" in result` is `true` and `Object.keys` lists it even though `JSON.stringify` hides it. Behavior is unchanged. Migration impact: none.
 
 - Added measured test coverage to `npm run report:perf`, using the Node built-in coverage runner so no dependency is needed, and published a per-package size and coverage table in the root README.

@@ -22,6 +22,34 @@ Zero-dependency environment variable parsing and validation utilities for JavaSc
 
 Use it when you need safe startup checks for API/backend apps with typed environment parsing and clear failure messages.
 
+## Limitations and Constraints
+
+### getEnvEnum takes allowedValues as its second argument
+
+Every other getter is `(name, env, options)`. `getEnvEnum` is `(name, allowedValues, env, options)`,
+so passing the env source second silently reads it as the list of allowed values:
+
+```ts
+getEnvString("NODE_ENV", env, {});              // correct
+getEnvEnum("NODE_ENV", ["dev", "prod"], env);   // correct
+getEnvEnum("NODE_ENV", env, { allowedValues }); // wrong: env is treated as allowedValues
+```
+
+### A blank value uses the default, except in getEnvString
+
+When a variable is present but empty or whitespace only, most getters fall back to `defaultValue`.
+`getEnvString` raises `cannot be empty` instead, even though an absent variable does use the default:
+
+```ts
+getEnvString("A", {}, { defaultValue: "d" });          // "d"
+getEnvString("A", { A: "   " }, { defaultValue: "d" }); // throws "cannot be empty"
+getEnvNumber("A", { A: "   " }, { defaultValue: 9 });  // 9
+```
+
+In CI and Docker a variable is often exported but empty, so `getEnvString` will crash at startup
+where `getEnvNumber` quietly defaults. Pass `allowEmpty: true`, or coerce with `getEnvString` on a
+trimmed source you control.
+
 ## Install
 
 ```bash
