@@ -1,5 +1,9 @@
 # Changelog
 
+## Unreleased
+
+- Documented the `roundTo` asymmetry on exact halfway values: `roundTo(1.005, 2)` returns `1.01` while `roundTo(-1.005, 2)` returns `-1`, because the `Number.EPSILON` correction only applies to positive values. Behavior is unchanged; see the Precision note in `packages/solvejs-numbers/README.md`. Migration impact: none.
+
 ## 1.9.0 - 2026-05-28
 
 - Added new package `@jdsalasc/solvejs-schema` for zero-dependency schema validation, `safeParse`, optional fields, refinements, unions, literals, and JSON Schema output.

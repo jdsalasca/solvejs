@@ -47,3 +47,16 @@ const margin = grossMargin(1000, 700); // 30
 ## Precision note
 
 JavaScript numbers are floating-point. For money-sensitive flows, apply explicit rounding steps (for example `roundTo(value, 2)`) at domain boundaries (tax, subtotal, invoice total).
+
+`roundTo` nudges the value by `Number.EPSILON` before rounding to correct the classic
+floating-point representation error. That nudge only helps positive values, so exact
+halfway cases are asymmetric:
+
+```ts
+roundTo(1.005, 2);  // 1.01  positive halves round up
+roundTo(-1.005, 2); // -1     negative halves round toward zero
+```
+
+If your domain needs symmetric halves-away-from-zero rounding on negative values, round the
+absolute value and reapply the sign instead of relying on `roundTo`.
+
