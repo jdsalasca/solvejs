@@ -22,6 +22,31 @@ Use it when data crosses a boundary: request bodies, search params, form payload
 - It is intentionally small and dependency-free; advanced schema ecosystems may offer more formats and transformations.
 - JSON Schema output is practical and documentation-friendly, not a full standards conformance suite.
 
+### safeParse is fail-fast
+
+A failed parse returns **one** issue for the first field that fails, not one per field. zod collects
+every issue, so code written against zod will need adjusting:
+
+```ts
+const User = s.object({ id: s.string().min(2), age: s.number().min(18) });
+const result = User.safeParse({ id: "u", age: 12 });
+
+result.error.issues.length; // 1, for `id`
+result.error.issues[0];     // { path: "id", code: "too_small", message: "..." }
+```
+
+If your form highlights every invalid field at once, validate each field separately with its own
+schema, or loop until `safeParse` succeeds.
+
+### Unknown keys are dropped
+
+A successful parse returns only the declared keys, so extra input never reaches your code:
+
+```ts
+User.safeParse({ id: "u1", age: 21, role: "admin" });
+// { success: true, data: { id: "u1", age: 21 } }   `role` is removed
+```
+
 ## Install
 
 ```bash

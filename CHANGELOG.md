@@ -10,6 +10,9 @@
 - Documented the `solvejs-date` input anchoring rule: the helpers read the UTC calendar of the `Date` passed in, so `new Date(2024, 3, 8)` (local midnight) reports the previous day in eastern timezones. Use `fromUtcParts`, `parseIsoDate`, or a `T12:00:00.000Z` anchor.
 - Documented the two `parseIsoDate` leniency traps inherited from `new Date(value)`: an impossible calendar day rolls forward (`"2026-02-30"` becomes 2 March) and a slash date is read as US month/day/year in local time (`"07/02/2026"` is 2 July). `parseDateStrict` rejects both. Behavior is unchanged. Migration impact: none.
 - Documented that `intersection` and `difference` preserve duplicates from the left operand, which differs from lodash. Compose with `unique` to match `_.intersection` and `_.difference`. Behavior is unchanged. Migration impact: none.
+- Documented that `set` in `@jdsalasc/solvejs-objects` mutates the target in place and returns the same reference, unlike lodash's immutable `_.set`, plus the fact that `get`/`set` always split paths on dots so a literal dotted key is unreachable by path. Behavior is unchanged. Migration impact: none.
+- Documented that `safeParse` in `@jdsalasc/solvejs-schema` is fail-fast and returns one issue for the first failing field rather than every field like zod, and that a successful parse drops unknown keys. Behavior is unchanged. Migration impact: none.
+- Documented that `parseBooleanString` in `@jdsalasc/solvejs-constants` throws on an unrecognised value instead of returning a fallback, so a typo in configuration fails at startup. Behavior is unchanged. Migration impact: none.
 
 ## 1.9.0 - 2026-05-28
 
