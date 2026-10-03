@@ -87,11 +87,17 @@ zero-touch operation: create the directory, add the workspace, done.
 
 ### 2. Trust-bar gate
 
-`scripts/check-trust-bar.mjs` fails when any package's test count is below its exported
-function count. Wired into CI and into the local quality gates.
+`scripts/check-test-baseline.mjs` fails when any package's test count is below its exported
+function count. The `test:baseline` CI step already invokes it, so no new CI wiring is needed.
 
 This makes the core rule self-enforcing rather than dependent on maintainer discipline, which
 is the only way a "continuous improvement" loop stays honest over many cycles.
+
+What this enforces is **density**, `tests >= exports`. It does not prove that every individual
+export has a test: a package with 9 tests and 1 export passes, and adding an untested second
+export also passes. What it does catch is the regression it exists for, exports growing past the
+test count. Verified by appending 15 exports to `solvejs-constants` and watching the gate fail at
+`9 tests for 17 exported functions`.
 
 ### 3. Honest coverage and size numbers
 

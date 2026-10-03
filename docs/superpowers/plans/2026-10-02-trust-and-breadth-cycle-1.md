@@ -504,10 +504,27 @@ Delete the `temporaryProbe` function.
 Run: `npm run test:baseline`
 Expected: PASSES.
 
-- [ ] **Step 5: Prove the gate is self-enforcing**
+- [ ] **Step 5: Prove what the gate does and does not catch**
 
-Run the probe add/remove cycle from Steps 1 and 4 once more end to end.
-Expected: fails while the untested export exists, passes once it is gone.
+Adding a single untested export to a package that already has surplus tests will **not** fail the
+gate, because the rule is `tests >= exports`, not "every export has a named test". For example
+`solvejs-constants` has 9 test blocks against 1 export, so raising its floor from 1 to 2 still passes.
+
+What the gate does catch is the regression it exists for: a package where exports grow past its test
+count. Prove that by appending enough exports to `solvejs-constants` to push its export count past 9:
+
+```
+export function temporaryProbe1(): number { return 1; }
+... through temporaryProbe15
+```
+
+Run: `npm run test:baseline`
+Expected: FAILS with `9 tests for 17 exported functions, minimum required 17`. Then
+`git checkout -- packages/solvejs-constants/src/index.ts` and confirm it passes again.
+
+Do not claim the gate prevents untested exports. It enforces test density. A stricter rule that
+requires one test block *named after* each export would guarantee per-function diagnosability, but it
+costs a renaming pass across every package and is left as a later decision.
 
 - [ ] **Step 6: Run all gates**
 

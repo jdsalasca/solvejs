@@ -13,17 +13,24 @@ import {
   timeoutFallback
 } from "../dist/esm/index.js";
 
-test("sleep and timeout utilities", async () => {
+test("sleep", async () => {
   const start = Date.now();
   await sleep(5);
-  assert.equal(Date.now() >= start, true);
+  assert.equal(Date.now() >= start, true, "sleep waits at least the requested time");
+});
 
-  const ok = await timeout(Promise.resolve("done"), 30);
-  assert.equal(ok, "done");
+test("timeout", async () => {
+  assert.equal(await timeout(Promise.resolve("done"), 30), "done", "a fast promise resolves normally");
 
   await assert.rejects(
     () => timeout(new Promise((resolve) => setTimeout(resolve, 50)), 5, "Too slow"),
-    /Too slow/
+    /Too slow/,
+    "a slow promise rejects with the supplied message"
+  );
+  await assert.rejects(
+    () => timeout(new Promise((resolve) => setTimeout(resolve, 50)), 5),
+    /timeout|timed out/i,
+    "a missing message still rejects with a default"
   );
 });
 

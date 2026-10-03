@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+- `npm run test:baseline` now derives each package's minimum test count from its number of exported
+  functions instead of hand-maintained values, so the floor rises automatically when a function is
+  added. The gate enforces density (`tests >= exports`); it does not prove every individual export
+  has a test. It also prints the per-package breakdown on success. Migration impact: none, repository
+  tooling only.
 - Added new package `@jdsalasc/solvejs-url` with `buildUrl`, `joinUrl`, `stringifyQuery`, `parseQuery`, `withQuery`, `omitQuery`, `getUrlParam`, `replacePathParam`, and a `UrlError` carrying stable codes `URL_NOT_ABSOLUTE`, `URL_INVALID_BASE`, and `URL_PATH_PARAM_MISSING`. Query keys are serialised in alphabetical order so output is deterministic and safe to use as a cache key. Migration impact: none, new package.
 - Integrated `solvejs-url` into the meta package `@jdsalasc/solvejs`.
 - Documented the `roundTo` asymmetry on exact halfway values: `roundTo(1.005, 2)` returns `1.01` while `roundTo(-1.005, 2)` returns `-1`, because the `Number.EPSILON` correction only applies to positive values. Behavior is unchanged; see the Precision note in `packages/solvejs-numbers/README.md`. Migration impact: none.
