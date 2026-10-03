@@ -275,19 +275,18 @@ export function withPagination<T>(items: readonly T[], options: WithPaginationOp
   const lastPage = Math.max(1, totalPages);
   const page = clampPage(options.page, options.total, options.perPage);
 
-  const link = (target: number) => {
-    const base = options.baseUrl ?? "";
+  const link = (base: string, target: number) => {
     const separator = base.includes("?") ? "&" : "?";
     return `${base}${separator}page=${target}&perPage=${options.perPage}`;
   };
 
   const links = options.baseUrl
     ? {
-        self: link(page),
-        first: link(1),
-        last: link(lastPage),
-        previous: link(Math.max(1, page - 1)),
-        next: link(Math.min(lastPage, page + 1))
+        self: link(options.baseUrl, page),
+        first: link(options.baseUrl, 1),
+        last: link(options.baseUrl, lastPage),
+        previous: link(options.baseUrl, Math.max(1, page - 1)),
+        next: link(options.baseUrl, Math.min(lastPage, page + 1))
       }
     : undefined;
 

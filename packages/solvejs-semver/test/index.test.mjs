@@ -307,3 +307,139 @@ test("formatVersion omits empty prerelease and build sections", () => {
   assert.equal(formatVersion(incrementVersion("1.2.3", "major")), "2.0.0");
   assert.equal(formatVersion(incrementVersion("1.2.3-rc.1", "patch")), "1.2.3");
 });
+test("parseVersion refuses anything that is not a string", () => {
+  for (const input of [123, null, undefined, {}, [], true, Symbol("v")]) {
+    assert.equal(parseVersion(input), null, `${String(input)} is not a version`);
+  }
+  assert.equal(isValidVersion(123), false);
+  assert.equal(isValidVersion("1.0.0"), true);
+});
+
+test("parseVersion rejects an identifier it cannot represent", () => {
+  // These pass the coarse version pattern but fail the per-identifier rules, which is why the
+  // identifiers are validated one by one instead of only by the regex.
+  assert.equal(parseVersion("1.0.0-a_b"), null, "an underscore is not allowed in an identifier");
+  assert.equal(parseVersion("1.0.0-rc!"), null, "nor is punctuation");
+assert.equal(parseVersion("1.0.0+build!"), null, "build metadata is held to the same rule");
+  assert.deepEqual(parseVersion("1.0.0-01a"), { major: 1, minor: 0, patch: 0, prerelease: ["01a"], build: [] },
+    "the leading-zero ban applies only to a purely numeric identifier, so 01a is fine");
+
+  assert.equal(parseVersion("1.0.0-99999999999999999999"), null,
+    "a numeric identifier beyond the safe integer range would silently lose precision");
+  assert.equal(parseVersion("1.0.0+99999999999999999999"), null, "and so would a build identifier");
+
+  assert.deepEqual(parseVersion("1.0.0-01"), { major: 1, minor: 0, patch: 0, prerelease: [1], build: [] },
+    "a leading zero in a purely numeric identifier is legal, per the specification");
+  assert.deepEqual(parseVersion("1.0.0-0.3.7"), { major: 1, minor: 0, patch: 0, prerelease: [0, 3, 7], build: [] });
+  assert.deepEqual(parseVersion("1.0.0-x.7.z.92").prerelease, ["x", 7, "z", 92]);
+});
+
+test("compareVersions orders numeric prerelease identifiers numerically", () => {
+  // alpha.2 is above alpha.10 only if the numbers are compared as numbers, not as text.
+  assert.equal(compareVersions("1.0.0-alpha.2", "1.0.0-alpha.10"), -1);
+  assert.equal(compareVersions("1.0.0-alpha.10", "1.0.0-alpha.2"), 1);
+  assert.equal(compareVersions("1.0.0-2", "1.0.0-10"), -1);
+  assert.equal(compareVersions("1.0.0-rc.1", "1.0.0-rc.1"), 0);
+});
+
+test("compareVersions ranks a numeric identifier below an alphanumeric one", () => {
+  // The specification says numeric identifiers always have lower precedence, so 1.0.0-1 is
+  // below 1.0.0-alpha even though "1" would sort after "alpha" as text.
+  assert.equal(compareVersions("1.0.0-1", "1.0.0-alpha"), -1);
+  assert.equal(compareVersions("1.0.0-alpha", "1.0.0-1"), 1);
+  assert.equal(compareVersions("1.0.0-alpha.1", "1.0.0-alpha.beta"), -1);
+  assert.equal(compareVersions("1.0.0-alpha.beta", "1.0.0-beta"), -1);
+  assert.equal(compareVersions("1.0.0-beta.2", "1.0.0-beta.11"), -1);
+  assert.equal(compareVersions("1.0.0-beta.11", "1.0.0-rc.1"), -1);
+  assert.equal(compareVersions("1.0.0-rc.1", "1.0.0"), -1, "any prerelease is below the release");
+});
+
+test("satisfies honours a wildcard operand alongside a prerelease", () => {
+  // A prerelease never satisfies a bare wildcard, because no comparator in the range names a
+  // prerelease of the same tuple. This is the rule that keeps 2.x from accepting 3.0.0-beta.
+  assert.equal(satisfies("1.0.0-beta", "*"), false);
+  assert.equal(satisfies("1.0.0-beta", "x"), false);
+assert.equal(satisfies("1.0.0-beta", "X"), false);
+  assert.throws(() => satisfies("1.0.0-beta", ""), /non-empty range/, "an empty range is a programming error");
+
+  assert.equal(satisfies("1.0.0", "*"), true, "a release version is fine");
+  assert.equal(satisfies("1.0.0", "1.x"), true);
+  assert.equal(satisfies("9.9.9", "1.x"), false);
+  assert.equal(satisfies("1.0.0-beta", ">=1.0.0-beta"), true, "an explicit prerelease bound allows it");
+  assert.equal(satisfies("1.0.0-beta.2", ">=1.0.0-beta.1 <1.0.0"), true);
+});
+test("satisfies treats a wildcard operand as an interval, not a single version", () => {
+  // "2" and "2.x" both name every 2.y.z, so "<2.x" keeps everything below 2.0.0 and "<=2.x"
+  // also keeps 2.99.99. An equality operator is the only one that matches the whole wildcard.
+  assert.equal(satisfies("1.1.0", "<2.x"), true);
+  assert.equal(satisfies("2.0.0", "<2.x"), false, "the lower bound itself is excluded");
+  assert.equal(satisfies("2.5.0", "<2.x"), false);
+  assert.equal(satisfies("2.99.99", "<=2.x"), true, "the upper bound is only excluded by a strict >");
+  assert.equal(satisfies("3.0.0", "<=2.x"), false);
+  assert.equal(satisfies("2.0.0", ">1.x"), true, "> names the version above the whole interval");
+  assert.equal(satisfies("1.99.99", ">1.x"), false);
+  assert.equal(satisfies("0.5.0", ">=0.x"), true);
+
+  // The same holds one level down for a minor wildcard.
+  assert.equal(satisfies("1.2.9", "<=1.x"), true);
+  assert.equal(satisfies("1.9.9", "<=1.x"), true);
+  assert.equal(satisfies("2.0.0", "<=1.x"), false);
+  assert.equal(satisfies("1.2.9", ">=1.2"), true);
+  assert.equal(satisfies("1.1.9", ">=1.2"), false);
+  assert.equal(satisfies("1.3.0", ">1.2"), true, ">1.2 moves past the whole 1.2.z block");
+
+  assert.equal(satisfies("1.9.0", "1.x"), true, "a bare wildcard still matches any minor");
+  assert.equal(satisfies("2.0.0", "1.x"), false);
+  assert.equal(satisfies("1.2.0", "1.2"), true, "an exact minor matches the block");
+  assert.equal(satisfies("1.3.0", "1.2"), false);
+});
+
+test("an explicit equals operator is accepted and means the wildcard block", () => {
+  assert.equal(satisfies("1.2.0", "=1.2"), true);
+  assert.equal(satisfies("1.2.9", "=1.2.x"), true);
+  assert.equal(satisfies("1.3.0", "=1.2"), false);
+  assert.equal(satisfies("1.0.0", "=1"), true);
+  assert.equal(satisfies("2.0.0", "=1.x"), false);
+  assert.equal(satisfies("1.2.3", "=1.2.3"), true, "an exact version still works");
+});
+
+test("parseVersion rejects an identifier list with an empty slot", () => {
+  // The version pattern allows dots inside the identifier group, so only the per-identifier
+  // check can catch an empty slot between two dots. This is why that loop is not redundant
+  // with the regex.
+  assert.equal(parseVersion("1.0.0-a..b"), null);
+  assert.equal(parseVersion("1.0.0-a."), null, "a trailing dot leaves an empty slot");
+  assert.equal(parseVersion("1.0.0-.a"), null, "and so does a leading one");
+  assert.equal(parseVersion("1.0.0+a..b"), null, "build metadata is checked the same way");
+  assert.equal(parseVersion("1.0.0+build."), null);
+
+  assert.deepEqual(parseVersion("1.0.0-a.-b"), { major: 1, minor: 0, patch: 0, prerelease: ["a", "-b"], build: [] },
+    "a hyphen is a legal identifier, and a leading dot inside one is not the same as an empty slot");
+});
+
+test("a caret range keeps a prerelease in its lower bound", () => {
+  assert.equal(satisfies("1.2.3-rc.2", "^1.2.3-rc.1"), true);
+  assert.equal(satisfies("1.2.3-rc.0", "^1.2.3-rc.1"), false);
+  assert.equal(satisfies("1.9.0", "^1.2.3"), true, "a plain caret still allows later minors");
+  assert.equal(satisfies("2.0.0", "^1.2.3"), false);
+  assert.equal(satisfies("0.2.5", "^0.2.3"), true, "on 0.x a caret only allows patch changes");
+  assert.equal(satisfies("0.3.0", "^0.2.3"), false);
+  assert.equal(satisfies("0.0.3", "^0.0.3"), true, "on 0.0.x a caret pins the exact version");
+  assert.equal(satisfies("0.0.4", "^0.0.3"), false);
+});
+
+test("a tilde range keeps a prerelease in its lower bound", () => {
+  assert.equal(satisfies("1.2.3-rc.2", "~1.2.3-rc.1"), true);
+  assert.equal(satisfies("1.2.3-rc.0", "~1.2.3-rc.1"), false);
+  assert.equal(satisfies("1.2.4-rc.2", "~1.2.3-rc.1"), false, "~ pins the patch level");
+  assert.equal(satisfies("1.2.3", "~1.2.3-rc.1"), true, "the release is above its own prerelease");
+
+  // The minor-is-zero branch still has to carry the prerelease, not just the other one.
+  assert.equal(satisfies("1.0.0-rc.2", "~1.0.0-rc.1"), true);
+  assert.equal(satisfies("1.1.0-rc.2", "~1.0.0-rc.1"), false, "~1.0.0 stops before 1.1.0");
+
+  assert.equal(satisfies("1.1.5", "~1.1.0"), true);
+  assert.equal(satisfies("1.2.0", "~1.1.0"), false, "~ pins the minor");
+  assert.equal(satisfies("1.1.9", "~1.1"), true, "a partial tilde still pins the minor");
+  assert.equal(satisfies("1.2.0", "~1.1"), false);
+});

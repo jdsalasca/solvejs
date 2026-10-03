@@ -233,3 +233,17 @@ test("getUrlParam reads a value that precedes a fragment", () => {
   assert.equal(getUrlParam("https://a.dev/x?a=1#frag", "a"), "1", "the fragment does not leak into the value");
   assert.equal(getUrlParam("https://a.dev/x#frag?a=1", "a"), null, "text after a hash is not a query");
 });
+test("joinUrl collapses a lone base and drops empty segments", () => {
+  assert.equal(joinUrl("https://api.test/"), "https://api.test/");
+  assert.equal(joinUrl("https://api.test"), "https://api.test/");
+  assert.equal(joinUrl("https://api.test", "", "users"), "https://api.test/users");
+  assert.equal(joinUrl("https://api.test", "users", ""), "https://api.test/users",
+    "an empty trailing segment is dropped, so no slash is added");
+  assert.equal(joinUrl("https://api.test", "", ""), "https://api.test/");
+  assert.equal(joinUrl("https://api.test", "//users//"), "https://api.test/users/");
+});
+
+test("joinUrl with no segments at all is an empty string, not a lone slash", () => {
+  assert.equal(joinUrl(), "", "nothing to join");
+  assert.equal(joinUrl(""), "/", "an empty base still yields the single trailing slash");
+});

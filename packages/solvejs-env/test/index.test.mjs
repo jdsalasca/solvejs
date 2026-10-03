@@ -321,3 +321,38 @@ test("the default source is process.env even when a variable is set to an empty 
     else process.env[key] = previous;
   }
 });
+test("getEnvDsn only demands credentials when requireAuth is set", () => {
+  const withAuth = { DATABASE_URL: "postgres://user:pw@db:5432/app" };
+  const noAuth = { DATABASE_URL: "postgres://db:5432/app" };
+  const userOnly = { DATABASE_URL: "postgres://user@db:5432/app" };
+
+  assert.equal(getEnvDsn("DATABASE_URL", noAuth).hostname, "db", "without requireAuth a bare host is fine");
+  assert.equal(getEnvDsn("DATABASE_URL", withAuth, { requireAuth: true }).username, "user");
+
+  assert.throws(() => getEnvDsn("DATABASE_URL", noAuth, { requireAuth: true }),
+    /must include username and password/);
+  assert.throws(() => getEnvDsn("DATABASE_URL", userOnly, { requireAuth: true }),
+    /must include username and password/, "a username without a password is not enough");
+});
+
+test("getEnvUrl accepts an allowed protocol written with or without its colon", () => {
+  const allowed = ["redis", "AMQP:"];
+
+  assert.equal(getEnvUrl("U", { U: "redis://h:6379" }, { allowedProtocols: allowed }).protocol, "redis:");
+  assert.equal(getEnvUrl("U", { U: "AMQP://h" }, { allowedProtocols: allowed }).protocol, "amqp:",
+    "the comparison is case-insensitive");
+
+  assert.throws(() => getEnvUrl("U", { U: "ftp://h" }, { allowedProtocols: allowed }),
+    /must use one of/);
+  assert.throws(() => getEnvUrl("U", { U: "amqp://h" }, { allowedProtocols: ["redis"] }),
+    /must use one of/, "the same protocol in a different case still has to be allowed");
+});
+
+test("getEnvUrl falls back to defaultValue only for an absent or blank variable", () => {
+  assert.equal(getEnvUrl("U", {}, { defaultValue: "https://fallback.test" }).href, "https://fallback.test/");
+  assert.equal(getEnvUrl("U", { U: "   " }, { defaultValue: "https://fallback.test" }).href,
+    "https://fallback.test/", "a blank value counts as absent");
+  assert.equal(getEnvUrl("U", { U: "https://real.test" }, { defaultValue: "https://fallback.test" }).href,
+    "https://real.test/", "a real value wins");
+  assert.throws(() => getEnvUrl("U", {}), /Missing required environment variable/);
+});

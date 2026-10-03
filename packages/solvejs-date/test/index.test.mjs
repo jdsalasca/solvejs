@@ -327,3 +327,29 @@ test("isLeapYear and daysInMonth require integer arguments", () => {
   assert.throws(() => daysInMonth(2024, 1.5), /year and month to be integers/);
   assert.throws(() => daysInMonth("2024", 1), /year and month to be integers/);
 });
+test("parseUnixTimestamp only accepts a numeric value", () => {
+  assert.equal(parseUnixTimestamp(NaN), null);
+  assert.equal(parseUnixTimestamp(Infinity), null);
+  assert.equal(parseUnixTimestamp("1700000000000"), null, "a numeric string is not a number");
+  assert.equal(parseUnixTimestamp(new Date()), null, "a Date is not a timestamp");
+  assert.equal(parseUnixTimestamp(), null);
+});
+
+test("parseUnixTimestamp rejects a timestamp outside the representable range", () => {
+  // The largest valid ECMAScript time value is 8.64e15 ms. Anything past it yields an
+  // Invalid Date rather than throwing, and no real timestamp is that large.
+  assert.equal(parseUnixTimestamp(8.64e15 + 1), null);
+  assert.equal(parseUnixTimestamp(1e20), null);
+  assert.equal(parseUnixTimestamp(-1e20), null);
+
+  assert.deepEqual(parseUnixTimestamp(8.64e15), new Date(8.64e15), "the boundary itself is still valid");
+  assert.deepEqual(parseUnixTimestamp(0), new Date(0));
+});
+
+test("parseUnixTimestamp only accepts a numeric value", () => {
+  assert.equal(parseUnixTimestamp(NaN), null);
+  assert.equal(parseUnixTimestamp(Infinity), null);
+  assert.equal(parseUnixTimestamp("1700000000000"), null, "a numeric string is not a number");
+  assert.equal(parseUnixTimestamp(new Date()), null, "a Date is not a timestamp");
+  assert.equal(parseUnixTimestamp(), null);
+});

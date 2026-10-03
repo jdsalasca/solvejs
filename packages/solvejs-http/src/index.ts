@@ -303,7 +303,7 @@ export function negotiateContentType(
   }
 
   const raw = (options?.accept ?? "").trim();
-  if (raw === "") return available[0] ?? null;
+  if (raw === "") return available[0];
 
   const ranges = raw.split(",").map((part) => {
     const [value, ...parameters] = part.split(";");

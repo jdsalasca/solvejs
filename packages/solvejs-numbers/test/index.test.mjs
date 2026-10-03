@@ -159,3 +159,23 @@ test("toNumber", () => {
   assert.equal(toNumber(".5"), 0.5, "a leading dot is accepted");
   assert.equal(toNumber("1,234"), 1234);
 });
+
+test("toNumber keeps a non-numeric spelling out before it can overflow", () => {
+  assert.equal(toNumber("Infinity"), null);
+  assert.equal(toNumber("NaN"), null);
+  assert.equal(toNumber("-Infinity"), null);
+  assert.equal(toNumber("1e999"), null, "an exponential form is not the accepted shape at all");
+});
+
+test("toNumber refuses a numeric string that overflows to Infinity", () => {
+  // The shape is valid, so the regex lets it through, but Number() gives Infinity and an
+  // Infinity from a "parsed number" would silently poison every later calculation.
+  assert.equal(toNumber("9".repeat(400)), null);
+  assert.equal(toNumber("1".repeat(1000)), null);
+  assert.equal(toNumber("-9".repeat(400)), null);
+
+const finite = "9".repeat(15);
+  assert.equal(toNumber(finite), Number(finite), "a long digit run that stays finite is still parsed");
+  assert.equal(toNumber("123456789012345678"), 123456789012345678,
+    "precision beyond 2^53 is kept as the nearest double, not refused");
+});

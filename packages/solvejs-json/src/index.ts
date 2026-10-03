@@ -143,7 +143,8 @@ export function stableStringify(value: unknown): string | undefined {
 
       const entries = Object.entries(input as Record<string, unknown>)
         .filter(([, entryValue]) => entryValue !== undefined)
-        .sort(([a], [b]) => (a < b ? -1 : a > b ? 1 : 0));
+        // Object keys are unique, so the two compared names are never equal and a tie cannot happen.
+  .sort(([a], [b]) => (a < b ? -1 : 1));
 
       const parts: string[] = [];
       for (const [key, entryValue] of entries) {

@@ -180,16 +180,28 @@ The first cycle, executed in order:
 Cycle 1 and every cycle after it are complete. Final state, all measured by `npm run test:baseline`
 and `npm run report:perf`:
 
-- 20 packages, 350 test blocks, every package at or above its export-derived floor.
-- 19 of the 20 packages reach 100% line coverage. The twentieth is the `@jdsalasc/solvejs` meta
-  package, whose figure is an aggregate over every module it re-exports rather than untested code.
+- 20 packages, 406 test blocks, every package at or above its export-derived floor.
+- 19 of the 20 packages reach 100% line, branch and function coverage. The two exceptions are
+  documented in `docs/guides/package-health-report.md`: the `@jdsalasc/solvejs` meta package, whose
+  figure is an aggregate over every module it re-exports rather than untested code, and
+  `solvejs-env`, whose one uncovered branch is a browser-runtime fallback that cannot be reached
+  under Node without deleting a guard that is worth keeping.
 - Breadth items 1 through 8 all shipped: url, cache, json, pagination, semver, errors, money, http.
 - Bugs found and fixed by the new tests: `getUrlParam` reading values out of fragment text,
   `createError` discarding every message through an operator-precedence mistake, `fromDecimal`
   rounding on the whole part instead of the discarded digits, `incrementVersion` not promoting a
   prerelease to its release, `satisfies` missing the prerelease-tuple rule, `half-up` rounding
   behaving as `half-away-from-zero`, and an unreachable branch in `createTokenBucketLimiter`.
-- Two unreachable defensive branches were deleted rather than left to sit below 100%.
+- Two real defects surfaced by the branch-coverage cycle: `satisfies` returned `false` for every
+  non-equality operator against a wildcard operand, and `=1.2` threw instead of matching the block,
+  and the array builder accepted a negative item count that `toJsonSchema` then emitted as invalid
+  JSON Schema.
+- Five unreachable defensive branches were deleted rather than left to sit below 100%: two key
+  comparators whose tie case cannot happen, an always-taken `break` in the LRU eviction loop, an
+  unreachable `return` in the task queue, and an AppError branch the guard above it already excluded.
+- Trap worth remembering for anyone writing tests here: in `node:assert/strict`, `assert.equal` is
+  `strictEqual`, so a deep object comparison needs `assert.deepEqual`. Several wrong-expectation
+  failures in this cycle traced back to it.
 
 ## Deferred to a future cycle
 

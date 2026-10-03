@@ -51,6 +51,20 @@ function makeIssue(path: string, code: SchemaIssueCode, message: string): Schema
   return new SchemaError([{ path, code, message }]);
 }
 
+/** A length or item count, shared by the string and array builders. */
+function assertCount(label: string, value: number): void {
+  if (!Number.isInteger(value) || value < 0) {
+    throw new TypeError(`Expected ${label} to be a non-negative integer.`);
+  }
+}
+
+/** A numeric bound, where a negative value is legitimate but a non-finite one never is. */
+function assertFiniteBound(label: string, value: number): void {
+  if (!Number.isFinite(value)) {
+    throw new TypeError(`Expected ${label} to be a finite number.`);
+  }
+}
+
 function childPath(path: string, key: string | number): string {
   return path ? `${path}.${key}` : String(key);
 }
@@ -111,18 +125,14 @@ class StringSchema extends BaseSchema<string> {
 
   /** Requires the string to contain at least `length` characters. */
   min(length: number): this {
-    if (!Number.isInteger(length) || length < 0) {
-      throw new TypeError("Expected min length to be a non-negative integer.");
-    }
+    assertCount("min length", length);
     this.minLength = length;
     return this;
   }
 
   /** Requires the string to contain at most `length` characters. */
   max(length: number): this {
-    if (!Number.isInteger(length) || length < 0) {
-      throw new TypeError("Expected max length to be a non-negative integer.");
-    }
+    assertCount("max length", length);
     this.maxLength = length;
     return this;
   }
@@ -182,12 +192,14 @@ class NumberSchema extends BaseSchema<number> {
 
   /** Requires the number to be greater than or equal to `value`. */
   min(value: number): this {
+    assertFiniteBound("minimum", value);
     this.minValue = value;
     return this;
   }
 
   /** Requires the number to be less than or equal to `value`. */
   max(value: number): this {
+    assertFiniteBound("maximum", value);
     this.maxValue = value;
     return this;
   }
@@ -277,12 +289,14 @@ class ArraySchema<T> extends BaseSchema<T[]> {
 
   /** Requires at least `length` array items. */
   min(length: number): this {
+    assertCount("min length", length);
     this.minItems = length;
     return this;
   }
 
   /** Requires at most `length` array items. */
   max(length: number): this {
+    assertCount("max length", length);
     this.maxItems = length;
     return this;
   }

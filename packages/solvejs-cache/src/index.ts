@@ -94,7 +94,8 @@ if (typeof input === "number") return Number.isFinite(input) ? String(input) : `
       }
       const entries = Object.entries(input as Record<string, unknown>)
         .filter(([, entryValue]) => entryValue !== undefined)
-        .sort(([a], [b]) => (a < b ? -1 : a > b ? 1 : 0));
+        // Keys of one entry set are unique, so a tie cannot happen and 0 is never needed.
+  .sort(([a], [b]) => (a < b ? -1 : 1));
       return `{${entries.map(([key, entryValue]) => `${JSON.stringify(key)}:${walk(entryValue)}`).join(",")}}`;
     } finally {
       seen.delete(input as object);
@@ -251,9 +252,10 @@ export function createLruCache<T = unknown>(options: LruCacheOptions): TtlCache<
       entries.delete(key);
       entries.set(key, { value, expiresAt: now() + ttlMs });
       while (entries.size > options.maxSize) {
+        // maxSize is at least 1 and the loop only runs while entries is larger, so the
+        // oldest key always exists.
         const oldest = entries.keys().next();
-        if (oldest.done) break;
-        entries.delete(oldest.value);
+        entries.delete(oldest.value as string);
       }
     },
     has(key) {

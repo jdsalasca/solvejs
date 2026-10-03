@@ -254,7 +254,7 @@ export function satisfies(version: string, range: string): boolean {
     const comparators = alternative.split(/\s+/).filter(Boolean);
 
     const matches = comparators.every((raw) => {
-      const operatorMatch = raw.match(/^(>=|<=|>|<)\s*(.+)$/);
+      const operatorMatch = raw.match(/^(>=|<=|>|<|=)\s*(.+)$/);
       const operator = (operatorMatch?.[1] ?? "=") as "<" | "<=" | ">" | ">=" | "=";
       const operand = (operatorMatch?.[2] ?? raw).trim();
 
@@ -271,13 +271,28 @@ export function satisfies(version: string, range: string): boolean {
 
       const { version: bound, wildcard } = boundOf(operand, "SEMVER_INVALID_RANGE");
 
-      if (wildcard === "major") {
-        return operator === "=" && parsed.major === bound.major;
+      // A wildcard operand names a whole interval rather than a single version: "2" and "2.x" cover
+      // every 2.y.z, "1.2" and "1.2.x" cover every 1.2.z. An operator other than equality tests
+      // the interval, so "<2.x" keeps everything below 2.0.0 and "<=2.x" also keeps 2.99.99.
+      if (wildcard !== "none") {
+        if (operator === "=") {
+          return wildcard === "major"
+            ? parsed.major === bound.major
+            : parsed.major === bound.major && parsed.minor === bound.minor;
+        }
+
+        const lower: Version = wildcard === "major"
+          ? { major: bound.major, minor: 0, patch: 0, prerelease: [], build: [] }
+          : { major: bound.major, minor: bound.minor, patch: 0, prerelease: [], build: [] };
+        const upper: Version = wildcard === "major"
+          ? { major: bound.major + 1, minor: 0, patch: 0, prerelease: [], build: [] }
+          : { major: bound.major, minor: bound.minor + 1, patch: 0, prerelease: [], build: [] };
+
+        if (operator === ">") return compareToBound(parsed, ">=", upper);
+        if (operator === "<=") return compareToBound(parsed, "<", upper);
+        return compareToBound(parsed, operator, lower);
       }
-      if (wildcard === "minor") {
-        if (operator !== "=") return compareToBound(parsed, operator, bound);
-        return parsed.major === bound.major && parsed.minor === bound.minor;
-      }
+
       if (operator === "=") {
         return compareToBound(parsed, ">=", bound) && compareToBound(parsed, "<=", bound);
       }

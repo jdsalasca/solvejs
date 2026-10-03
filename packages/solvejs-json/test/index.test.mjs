@@ -273,3 +273,67 @@ test("deepEqual separates types", () => {
   assert.equal(deepEqual({ a: 1 }, { a: 1, b: undefined }), false, "an explicit undefined key changes the key count");
   assert.equal(deepEqual([1, 2], [1, 2, 3]), false);
 });
+test("stableStringify handles every JSON scalar the way JSON.stringify does", () => {
+  assert.equal(stableStringify(true), "true");
+  assert.equal(stableStringify(false), "false");
+  assert.equal(stableStringify(null), "null");
+  assert.equal(stableStringify("text"), '"text"');
+  assert.equal(stableStringify(10n), '"10"', "a bigint is written as a JSON string");
+  assert.equal(stableStringify(-0), "0", "negative zero normalises, as in JSON.stringify");
+  assert.equal(stableStringify(1.5), "1.5");
+  assert.equal(stableStringify(NaN), "null", "a non-finite number becomes null");
+  assert.equal(stableStringify(Infinity), "null");
+  assert.equal(stableStringify(new Date(0)), '"1970-01-01T00:00:00.000Z"');
+});
+
+test("stableStringify sorts keys at every depth, including nested objects", () => {
+  const value = { b: 1, a: { d: 4, c: { f: 6, e: 5 } }, "10": "ten", "2": "two" };
+
+  assert.equal(
+    stableStringify(value),
+'{"10":"ten","2":"two","a":{"c":{"e":5,"f":6},"d":4},"b":1}',
+    "keys sort by code unit, so 10 comes before 2, matching Array.prototype.sort"
+  );
+  assert.equal(stableStringify({ a: 1, b: 2 }), stableStringify({ b: 2, a: 1 }), "order of input does not matter");
+});
+
+test("stableStringify drops an array that holds anything JSON cannot express", () => {
+  assert.equal(stableStringify([1, 2, 3]), "[1,2,3]");
+  assert.equal(stableStringify([1, undefined, 3]), undefined, "an undefined hole makes the whole array undefined");
+  assert.equal(stableStringify([() => 1]), undefined, "and so does a function");
+  assert.equal(stableStringify([1, NaN]), "[1,null]", "NaN is a value, not a hole");
+  assert.equal(stableStringify({ a: [1, undefined] }), "{}",
+    "nested, the key is dropped instead, which is what JSON.stringify does");
+  assert.equal(stableStringify({ a: [1, 2] }), '{"a":[1,2]}', "a clean nested array survives");
+  assert.equal(stableStringify({ a: 1, b: undefined }), '{"a":1}', "an undefined key is dropped, not fatal");
+});
+
+test("deepEqual tells objects with the same arity but different keys apart", () => {
+  assert.equal(deepEqual({ a: 1, b: 2 }, { a: 1, c: 2 }), false, "same key count, different names");
+  assert.equal(deepEqual({ a: 1 }, { a: 1, b: undefined }), false, "an explicit undefined key is still a key");
+  assert.equal(deepEqual({ a: 1, b: undefined }, { a: 1 }), false, "and the difference is symmetric");
+  assert.equal(deepEqual({ a: 1 }, { a: 1 }), true);
+  assert.equal(deepEqual({}, {}), true);
+  assert.equal(deepEqual([1, 2], [1, 2]), true);
+  assert.equal(deepEqual([1, 2], [2, 1]), false, "array order is significant");
+});
+
+test("jsonMerge accepts a missing target and skips unusable sources", () => {
+  assert.deepEqual(jsonMerge(null, { a: 1 }), { a: 1 }, "a null target is treated as empty");
+  assert.deepEqual(jsonMerge(undefined, { a: 1 }), { a: 1 }, "and so is undefined");
+  assert.deepEqual(jsonMerge({ a: 1 }, null, { b: 2 }, undefined, { c: 3 }), { a: 1, b: 2, c: 3 },
+    "null and undefined sources are skipped, not merged");
+
+  const polluted = jsonMerge({}, JSON.parse('{"__proto__": {"admin": true}, "constructor": 1, "safe": 2}'));
+  assert.deepEqual(polluted, { safe: 2 }, "prototype-polluting keys are dropped");
+  assert.equal(Object.getPrototypeOf(polluted), Object.prototype, "the prototype is untouched");
+  assert.equal({}.admin, undefined, "and no pollution reached Object.prototype");
+});
+
+test("jsonMerge replaces anything that is not a plain object", () => {
+  assert.deepEqual(jsonMerge({ a: { b: 1 } }, { a: { c: 2 } }), { a: { b: 1, c: 2 } }, "nested plain objects merge");
+  assert.deepEqual(jsonMerge({ a: [1] }, { a: [2, 3] }), { a: [2, 3] }, "arrays are replaced, never merged");
+  assert.deepEqual(jsonMerge({ a: 1 }, { a: null }), { a: null }, "null replaces");
+  assert.deepEqual(jsonMerge({ a: { b: 1 } }, { a: "x" }), { a: "x" }, "a scalar replaces an object");
+  assert.deepEqual(jsonMerge({ a: null }, { a: { b: 1 } }), { a: { b: 1 } }, "and an object replaces a scalar");
+});

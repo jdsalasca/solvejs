@@ -361,3 +361,91 @@ test("sleep rejects a negative delay", async () => {
   assert.throws(() => sleep(Infinity), /non-negative finite number/);
   await sleep(0);
 });
+test("pMap without a concurrency option runs everything at once", async () => {
+  let active = 0;
+  let peak = 0;
+  const results = await pMap([1, 2, 3, 4, 5], async (value) => {
+    active += 1;
+    peak = Math.max(peak, active);
+    await new Promise((resolve) => setTimeout(resolve, 5));
+    active -= 1;
+    return value * 2;
+  });
+
+  assert.deepEqual(results, [2, 4, 6, 8, 10], "input order is preserved");
+  assert.equal(peak, 5, "the default is unlimited concurrency, so all five overlapped");
+
+  assert.deepEqual(await pMap([], async (value) => value), [], "an empty input needs no worker");
+  assert.deepEqual(await pMap([7], (value) => value), [7], "a sync mapper is awaited too");
+});
+
+test("pMap refuses a concurrency it cannot honour", async () => {
+  await assert.rejects(() => pMap([1], (v) => v, { concurrency: 0 }), /positive integer/);
+  await assert.rejects(() => pMap([1], (v) => v, { concurrency: -2 }), /positive integer/);
+  await assert.rejects(() => pMap([1], (v) => v, { concurrency: 1.5 }), /positive integer/);
+  await assert.rejects(() => pMap([1], (v) => v, { concurrency: NaN }), /positive integer/);
+});
+
+test("createTaskQueue defaults to one task at a time", async () => {
+  const queue = createTaskQueue();
+  const order = [];
+  let active = 0;
+  let peak = 0;
+
+  const task = (name, ms) => async () => {
+    active += 1;
+    peak = Math.max(peak, active);
+    await new Promise((resolve) => setTimeout(resolve, ms));
+    order.push(name);
+    active -= 1;
+    return name;
+  };
+
+  const results = await Promise.all([queue.add(task("a", 10)), queue.add(task("b", 1)), queue.add(task("c", 1))]);
+
+  assert.deepEqual(results, ["a", "b", "c"], "each task resolves with its own value");
+  assert.deepEqual(order, ["a", "b", "c"], "and they ran strictly in order");
+assert.equal(peak, 1, "never more than one at a time");
+  assert.equal(queue.pending(), 0, "the queue drained");
+  assert.equal(queue.running(), 0, "and nothing is left running");
+});
+
+test("createTaskQueue keeps going after a task rejects", async () => {
+  const queue = createTaskQueue({ concurrency: 1 });
+  const ran = [];
+
+  const failing = queue.add(async () => {
+    ran.push("bad");
+    throw new Error("nope");
+  });
+  const following = queue.add(async () => {
+    ran.push("good");
+    return "ok";
+  });
+
+  await assert.rejects(() => failing, /nope/);
+  assert.equal(await following, "ok", "a failure does not stall the queue behind it");
+  assert.deepEqual(ran, ["bad", "good"]);
+});
+test("createRateLimiter keeps its chain usable after a task rejects", async () => {
+  const limited = createRateLimiter({ maxCalls: 5, windowMs: 60_000 });
+
+  await assert.rejects(
+    () => limited(async () => {
+      throw new Error("task failed");
+    }),
+    /task failed/
+  );
+
+  assert.equal(await limited(() => "recovered"), "recovered",
+    "the rejection did not poison the chain for the next caller");
+
+  await assert.rejects(
+    () => limited(async () => {
+      throw new Error("again");
+    }),
+    /again/,
+    "and it keeps failing the same way"
+  );
+  assert.equal(await limited(() => "still fine"), "still fine");
+});

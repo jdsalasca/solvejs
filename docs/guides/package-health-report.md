@@ -6,31 +6,31 @@ This report lists each package, its practical utilities, current status, known i
 
 ## Test Trust
 
-20 packages, 350 test blocks. The minimum for each package is derived
+20 packages, 406 test blocks. The minimum for each package is derived
 from its exported function count by `npm run test:baseline`.
 
 | Package | Function exports | Test blocks | Line coverage |
 |---|---|---|---|
-| `@jdsalasc/solvejs` | 0 (re-exports) | 1 | 47.86% |
-| `@jdsalasc/solvejs-async` | 10 | 21 | 100.00% |
-| `@jdsalasc/solvejs-cache` | 5 | 28 | 100.00% |
+| `@jdsalasc/solvejs` | 0 (re-exports) | 1 | 47.66% |
+| `@jdsalasc/solvejs-async` | 10 | 26 | 100.00% |
+| `@jdsalasc/solvejs-cache` | 5 | 31 | 100.00% |
 | `@jdsalasc/solvejs-constants` | 1 | 9 | 100.00% |
-| `@jdsalasc/solvejs-date` | 18 | 23 | 100.00% |
-| `@jdsalasc/solvejs-env` | 10 | 24 | 100.00% |
-| `@jdsalasc/solvejs-errors` | 10 | 17 | 100.00% |
+| `@jdsalasc/solvejs-date` | 18 | 26 | 100.00% |
+| `@jdsalasc/solvejs-env` | 10 | 27 | 100.00% |
+| `@jdsalasc/solvejs-errors` | 10 | 32 | 100.00% |
 | `@jdsalasc/solvejs-http` | 8 | 17 | 100.00% |
-| `@jdsalasc/solvejs-json` | 9 | 20 | 100.00% |
+| `@jdsalasc/solvejs-json` | 9 | 26 | 100.00% |
 | `@jdsalasc/solvejs-list` | 12 | 13 | 100.00% |
 | `@jdsalasc/solvejs-money` | 10 | 19 | 100.00% |
-| `@jdsalasc/solvejs-numbers` | 16 | 16 | 100.00% |
+| `@jdsalasc/solvejs-numbers` | 16 | 18 | 100.00% |
 | `@jdsalasc/solvejs-objects` | 7 | 9 | 100.00% |
 | `@jdsalasc/solvejs-pagination` | 8 | 15 | 100.00% |
 | `@jdsalasc/solvejs-regex` | 5 | 15 | 100.00% |
-| `@jdsalasc/solvejs-schema` | 1 | 15 | 100.00% |
-| `@jdsalasc/solvejs-semver` | 9 | 24 | 100.00% |
+| `@jdsalasc/solvejs-schema` | 1 | 20 | 100.00% |
+| `@jdsalasc/solvejs-semver` | 9 | 34 | 100.00% |
 | `@jdsalasc/solvejs-string` | 9 | 10 | 100.00% |
-| `@jdsalasc/solvejs-url` | 8 | 17 | 100.00% |
-| `@jdsalasc/solvejs-validators` | 31 | 37 | 100.00% |
+| `@jdsalasc/solvejs-url` | 8 | 19 | 100.00% |
+| `@jdsalasc/solvejs-validators` | 31 | 39 | 100.00% |
 
 ## Package Status
 
@@ -65,9 +65,17 @@ One row per package, refreshed by hand as behaviour changes.
 - Coverage is measured and published but not gated; a threshold is a maintainer decision.
 - Bundle-size figures live in the root README but not on the individual npm package pages.
 
+## Known coverage exceptions
+
+- `@jdsalasc/solvejs-env` sits at 99.18% branch coverage. The single uncovered branch is the `?? {}`
+  fallback in `defaultEnvSource`, which only runs on a runtime with no `globalThis.process`, such as
+  a browser bundle with no process shim. Deleting the guard would turn a clear "missing environment
+  variable" error into an opaque `TypeError` on exactly those runtimes, and adding an injection
+  point for it would be a test-only seam, so the guard stays and the gap is recorded here.
+
 ## Priority Order
 
-1. Raise `solvejs-schema`, `solvejs-env`, and `solvejs-async` coverage above 95%.
-2. Add the breadth packages queued in `docs/superpowers/plans`: cache, json, pagination, semver, errors, money, http.
-3. Add a limitations section to any package README that lacks one.
-4. Decide whether coverage becomes a gating threshold.
+1. Decide whether coverage becomes a gating threshold, and whether to waive the `solvejs-env` branch.
+2. Add a limitations section to any package README that lacks one.
+3. Extend the benchmarks beyond the packages that already have them.
+4. Publish the seven new packages once the meta package reaches a release.

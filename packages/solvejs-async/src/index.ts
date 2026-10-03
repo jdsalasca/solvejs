@@ -279,8 +279,8 @@ export function createTaskQueue(options: TaskQueueOptions = {}): TaskQueue {
 
   const schedule = () => {
     while (activeCount < concurrency && queue.length > 0) {
-      const run = queue.shift();
-      if (!run) return;
+      // queue.length is checked above, so the shift cannot come back empty.
+      const run = queue.shift() as () => void;
       activeCount += 1;
       run();
     }

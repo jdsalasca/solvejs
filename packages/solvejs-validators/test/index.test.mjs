@@ -486,3 +486,50 @@ test("validateAddressLine rejects unsupported characters", () => {
   assert.equal(validateAddressLine("Calle 100 #10-20").ok, true);
   assert.equal(validateAddressLine("Av. Siempre Viva 742, apto 3B").ok, true, "accents and punctuation are allowed");
 });
+
+test("allowInternational decides whether a leading plus is legal, and defaults to true", () => {
+  assert.equal(validateCellphoneNumber("+14155552671", { country: "US" }).ok, true,
+    "the permissive default accepts an international number");
+  assert.equal(validateCellphoneNumber("+14155552671", { country: "US", allowInternational: true }).ok, true);
+  assert.equal(validateCellphoneNumber("14155552671", { country: "US", allowInternational: true }).ok, true,
+    "the plus is optional when international numbers are allowed");
+  assert.equal(validateCellphoneNumber("+44 20 7183 8750", { country: "GB" }).ok, true,
+    "separators are stripped before the country rule applies");
+
+  const domestic = validateCellphoneNumber("+14155552671", { country: "US", allowInternational: false });
+  assert.equal(domestic.ok, false, "an opt-out rejects the plus");
+  assert.equal(domestic.code, "INVALID_FORMAT");
+
+  const doubled = validateCellphoneNumber("++14155552671", { country: "US" });
+  assert.equal(doubled.ok, false);
+  assert.equal(doubled.code, "INVALID_FORMAT", "two plus signs are never a number");
+});
+
+test("a country preset narrows the digit count, and ANY falls back to the 7 to 15 rule", () => {
+  const gbUnderUs = validateCellphoneNumber("+447911123456", { country: "US" });
+  assert.equal(gbUnderUs.ok, false, "US accepts 10 to 11 digits, a 12 digit GB number is out of range");
+  assert.equal(gbUnderUs.code, "TOO_LONG");
+  assert.equal(validateCellphoneNumber("+447911123456", { country: "GB" }).ok, true,
+    "the same number under its own preset is fine");
+  assert.equal(validateCellphoneNumber("+447911123456", { country: "ANY" }).ok, true,
+    "ANY accepts 7 to 15 digits, so 12 is fine");
+
+  const tooShort = validateCellphoneNumber("+123456", { country: "US" });
+  assert.equal(tooShort.ok, false);
+  assert.equal(tooShort.code, "TOO_SHORT");
+  assert.match(tooShort.message, /10/, "the message states the minimum that applied");
+
+  const tooLong = validateCellphoneNumber("+1234567890123456", { country: "ANY" });
+  assert.equal(tooLong.ok, false);
+  assert.equal(tooLong.code, "TOO_LONG");
+  assert.match(tooLong.message, /15/, "the message states the maximum that applied");
+
+  const overridden = validateCellphoneNumber("+999999", { country: "US", minDigits: 6, maxDigits: 8 });
+  assert.equal(overridden.ok, true, overridden.message);
+
+  const raisedFloor = validateCellphoneNumber("+1234567", { country: "US", minDigits: 6 });
+  assert.equal(raisedFloor.ok, true, "only the lower bound is overridden, the preset still caps the top");
+
+  const loweredCeiling = validateCellphoneNumber("+12345678901234", { country: "US", maxDigits: 20 });
+  assert.equal(loweredCeiling.ok, true, "a raised ceiling accepts a longer number than US normally allows");
+});

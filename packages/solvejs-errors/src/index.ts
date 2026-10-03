@@ -194,7 +194,8 @@ export function normalizeError(value: unknown, options: NormalizeOptions = {}): 
   const message =
     value instanceof Error ? value.message : typeof value === "string" ? value : "An unexpected error occurred.";
 
-  const code = options.code ?? (isAppError(value) ? value.code : "INTERNAL");
+  // An AppError with no code override returned above, so this line only ever sees a non-AppError.
+  const code = options.code ?? "INTERNAL";
   const cause = value instanceof Error && !(value instanceof AppError) ? value : options.cause;
 
   return new AppError(code, message, {

@@ -482,3 +482,72 @@ test("createTtlCache has and size reflect live entries", () => {
   assert.equal(cache.has("a"), false);
   assert.throws(() => cache.has(""), /CacheError|key/);
 });
+test("a cache works without an injected clock, falling back to the real one", () => {
+  const ttl = createTtlCache({ ttlMs: 60_000 });
+  ttl.set("token", "abc");
+  assert.equal(ttl.get("token"), "abc", "a fresh entry is readable straight away");
+  assert.equal(ttl.has("token"), true);
+  assert.equal(ttl.delete("token"), true);
+  assert.equal(ttl.get("token"), undefined);
+
+const lru = createLruCache({ maxSize: 2 });
+  lru.set("a", 1);
+  lru.set("b", 2);
+  assert.equal(lru.get("a"), 1);
+  lru.set("c", 3);
+assert.equal(lru.get("b"), undefined, "b was the least recently used and is gone");
+  assert.equal(lru.size(), 2);
+
+  const expiring = createLruCache({ maxSize: 2, ttlMs: 60_000 });
+  expiring.set("x", 1);
+  assert.equal(expiring.get("x"), 1, "the default clock has not advanced past the ttl");
+});
+
+test("createStaleWhileRevalidate swallows a failing background refresh", async () => {
+  let now = 1000;
+  let calls = 0;
+  const read = createStaleWhileRevalidate(
+    async () => {
+      calls += 1;
+      if (calls > 1) throw new Error("backend down");
+      return "good";
+    },
+    { freshMs: 50, staleMs: 500, now: () => now }
+  );
+
+  assert.equal(await read(), "good");
+
+  now += 60;
+  assert.equal(await read(), "good", "the stale value is still served when the refresh will fail");
+  await new Promise((resolve) => setTimeout(resolve, 10));
+  assert.equal(calls, 2, "the refresh really was attempted");
+
+  // The failure must not have poisoned anything: past the stale window the caller now sees
+  // the error, which is the honest outcome for a value that can no longer be trusted.
+  now += 500;
+  await assert.rejects(() => read(), /backend down/);
+});
+
+test("createStaleWhileRevalidate collapses concurrent reads into one loader call", async () => {
+  let calls = 0;
+  let release;
+  const gate = new Promise((resolve) => {
+    release = resolve;
+  });
+
+  const read = createStaleWhileRevalidate(
+    async () => {
+      calls += 1;
+      await gate;
+      return "value";
+    },
+    { freshMs: 1000, staleMs: 2000 }
+  );
+
+  const all = Promise.all([read(), read(), read(), read()]);
+  release();
+  const values = await all;
+
+  assert.equal(calls, 1, "four concurrent readers share a single in-flight load");
+  assert.deepEqual(values, ["value", "value", "value", "value"]);
+});

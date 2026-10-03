@@ -59,6 +59,22 @@ satisfies("1.2.3", "^0.2.3");  // true
 satisfies("0.3.0", "^0.2.3");  // false, caret on 0.x only allows patch changes
 ```
 
+## Wildcards are intervals, not single versions
+
+A wildcard operand names a block of versions, so an operator tests the block rather than one
+version. `2`, `2.x` and `2.*` all mean "every 2.y.z", and `1.2`, `1.2.x` mean "every 1.2.z":
+
+```ts
+satisfies("1.1.0", "<2.x");    // true,  everything below 2.0.0
+satisfies("2.0.0", "<2.x");    // false, the lower bound is excluded
+satisfies("2.99.99", "<=2.x"); // true,  the upper bound needs a strict >
+satisfies("2.5.0", ">1.x");    // true,  above the whole 1.y.z block
+satisfies("1.2.9", ">=1.2");  // true
+satisfies("1.3.0", ">1.2");    // true,  moved past the whole 1.2.z block
+```
+
+An explicit `=` is accepted and means the block: `=1.2` matches every `1.2.z`.
+
 ## Prerelease handling
 
 A prerelease only satisfies a range that itself names a prerelease of the **same** major, minor and

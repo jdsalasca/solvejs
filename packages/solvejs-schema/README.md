@@ -63,6 +63,21 @@ JSON.stringify(user);        // '{"id":"u1"}'
 
 Compare with `Object.hasOwn` or destructure with a default when you need to tell absent from empty.
 
+### A bound you cannot honour is refused at build time
+
+Lengths and item counts must be non-negative integers, and a numeric bound must be finite. The
+builders check, so a mistake surfaces where you wrote it rather than as a schema that can never
+match:
+
+```ts
+s.string().min(-1);            // TypeError: Expected min length to be a non-negative integer.
+s.array(s.string()).min(2.5);  // TypeError: Expected min length to be a non-negative integer.
+s.number().max(Infinity);      // TypeError: Expected maximum to be a finite number.
+
+s.number().min(-10);           // fine, a negative bound is meaningful
+s.number().min(0);             // fine, and it is emitted, not confused with unset
+```
+
 ## Install
 
 ```bash

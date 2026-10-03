@@ -282,3 +282,91 @@ test("later field errors are reachable once the earlier one passes", () => {
   );
   assert.equal(Payload.safeParse({ email: "ada@example.com", age: 12 }).error.issues[0].code, "too_small");
 });
+test("toJsonSchema emits the numeric bounds that were configured", () => {
+  assert.deepEqual(toJsonSchema(s.string().min(2).max(8)), { type: "string", minLength: 2, maxLength: 8 });
+  assert.deepEqual(toJsonSchema(s.string().min(2)), { type: "string", minLength: 2 },
+    "an unset bound is absent rather than null");
+  assert.deepEqual(toJsonSchema(s.number().min(0).max(1)), { type: "number", minimum: 0, maximum: 1 },
+    "zero is a real bound and must not be confused with unset");
+  assert.deepEqual(toJsonSchema(s.number().int().max(10)), { type: "integer", maximum: 10 });
+  assert.deepEqual(toJsonSchema(s.number().min(-5)), { type: "number", minimum: -5 }, "a negative bound is fine");
+
+  assert.deepEqual(toJsonSchema(s.array(s.string()).min(1).max(3)), {
+    type: "array",
+    items: { type: "string" },
+    minItems: 1,
+    maxItems: 3
+  });
+assert.deepEqual(toJsonSchema(s.array(s.string()).max(3)), { type: "array", items: { type: "string" }, maxItems: 3 });
+});
+
+test("every length and bound builder refuses a value it cannot honour", () => {
+  // A negative length is nonsense for a string or an array, and a non-finite bound is nonsense
+  // for a number, so both are refused at build time rather than reaching a consumer as
+  // invalid JSON Schema.
+  assert.throws(() => s.string().min(-1), /non-negative/);
+  assert.throws(() => s.string().max(1.5), /non-negative/);
+  assert.throws(() => s.array(s.string()).min(-1), /non-negative/);
+  assert.throws(() => s.array(s.string()).max(Number.NaN), /non-negative/);
+  assert.throws(() => s.number().min(Number.NaN), /finite/);
+  assert.throws(() => s.number().max(Infinity), /finite/);
+  assert.throws(() => s.number().max(-Infinity), /finite/);
+
+  assert.throws(() => s.string().min(Number.NaN), /non-negative/, "NaN is not an integer");
+  assert.throws(() => s.array(s.string()).min(2.5), /non-negative/, "a fractional count is refused");
+
+  // A negative numeric bound is legitimate, so it must not be caught by the length rule.
+  assert.doesNotThrow(() => s.number().min(-10));
+  assert.doesNotThrow(() => s.number().max(-1));
+  assert.equal(toJsonSchema(s.number().min(-10)).minimum, -10);
+});
+
+test("a union reports one issue per failing branch, and the message is the first one", () => {
+  const Shape = s.union([
+    s.object({ kind: s.literal("circle"), r: s.number() }),
+    s.object({ kind: s.literal("square"), side: s.number() })
+  ]);
+
+  const result = Shape.safeParse({ kind: "circle" });
+  assert.equal(result.success, false);
+  assert.equal(result.error instanceof SchemaError, true);
+  assert.ok(result.error.issues.length >= 1, "at least the missing field of a branch is reported");
+  assert.equal(result.error.issues.every((issue) => typeof issue.path === "string"), true,
+    "every issue names a path");
+  assert.equal(result.error.message, result.error.issues[0].message, "the message is the first issue");
+
+  const bothWrong = Shape.safeParse({ kind: "triangle" });
+  assert.equal(bothWrong.success, false);
+  assert.ok(bothWrong.error.issues.length > 1, "two branches were tried, so more than one issue came back");
+});
+
+test("a union whose branches all throw something unexpected still fails loudly", () => {
+  // A branch that throws a non-SchemaError is caught and ignored, so no issue is collected.
+  // The union must not pass a value it never actually checked.
+  const exploding = {
+    toJsonSchema: () => ({ type: "string" }),
+    parse: () => {
+      throw new TypeError("boom");
+    },
+    parseAt: () => {
+      throw new TypeError("boom");
+    }
+  };
+
+  const Either = s.union([exploding, { ...exploding }]);
+  const result = Either.safeParse("anything");
+
+  assert.equal(result.success, false, "no branch validated the value, so the union fails");
+  assert.equal(result.error.issues.length, 1);
+  assert.equal(result.error.issues[0].code, "invalid_union");
+  assert.match(result.error.issues[0].message, /did not match any union option/);
+});
+
+test("SchemaError can be built with no issues at all", () => {
+  const empty = new SchemaError([]);
+
+  assert.equal(empty.name, "SchemaError");
+  assert.deepEqual(empty.issues, []);
+  assert.equal(empty.message, "Schema validation failed.", "the generic message is used, not undefined");
+  assert.equal(empty instanceof TypeError, true);
+});
