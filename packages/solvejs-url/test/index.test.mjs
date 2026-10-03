@@ -247,3 +247,20 @@ test("joinUrl with no segments at all is an empty string, not a lone slash", () 
   assert.equal(joinUrl(), "", "nothing to join");
   assert.equal(joinUrl(""), "/", "an empty base still yields the single trailing slash");
 });
+
+test("replacePathParam substitutes textually, so a longer name that shares a prefix is corrupted", () => {
+  // It is a string replacement, not a template parser, which is exactly why a placeholder whose
+  // name starts with the requested one comes out mangled. Pinned so the behaviour cannot change
+  // silently, and so the README trap stays true.
+  assert.equal(replacePathParam("/users/:idx", "id", "7"), "/users/7x");
+  assert.equal(replacePathParam("/a:id", "id", "7"), "/a7", "it replaces mid-segment too");
+  assert.equal(replacePathParam("/users/:id/x/:id", "id", "7"), "/users/7/x/:id",
+    "only the first occurrence is replaced");
+
+  assert.equal(replacePathParam("/:id", "id", "7"), "/7", "a placeholder may be the whole segment");
+  assert.equal(replacePathParam("/users/:id/:id", "id", "7"), "/users/7/:id");
+
+  // A name that is a suffix of another token is not what the caller usually means, so preferring
+  // the longest match is not something this function attempts.
+  assert.equal(replacePathParam("/a:idx:id", "idx", "7"), "/a7:id");
+});

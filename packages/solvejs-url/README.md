@@ -102,11 +102,63 @@ try {
 
 ## Limitations and Constraints
 
-- `buildUrl`, `withQuery`, and `omitQuery` require an absolute URL with a scheme and a host. Relative
-  URLs are rejected rather than guessed, because guessing a base is where wrong-request bugs start.
-- `parseQuery` does not validate semantics. It returns strings, so a key expected to be a number needs
-  your own conversion.
-- `replacePathParam` replaces the first occurrence of `:name` and only when the token is a full
-  segment boundary-free match, so a template like `/a:id` will replace inside `id`-prefixed text too.
-  Keep placeholders as their own path segment.
-- A `:name` token inside an existing query value is not replaced; the function only sees the path.
+### An absolute URL is required, never guessed
+
+`buildUrl`, `withQuery` and `omitQuery` require an absolute URL with a scheme and a host. A relative
+URL is rejected rather than guessed, because guessing a base is where wrong-request bugs start.
+
+```ts
+buildUrl("/users", { query: { page: 2 } }); // UrlError URL_NOT_ABSOLUTE
+```
+
+### parseQuery returns strings, not semantics
+
+It does not validate anything. A key you expect to be a number needs your own conversion, and a
+repeated key comes back as an array while a single one comes back as a string.
+
+```ts
+parseQuery("?page=2");       // { page: "2" }
+parseQuery("?tag=a&tag=b");  // { tag: ["a", "b"] }
+```
+
+### getUrlParam returns the first value and never reads a fragment
+
+A repeated key resolves to its first value, and anything after `#` is a fragment, not a query, so it
+is never searched. That is what keeps `/x#frag?a=1` from resolving `a` out of fragment text.
+
+```ts
+getUrlParam("/x?a=1&a=2", "a");  // "1"
+getUrlParam("/x#frag?a=1", "a"); // null
+```
+
+### A path placeholder is replaced textually, first occurrence only
+
+`replacePathParam(path, name, value)` replaces the first `:name` it finds, wherever it appears, and
+URL-encodes the value. It is a textual substitution, not a template engine, which has two
+consequences worth knowing:
+
+```ts
+replacePathParam("/users/:id/posts", "id", "7");   // "/users/7/posts"
+replacePathParam("/users/:id/x/:id", "id", "7");   // "/users/7/x/:id", only the first one
+replacePathParam("/a:id", "id", "7");              // "/a7", even mid-segment
+replacePathParam("/users/:id", "id", "a b/c");     // "/users/a%20b%2Fc", the value is encoded
+```
+
+Because the match is textual, a longer placeholder that starts with the same name is corrupted:
+
+```ts
+replacePathParam("/users/:idx", "id", "7");  // "/users/7x", not what anyone wanted
+```
+
+Pass `options.required` when a missing parameter must be an error rather than a silent no-op. It
+throws `UrlError` with the code `URL_PATH_PARAM_MISSING`.
+
+```ts
+replacePathParam("/users/:id", "name", "7");                          // "/users/:id"
+replacePathParam("/users/:id", "name", "7", { required: true });      // UrlError
+```
+
+### Query keys come back sorted, not in the order you sent them
+
+`stringifyQuery` sorts by key so the same object always produces the same string, which is what
+makes it usable as a cache key. Repeated values keep their order within a key.
