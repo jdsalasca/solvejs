@@ -417,11 +417,10 @@ export function createTokenBucketLimiter(
       return;
     }
 
-    const next = queue[0];
-    const missingTokens = Math.max(0, next.tokenCost - availableTokens);
-    if (missingTokens === 0) {
-      return;
-    }
+const next = queue[0];
+    // The caller only reaches here after the drain loop broke on an unaffordable
+    // head, so `missingTokens` is always greater than zero.
+    const missingTokens = next.tokenCost - availableTokens;
 
     const intervalsNeeded = Math.ceil(missingTokens / refillTokens);
     const nextReadyAt = lastRefillAt + intervalsNeeded * refillIntervalMs;

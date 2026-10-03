@@ -25,6 +25,36 @@ Use it when you need predictable retry logic, promise time limits, queues, and r
 
 - `throttlePromise` drops calls made during the throttle window.
 - `debouncePromise` cancels previous pending calls with a rejection.
+
+### debouncePromise rejects superseded calls with a dedicated error
+
+A call that a newer call replaces never runs, and its promise rejects immediately with
+`Error: Debounced by a newer call.` It does not wait for the newer call, and it does not receive the
+newer call's outcome. Attach a handler as soon as you make the call, or the rejection surfaces as an
+unhandled rejection:
+
+```ts
+const save = debouncePromise(persist, { waitMs: 300 });
+
+const first = save("draft");           // will be superseded
+const second = save("final");          // this one runs
+
+await second;                          // resolves
+await first;                           // rejects: "Debounced by a newer call."
+```
+
+### Validation is synchronous, retry and pMap are not
+
+`sleep`, `debouncePromise`, `createRateLimiter`, and `createTokenBucketLimiter` validate their
+options synchronously, so a bad option throws at the call site. `retry` and `pMap` are `async`, so
+the same mistake arrives as a rejected promise instead:
+
+```ts
+sleep(-1);                                  // throws immediately
+await retry(fn, { retries: -1 });           // rejects
+await pMap(items, fn, { concurrency: 0 });   // rejects
+```
+
 ## Install
 
 ```bash

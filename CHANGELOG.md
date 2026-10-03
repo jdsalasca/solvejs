@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- Documented that in `@jdsalasc/solvejs-async` a `debouncePromise` call superseded by a newer call rejects immediately with `Error: Debounced by a newer call.` and that validation is synchronous for `sleep`/`debouncePromise`/`createRateLimiter`/`createTokenBucketLimiter` but arrives as a rejected promise for `retry`/`pMap`. Behavior is unchanged. Migration impact: none.
+- Removed an unreachable branch in `createTokenBucketLimiter`: `scheduleDrain` is only ever called after the drain loop has broken on an unaffordable queue head, so its `missingTokens === 0` early return could not execute. No behavior change. Migration impact: none.
+
 - Documented two `@jdsalasc/solvejs-env` inconsistencies: `getEnvEnum` takes `allowedValues` as its second positional argument while every other getter takes the env source there, and a present-but-blank value falls back to `defaultValue` in every getter except `getEnvString`, which raises `cannot be empty`. Behavior is unchanged. Migration impact: none.
 
 - Documented that in `@jdsalasc/solvejs-schema` an absent optional field is set to `undefined` on the parsed result rather than omitted, so `"key" in result` is `true` and `Object.keys` lists it even though `JSON.stringify` hides it. Behavior is unchanged. Migration impact: none.

@@ -176,3 +176,188 @@ test("createTokenBucketLimiter smooths bursts and enforces token costs", async (
 
   assert.throws(() => limiter(async () => "invalid", 4), /tokenCost to be less than or equal to capacity/);
 });
+
+test("retry validates its options", async () => {
+  const ok = async () => "fine";
+
+  // retry is async, so option validation surfaces as a rejected promise rather
+  // than a synchronous throw.
+  await assert.rejects(() => retry(ok, { retries: -1 }), /non-negative integer/);
+  await assert.rejects(() => retry(ok, { retries: 1.5 }), /non-negative integer/);
+  await assert.rejects(() => retry(ok, { delayMs: -1 }), /non-negative finite number/);
+  await assert.rejects(() => retry(ok, { delayMs: NaN }), /non-negative finite number/);
+  await assert.rejects(() => retry(ok, { backoffFactor: 0.5 }), /greater than or equal to 1/);
+  await assert.rejects(() => retry(ok, { backoffFactor: -1 }), /greater than or equal to 1/);
+  await assert.rejects(() => retry(ok, { backoffFactor: Infinity }), /greater than or equal to 1/);
+
+  assert.equal(await retry(ok, { backoffFactor: 1 }), "fine", "a factor of 1 is allowed");
+  assert.equal(await retry(ok, { retries: 0 }), "fine");
+});
+
+test("retry honours shouldRetry to stop early", async () => {
+  let attempts = 0;
+  const flaky = async () => {
+    attempts += 1;
+    throw new Error(`attempt ${attempts}`);
+  };
+
+  const seen = [];
+  await assert.rejects(
+    () =>
+      retry(flaky, {
+        retries: 5,
+        shouldRetry: (error, failedAttempts) => {
+          seen.push({ message: error.message, failedAttempts });
+          return failedAttempts < 2;
+        }
+      }),
+    /attempt 2/,
+    "the operation stops once shouldRetry says no"
+  );
+  assert.equal(attempts, 2, "no further attempts are made");
+  assert.deepEqual(seen, [
+    { message: "attempt 1", failedAttempts: 1 },
+    { message: "attempt 2", failedAttempts: 2 }
+  ]);
+});
+
+test("retry reports the final error when every attempt fails", async () => {
+  let attempts = 0;
+  await assert.rejects(
+    () =>
+      retry(
+        async () => {
+          attempts += 1;
+          throw new Error("always fails");
+        },
+        { retries: 2 }
+      ),
+    /always fails/
+  );
+  assert.equal(attempts, 3, "retries 2 means three attempts in total");
+});
+
+test("pMap validates concurrency and handles an empty input", async () => {
+  await assert.rejects(() => pMap([1, 2], async (v) => v, { concurrency: 0 }), /positive integer/);
+  await assert.rejects(() => pMap([1, 2], async (v) => v, { concurrency: -1 }), /positive integer/);
+  await assert.rejects(() => pMap([1, 2], async (v) => v, { concurrency: 1.5 }), /positive integer/);
+
+  assert.deepEqual(await pMap([], async (v) => v), [], "an empty input resolves to an empty array");
+  assert.deepEqual(await pMap([], async (v) => v, { concurrency: 2 }), []);
+  assert.deepEqual(
+    await pMap([1, 2, 3], async (v) => v, { concurrency: 99 }),
+    [1, 2, 3],
+    "concurrency above the input length is fine"
+  );
+});
+
+test("debouncePromise rejects a superseded call with its own error", async () => {
+  let calls = 0;
+  const failing = debouncePromise(
+    async () => {
+      calls += 1;
+      throw new Error("boom");
+    },
+    { waitMs: 5 }
+  );
+
+  await assert.rejects(() => failing(), /boom/, "the executed call rejects with its own error");
+  assert.equal(calls, 1);
+
+  // A call that a newer call replaces never runs, and its promise rejects with a
+  // dedicated error rather than the newer call's outcome. Attach the handler
+  // immediately, otherwise Node reports an unhandled rejection.
+  let runs = 0;
+  const debounced = debouncePromise(
+    async (value) => {
+      runs += 1;
+      return `ran ${value}`;
+    },
+    { waitMs: 10 }
+  );
+
+  const superseded = debounced("first");
+  const supersededRejection = assert.rejects(() => superseded, /Debounced by a newer call/);
+  const latest = debounced("second");
+
+  assert.equal(await latest, "ran second", "the newest call runs and resolves");
+  await supersededRejection;
+  assert.equal(runs, 1, "the superseded call never executed");
+});
+
+test("createRateLimiter validates its options", () => {
+  assert.throws(() => createRateLimiter({ maxCalls: 0, windowMs: 100 }), /positive integer/);
+  assert.throws(() => createRateLimiter({ maxCalls: 1.5, windowMs: 100 }), /positive integer/);
+  assert.throws(() => createRateLimiter({ maxCalls: 1, windowMs: -1 }), /non-negative finite number/);
+  assert.throws(() => createRateLimiter({ maxCalls: 1, windowMs: NaN }), /non-negative finite number/);
+});
+
+test("createRateLimiter lets a new window open after the old one drains", async () => {
+  const limiter = createRateLimiter({ maxCalls: 2, windowMs: 20 });
+  const started = Date.now();
+
+  await Promise.all([limiter(() => "a"), limiter(() => "b")]);
+  await limiter(() => "c");
+  const elapsed = Date.now() - started;
+
+  assert.ok(elapsed >= 15, `expected the third call to wait for the window, waited ${elapsed}ms`);
+  assert.deepEqual(await Promise.all([limiter(() => "d"), limiter(() => "e")]), ["d", "e"]);
+});
+
+test("createTokenBucketLimiter validates its options", () => {
+  assert.throws(() => createTokenBucketLimiter({ capacity: 0, refillTokens: 1, refillIntervalMs: 10 }), /positive integer/);
+  assert.throws(
+    () => createTokenBucketLimiter({ capacity: 1, refillTokens: 0, refillIntervalMs: 10 }),
+    /positive integer/
+  );
+  assert.throws(
+    () => createTokenBucketLimiter({ capacity: 1, refillTokens: 1, refillIntervalMs: 0 }),
+    /positive integer/
+  );
+  assert.throws(
+    () => createTokenBucketLimiter({ capacity: 5, refillTokens: 1, refillIntervalMs: 10, initialTokens: 6 }),
+    /less than or equal to capacity/,
+    "initialTokens above capacity is rejected"
+  );
+  assert.throws(
+    () => createTokenBucketLimiter({ capacity: 5, refillTokens: 1, refillIntervalMs: 10, initialTokens: -1 }),
+    /non-negative finite number/
+  );
+  assert.ok(createTokenBucketLimiter({ capacity: 5, refillTokens: 1, refillIntervalMs: 10, initialTokens: 5 }));
+});
+
+test("createTokenBucketLimiter waits when a token cost exceeds what is available", async () => {
+  const limiter = createTokenBucketLimiter({
+    capacity: 4,
+    refillTokens: 4,
+    refillIntervalMs: 20,
+    initialTokens: 4
+  });
+
+  const started = Date.now();
+  await limiter(() => "cheap", 1);
+  await limiter(() => "expensive", 4);
+
+  assert.ok(Date.now() - started >= 15, "a cost above the remaining balance waits for a refill");
+});
+
+test("createTokenBucketLimiter drains a full capacity immediately", async () => {
+  const limiter = createTokenBucketLimiter({
+    capacity: 3,
+    refillTokens: 3,
+    refillIntervalMs: 1000,
+    initialTokens: 3
+  });
+
+  const started = Date.now();
+  await Promise.all([limiter(() => 1), limiter(() => 2), limiter(() => 3)]);
+  assert.ok(Date.now() - started < 200, "three cost-1 calls fit in the initial balance");
+});
+
+test("sleep rejects a negative delay", async () => {
+  // sleep validates synchronously, so the throw happens before a promise exists.
+  assert.throws(() => sleep(-1), /non-negative finite number/);
+  assert.throws(() => sleep(NaN), /non-negative finite number/);
+  assert.throws(() => sleep(Infinity), /non-negative finite number/);
+  await sleep(0);
+});
