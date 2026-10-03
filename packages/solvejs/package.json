@@ -40,6 +40,7 @@
     "@jdsalasc/solvejs-objects": "1.9.0",
     "@jdsalasc/solvejs-regex": "1.9.0",
     "@jdsalasc/solvejs-schema": "1.9.0",
+    "@jdsalasc/solvejs-semver": "0.1.0",
     "@jdsalasc/solvejs-string": "1.9.0",
     "@jdsalasc/solvejs-validators": "1.9.0",
     "@jdsalasc/solvejs-url": "0.1.0"

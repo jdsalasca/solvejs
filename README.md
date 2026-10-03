@@ -47,6 +47,7 @@ npm i @jdsalasc/solvejs-date @jdsalasc/solvejs-validators @jdsalasc/solvejs-obje
 - `@jdsalasc/solvejs-cache`: `stableKey`, `createTtlCache`, `createLruCache`, `memoizeAsync`, `createStaleWhileRevalidate`.
 - `@jdsalasc/solvejs-json`: `safeJsonParse`, `safeJsonStringify`, `stableStringify`, `deepClone`, `deepEqual`, `jsonMerge`.
 - `@jdsalasc/solvejs-pagination`: `pageToOffset`, `offsetToPage`, `pageCount`, `clampPage`, `paginate`, `withPagination`.
+- `@jdsalasc/solvejs-semver`: `parseVersion`, `compareVersions`, `satisfies`, `isValidRange`, `maxSatisfying`, `incrementVersion`.
 
 ## Quick Example
 

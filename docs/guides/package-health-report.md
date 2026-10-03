@@ -6,12 +6,12 @@ This report lists each package, its practical utilities, current status, known i
 
 ## Test Trust
 
-16 packages, 273 test blocks. The minimum for each package is derived
+17 packages, 297 test blocks. The minimum for each package is derived
 from its exported function count by `npm run test:baseline`.
 
 | Package | Function exports | Test blocks | Line coverage |
 |---|---|---|---|
-| `@jdsalasc/solvejs` | 0 (re-exports) | 1 | 48.83% |
+| `@jdsalasc/solvejs` | 0 (re-exports) | 1 | 47.06% |
 | `@jdsalasc/solvejs-async` | 10 | 21 | 100.00% |
 | `@jdsalasc/solvejs-cache` | 5 | 28 | 100.00% |
 | `@jdsalasc/solvejs-constants` | 1 | 9 | 100.00% |
@@ -24,6 +24,7 @@ from its exported function count by `npm run test:baseline`.
 | `@jdsalasc/solvejs-pagination` | 8 | 15 | 100.00% |
 | `@jdsalasc/solvejs-regex` | 5 | 15 | 100.00% |
 | `@jdsalasc/solvejs-schema` | 1 | 15 | 100.00% |
+| `@jdsalasc/solvejs-semver` | 9 | 24 | 100.00% |
 | `@jdsalasc/solvejs-string` | 9 | 10 | 100.00% |
 | `@jdsalasc/solvejs-url` | 8 | 17 | 100.00% |
 | `@jdsalasc/solvejs-validators` | 31 | 37 | 100.00% |
@@ -50,6 +51,7 @@ One row per package, refreshed by hand as behaviour changes.
 | `@jdsalasc/solvejs-cache` | `stableKey`, `createTtlCache`, `createLruCache`, `memoizeAsync`, `createStaleWhileRevalidate`, `CacheError`. | 0.1.0, 28 test blocks, 100.00% line coverage, not yet published to npm. | None critical identified. | New, so no battle-testing yet. | Publish 0.1.0 once the meta package reaches a release. |
 | `@jdsalasc/solvejs-json` | `safeJsonParse`, `safeJsonStringify`, `stableStringify`, `deepClone`, `deepEqual`, `jsonMerge`, `pickJsonKeys`, `omitJsonKeys`, `getOrDefault`, `JsonError`. | 0.1.0, 20 test blocks, 100.00% line coverage, not yet published to npm. | None critical identified. | New, so no battle-testing yet. | Publish 0.1.0 once the meta package reaches a release. |
 | `@jdsalasc/solvejs-pagination` | `pageToOffset`, `offsetToPage`, `pageCount`, `clampPage`, `offsetToCursor`, `cursorToOffset`, `paginate`, `withPagination`, `PaginationError`. | 0.1.0, 15 test blocks, 100.00% line coverage, not yet published to npm. | None critical identified. | New, so no battle-testing yet. | Publish 0.1.0 once the meta package reaches a release. |
+| `@jdsalasc/solvejs-semver` | `parseVersion`, `isValidVersion`, `compareVersions`, `satisfies`, `isValidRange`, `maxSatisfying`, `incrementVersion`, `formatVersion`, `diffVersions`, `SemverError`. | 0.1.0, 24 test blocks, 100.00% line coverage, not yet published to npm. | None critical identified. | New, so no battle-testing yet. | Publish 0.1.0 once the meta package reaches a release. |
 
 ## Cross-Package Gaps
 

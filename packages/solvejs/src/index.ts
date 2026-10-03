@@ -13,3 +13,4 @@ export * from "@jdsalasc/solvejs-url";
 export * from "@jdsalasc/solvejs-cache";
 export * from "@jdsalasc/solvejs-json";
 export * from "@jdsalasc/solvejs-pagination";
+export * from "@jdsalasc/solvejs-semver";
