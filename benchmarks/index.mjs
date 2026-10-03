@@ -5,6 +5,7 @@ import { groupBy, sortBy, unique, uniqueBy } from "../packages/solvejs-list/dist
 import { percent } from "../packages/solvejs-numbers/dist/esm/index.js";
 import { isCellphoneNumber } from "../packages/solvejs-validators/dist/esm/index.js";
 import { buildUrl, stringifyQuery, parseQuery } from "../packages/solvejs-url/dist/esm/index.js";
+import { createLruCache, createTtlCache, memoizeAsync, stableKey } from "../packages/solvejs-cache/dist/esm/index.js";
 
 function run(label, iterations, fn) {
   const start = performance.now();
@@ -25,6 +26,22 @@ run("validators.isCellphoneNumber", iterations, () => isCellphoneNumber("+573001
 run("url.buildUrl", iterations, () => buildUrl("https://api.example.com", { path: "users", query: { page: 2 } }));
 run("url.stringifyQuery", iterations, () => stringifyQuery({ page: 2, q: "shoes", tag: ["a", "b"] }));
 run("url.parseQuery", iterations, () => parseQuery("?page=2&q=shoes&tag=a&tag=b"));
+run("cache.stableKey", iterations, () => stableKey({ userId: 42, scopes: ["a", "b"], nested: { z: 1, y: 2 } }));
+
+function runCacheBenchmarks(size) {
+  const lru = createLruCache({ maxSize: size });
+  const ttl = createTtlCache({ ttlMs: 60_000, now: () => 0 });
+  for (let i = 0; i < size; i += 1) {
+    lru.set(`key-${i}`, i);
+    ttl.set(`key-${i}`, i);
+  }
+
+  run(`cache.createLruCache.get (${size})`, 1, () => lru.get(`key-${size - 1}`));
+  run(`cache.createTtlCache.get (${size})`, 1, () => ttl.get(`key-${size - 1}`));
+}
+
+runCacheBenchmarks(10000);
+runCacheBenchmarks(100000);
 
 function runListScaleBenchmarks(size) {
   const rows = Array.from({ length: size }, (_, index) => ({

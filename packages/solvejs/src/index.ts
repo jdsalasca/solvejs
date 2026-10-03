@@ -10,3 +10,4 @@ export * from "@jdsalasc/solvejs-async";
 export * from "@jdsalasc/solvejs-env";
 export * from "@jdsalasc/solvejs-schema";
 export * from "@jdsalasc/solvejs-url";
+export * from "@jdsalasc/solvejs-cache";

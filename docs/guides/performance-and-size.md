@@ -4,33 +4,39 @@ Generated on 2026-10-03.
 
 ## Benchmark Snapshot
 
-- date.formatDate: 38.49ms for 100.000 iterations
-- string.toKebabCase: 85.50ms for 100.000 iterations
-- list.unique: 15.43ms for 100.000 iterations
-- numbers.percent: 5.31ms for 100.000 iterations
-- validators.isCellphoneNumber: 13.90ms for 100.000 iterations
-- url.buildUrl: 332.45ms for 100.000 iterations
-- url.stringifyQuery: 85.49ms for 100.000 iterations
-- url.parseQuery: 132.60ms for 100.000 iterations
-- list.uniqueBy (10000): 1.25ms for 1 iterations
-- list.groupBy (10000): 3.58ms for 1 iterations
-- list.sortBy (10000): 0.83ms for 1 iterations
-- list.uniqueBy (100000): 45.74ms for 1 iterations
-- list.groupBy (100000): 17.78ms for 1 iterations
-- list.sortBy (100000): 4.72ms for 1 iterations
-- list.uniqueBy high-cardinality (100000): 59.65ms for 1 iterations
-- list.groupBy high-cardinality (100000): 46.55ms for 1 iterations
-- list.sortBy high-cardinality (100000): 14.11ms for 1 iterations
-- list.uniqueBy high-cardinality (250000): 197.50ms for 1 iterations
-- list.groupBy high-cardinality (250000): 207.02ms for 1 iterations
-- list.sortBy high-cardinality (250000): 81.22ms for 1 iterations
+- date.formatDate: 41.28ms for 100.000 iterations
+- string.toKebabCase: 88.88ms for 100.000 iterations
+- list.unique: 19.34ms for 100.000 iterations
+- numbers.percent: 4.14ms for 100.000 iterations
+- validators.isCellphoneNumber: 20.53ms for 100.000 iterations
+- url.buildUrl: 386.98ms for 100.000 iterations
+- url.stringifyQuery: 101.54ms for 100.000 iterations
+- url.parseQuery: 100.51ms for 100.000 iterations
+- cache.stableKey: 339.10ms for 100.000 iterations
+- cache.createLruCache.get (10000): 0.18ms for 1 iterations
+- cache.createTtlCache.get (10000): 0.05ms for 1 iterations
+- cache.createLruCache.get (100000): 0.02ms for 1 iterations
+- cache.createTtlCache.get (100000): 0.00ms for 1 iterations
+- list.uniqueBy (10000): 2.16ms for 1 iterations
+- list.groupBy (10000): 1.78ms for 1 iterations
+- list.sortBy (10000): 0.85ms for 1 iterations
+- list.uniqueBy (100000): 18.31ms for 1 iterations
+- list.groupBy (100000): 17.75ms for 1 iterations
+- list.sortBy (100000): 4.53ms for 1 iterations
+- list.uniqueBy high-cardinality (100000): 97.03ms for 1 iterations
+- list.groupBy high-cardinality (100000): 47.97ms for 1 iterations
+- list.sortBy high-cardinality (100000): 19.76ms for 1 iterations
+- list.uniqueBy high-cardinality (250000): 166.74ms for 1 iterations
+- list.groupBy high-cardinality (250000): 112.44ms for 1 iterations
+- list.sortBy high-cardinality (250000): 57.75ms for 1 iterations
 
 ## Test Coverage (`node --test --experimental-test-coverage`)
 
 | Package | Lines | Branches | Functions |
 |---|---:|---:|---:|
-| @jdsalasc/solvejs | 52.83% | 57.00% | 18.09% |
+| @jdsalasc/solvejs | 50.16% | 57.43% | 17.14% |
 | @jdsalasc/solvejs-async | 100.00% | 96.94% | 97.50% |
+| @jdsalasc/solvejs-cache | 100.00% | 95.97% | 97.67% |
 | @jdsalasc/solvejs-constants | 100.00% | 100.00% | 100.00% |
 | @jdsalasc/solvejs-date | 100.00% | 99.00% | 100.00% |
 | @jdsalasc/solvejs-env | 100.00% | 97.52% | 100.00% |
@@ -47,8 +53,9 @@ Generated on 2026-10-03.
 
 | Package | Version | Tarball Size | Unpacked Size | Files |
 |---|---:|---:|---:|---:|
-| @jdsalasc/solvejs | 1.9.0 | 2.48 KB | 6.97 KB | 7 |
+| @jdsalasc/solvejs | 1.9.0 | 2.49 KB | 7.18 KB | 7 |
 | @jdsalasc/solvejs-async | 1.9.0 | 9.06 KB | 53.17 KB | 7 |
+| @jdsalasc/solvejs-cache | 0.1.0 | 9.61 KB | 55.78 KB | 7 |
 | @jdsalasc/solvejs-constants | 1.9.0 | 3.33 KB | 12.06 KB | 7 |
 | @jdsalasc/solvejs-date | 1.9.0 | 6.77 KB | 45.08 KB | 7 |
 | @jdsalasc/solvejs-env | 1.9.0 | 6.10 KB | 43.97 KB | 7 |

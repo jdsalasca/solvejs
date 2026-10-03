@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Added new package `@jdsalasc/solvejs-cache` with `stableKey`, `createTtlCache`, `createLruCache`, `memoizeAsync`, `createStaleWhileRevalidate`, and a `CacheError` carrying stable codes. Every time-dependent function accepts an injectable `now`, so expiry is testable without real timers, and `memoizeAsync` shares one in-flight promise per key and does not cache a rejection. Migration impact: none, new package.
+
 - Fixed `getUrlParam` in `@jdsalasc/solvejs-url`, which read a value out of text that appeared after a `#` fragment: `getUrlParam("/x#frag?a=1", "a")` returned `"1"` and now returns `null`. The fragment is now discarded before the query is located. Migration impact: none, unless a caller relied on the previous incorrect result.
 
 - Documented that `deepMerge` in `@jdsalasc/solvejs-objects` drops prototype-polluting keys only at levels where it merges two objects; a nested plain object with no counterpart on the target is assigned whole, so an own `__proto__` property inside it is carried as inert data. No prototype pollution is possible either way, because an own `__proto__` property is data rather than a prototype assignment. Behavior is unchanged. Migration impact: none.

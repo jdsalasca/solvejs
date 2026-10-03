@@ -44,11 +44,12 @@ npm i @jdsalasc/solvejs-date @jdsalasc/solvejs-validators @jdsalasc/solvejs-obje
 - `@jdsalasc/solvejs-env`: `getEnvString`, `getEnvNumber`, `getEnvObject`, `getEnvUrl`, `getEnvDsn`, `validateRequiredEnv`.
 - `@jdsalasc/solvejs-schema`: `s.object`, `s.string`, `s.number`, `safeParse`, `toJsonSchema`.
 - `@jdsalasc/solvejs-url`: `buildUrl`, `withQuery`, `parseQuery`, `stringifyQuery`, `omitQuery`, `replacePathParam`, `getUrlParam`, `joinUrl`.
+- `@jdsalasc/solvejs-cache`: `stableKey`, `createTtlCache`, `createLruCache`, `memoizeAsync`, `createStaleWhileRevalidate`.
 
 ## Quick Example
 
 ```ts
-import { parseDateStrict, slugify, countBy, toNumber, validateUuidV4, deepMerge, retry, s, buildUrl } from "@jdsalasc/solvejs";
+import { parseDateStrict, slugify, countBy, toNumber, validateUuidV4, deepMerge, retry, s, buildUrl, memoizeAsync } from "@jdsalasc/solvejs";
 
 parseDateStrict("2026-02-07", "YYYY-MM-DD");
 slugify("Build Better JS Apps");
@@ -59,6 +60,7 @@ deepMerge({ app: { env: "dev" } }, { app: { version: 2 } });
 await retry(() => fetch("https://example.com/health"), { retries: 2, delayMs: 150 });
 s.object({ id: s.string(), age: s.number({ coerce: true }).int() }).safeParse({ id: "u1", age: "42" });
 buildUrl("https://api.example.com", { path: "users", query: { page: 2 } });
+const loadUser = memoizeAsync(async (id) => fetch(`https://api.example.com/users/${id}`).then((r) => r.json()));
 ```
 
 ## Package Size and Test Coverage

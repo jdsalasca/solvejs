@@ -20,15 +20,16 @@
       </aside>
       <section class="panel">
         <h2>Test Trust</h2>
-        <p>210 test blocks across 13 packages. The minimum for each package is derived from its exported function count by <code>npm run test:baseline</code>.</p>
+        <p>238 test blocks across 14 packages. The minimum for each package is derived from its exported function count by <code>npm run test:baseline</code>.</p>
         <div style="overflow:auto">
           <table style="width:100%; border-collapse: collapse;">
             <thead>
               <tr><th align="left">Package</th><th align="left">Function exports</th><th align="left">Test blocks</th><th align="left">Line coverage</th></tr>
             </thead>
             <tbody>
-              <tr><td><code>@jdsalasc/solvejs</code></td><td>0 (re-exports)</td><td>1</td><td>52.83%</td></tr>
+              <tr><td><code>@jdsalasc/solvejs</code></td><td>0 (re-exports)</td><td>1</td><td>50.16%</td></tr>
               <tr><td><code>@jdsalasc/solvejs-async</code></td><td>10</td><td>21</td><td>100.00%</td></tr>
+              <tr><td><code>@jdsalasc/solvejs-cache</code></td><td>5</td><td>28</td><td>100.00%</td></tr>
               <tr><td><code>@jdsalasc/solvejs-constants</code></td><td>1</td><td>9</td><td>100.00%</td></tr>
               <tr><td><code>@jdsalasc/solvejs-date</code></td><td>18</td><td>23</td><td>100.00%</td></tr>
               <tr><td><code>@jdsalasc/solvejs-env</code></td><td>10</td><td>24</td><td>100.00%</td></tr>
@@ -62,7 +63,8 @@
               <tr><td><code>@jdsalasc/solvejs-async</code></td><td><code>sleep</code>, <code>timeout</code>, <code>timeoutFallback</code>, <code>retry</code>, <code>pMap</code>, <code>debouncePromise</code>, <code>throttlePromise</code>, <code>createTaskQueue</code>, <code>createRateLimiter</code>, <code>createTokenBucketLimiter</code>.</td><td>1.9.0, 10 test blocks, 93.65% line coverage.</td><td>None critical identified.</td><td>Lowest coverage of the leaf packages, mostly in the limiter error branches.</td><td>Next trust target: raise above 95%.</td></tr>
               <tr><td><code>@jdsalasc/solvejs-env</code></td><td><code>getEnvString</code>, <code>getEnvNumber</code>, <code>getEnvBoolean</code>, <code>getEnvObject</code>, <code>getEnvUrl</code>, <code>getEnvDsn</code>, <code>validateRequiredEnv</code>.</td><td>1.9.0, 10 test blocks, 90.70% line coverage.</td><td>None critical identified.</td><td>Second-lowest coverage, in the optional-URL and DSN branches.</td><td>Next trust target: raise above 95%.</td></tr>
               <tr><td><code>@jdsalasc/solvejs-schema</code></td><td><code>s</code> builders for string, number, boolean, literal, array, object, union and refine; <code>safeParse</code>, <code>toJsonSchema</code>, <code>SchemaError</code>.</td><td>1.9.0, 86.94% line coverage, the lowest of the leaf packages.</td><td><code>safeParse</code> is fail-fast and returns one issue; documented.</td><td>Array bounds and coercion branches are under-tested.</td><td>Next trust target: raise above 95%.</td></tr>
-              <tr><td><code>@jdsalasc/solvejs-url</code></td><td><code>buildUrl</code>, <code>joinUrl</code>, <code>stringifyQuery</code>, <code>parseQuery</code>, <code>withQuery</code>, <code>omitQuery</code>, <code>getUrlParam</code>, <code>replacePathParam</code>, <code>UrlError</code>.</td><td>0.1.0, 10 test blocks, 99.00% line coverage, not yet published to npm.</td><td>None critical identified.</td><td>New, so no battle-testing yet.</td><td>Publish 0.1.0 once the meta package reaches a release.</td></tr>
+              <tr><td><code>@jdsalasc/solvejs-url</code></td><td><code>buildUrl</code>, <code>joinUrl</code>, <code>stringifyQuery</code>, <code>parseQuery</code>, <code>withQuery</code>, <code>omitQuery</code>, <code>getUrlParam</code>, <code>replacePathParam</code>, <code>UrlError</code>.</td><td>0.1.0, 17 test blocks, 100.00% line coverage, not yet published to npm.</td><td>None critical identified.</td><td>New, so no battle-testing yet.</td><td>Publish 0.1.0 once the meta package reaches a release.</td></tr>
+              <tr><td><code>@jdsalasc/solvejs-cache</code></td><td><code>stableKey</code>, <code>createTtlCache</code>, <code>createLruCache</code>, <code>memoizeAsync</code>, <code>createStaleWhileRevalidate</code>, <code>CacheError</code>.</td><td>0.1.0, 28 test blocks, 100.00% line coverage, not yet published to npm.</td><td>None critical identified.</td><td>New, so no battle-testing yet.</td><td>Publish 0.1.0 once the meta package reaches a release.</td></tr>
             </tbody>
           </table>
         </div>

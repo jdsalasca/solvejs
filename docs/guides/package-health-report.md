@@ -6,13 +6,14 @@ This report lists each package, its practical utilities, current status, known i
 
 ## Test Trust
 
-13 packages, 210 test blocks. The minimum for each package is derived
+14 packages, 238 test blocks. The minimum for each package is derived
 from its exported function count by `npm run test:baseline`.
 
 | Package | Function exports | Test blocks | Line coverage |
 |---|---|---|---|
-| `@jdsalasc/solvejs` | 0 (re-exports) | 1 | 52.83% |
+| `@jdsalasc/solvejs` | 0 (re-exports) | 1 | 50.16% |
 | `@jdsalasc/solvejs-async` | 10 | 21 | 100.00% |
+| `@jdsalasc/solvejs-cache` | 5 | 28 | 100.00% |
 | `@jdsalasc/solvejs-constants` | 1 | 9 | 100.00% |
 | `@jdsalasc/solvejs-date` | 18 | 23 | 100.00% |
 | `@jdsalasc/solvejs-env` | 10 | 24 | 100.00% |
@@ -43,7 +44,8 @@ One row per package, refreshed by hand as behaviour changes.
 | `@jdsalasc/solvejs-async` | `sleep`, `timeout`, `timeoutFallback`, `retry`, `pMap`, `debouncePromise`, `throttlePromise`, `createTaskQueue`, `createRateLimiter`, `createTokenBucketLimiter`. | 1.9.0, 10 test blocks, 93.65% line coverage. | None critical identified. | Lowest coverage of the leaf packages, mostly in the limiter error branches. | Next trust target: raise above 95%. |
 | `@jdsalasc/solvejs-env` | `getEnvString`, `getEnvNumber`, `getEnvBoolean`, `getEnvObject`, `getEnvUrl`, `getEnvDsn`, `validateRequiredEnv`. | 1.9.0, 10 test blocks, 90.70% line coverage. | None critical identified. | Second-lowest coverage, in the optional-URL and DSN branches. | Next trust target: raise above 95%. |
 | `@jdsalasc/solvejs-schema` | `s` builders for string, number, boolean, literal, array, object, union and refine; `safeParse`, `toJsonSchema`, `SchemaError`. | 1.9.0, 86.94% line coverage, the lowest of the leaf packages. | `safeParse` is fail-fast and returns one issue; documented. | Array bounds and coercion branches are under-tested. | Next trust target: raise above 95%. |
-| `@jdsalasc/solvejs-url` | `buildUrl`, `joinUrl`, `stringifyQuery`, `parseQuery`, `withQuery`, `omitQuery`, `getUrlParam`, `replacePathParam`, `UrlError`. | 0.1.0, 10 test blocks, 99.00% line coverage, not yet published to npm. | None critical identified. | New, so no battle-testing yet. | Publish 0.1.0 once the meta package reaches a release. |
+| `@jdsalasc/solvejs-url` | `buildUrl`, `joinUrl`, `stringifyQuery`, `parseQuery`, `withQuery`, `omitQuery`, `getUrlParam`, `replacePathParam`, `UrlError`. | 0.1.0, 17 test blocks, 100.00% line coverage, not yet published to npm. | None critical identified. | New, so no battle-testing yet. | Publish 0.1.0 once the meta package reaches a release. |
+| `@jdsalasc/solvejs-cache` | `stableKey`, `createTtlCache`, `createLruCache`, `memoizeAsync`, `createStaleWhileRevalidate`, `CacheError`. | 0.1.0, 28 test blocks, 100.00% line coverage, not yet published to npm. | None critical identified. | New, so no battle-testing yet. | Publish 0.1.0 once the meta package reaches a release. |
 
 ## Cross-Package Gaps
 
