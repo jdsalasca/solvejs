@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Added new package `@jdsalasc/solvejs-json` with `safeJsonParse`, `safeJsonStringify`, `stableStringify`, `deepClone`, `deepEqual`, `jsonMerge`, `pickJsonKeys`, `omitJsonKeys`, `getOrDefault`, and a `JsonError`. `stableStringify` sorts keys at every depth so its output is safe to hash or compare, and `safeJsonStringify` deliberately mirrors `JSON.stringify`, including dropping functions and reporting a value with no JSON representation as `undefined` rather than as an error. Migration impact: none, new package.
+
 - Added new package `@jdsalasc/solvejs-cache` with `stableKey`, `createTtlCache`, `createLruCache`, `memoizeAsync`, `createStaleWhileRevalidate`, and a `CacheError` carrying stable codes. Every time-dependent function accepts an injectable `now`, so expiry is testable without real timers, and `memoizeAsync` shares one in-flight promise per key and does not cache a rejection. Migration impact: none, new package.
 
 - Fixed `getUrlParam` in `@jdsalasc/solvejs-url`, which read a value out of text that appeared after a `#` fragment: `getUrlParam("/x#frag?a=1", "a")` returned `"1"` and now returns `null`. The fragment is now discarded before the query is located. Migration impact: none, unless a caller relied on the previous incorrect result.

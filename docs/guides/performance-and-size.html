@@ -20,43 +20,48 @@
       </aside>
       <section class="panel">
         <h2>Benchmark Snapshot</h2>
-        <ul class="topic-list"><li>date.formatDate: 41.28ms for 100.000 iterations</li>
-<li>string.toKebabCase: 88.88ms for 100.000 iterations</li>
-<li>list.unique: 19.34ms for 100.000 iterations</li>
-<li>numbers.percent: 4.14ms for 100.000 iterations</li>
-<li>validators.isCellphoneNumber: 20.53ms for 100.000 iterations</li>
-<li>url.buildUrl: 386.98ms for 100.000 iterations</li>
-<li>url.stringifyQuery: 101.54ms for 100.000 iterations</li>
-<li>url.parseQuery: 100.51ms for 100.000 iterations</li>
-<li>cache.stableKey: 339.10ms for 100.000 iterations</li>
+        <ul class="topic-list"><li>date.formatDate: 50.65ms for 100.000 iterations</li>
+<li>string.toKebabCase: 119.78ms for 100.000 iterations</li>
+<li>list.unique: 20.27ms for 100.000 iterations</li>
+<li>numbers.percent: 5.05ms for 100.000 iterations</li>
+<li>validators.isCellphoneNumber: 17.27ms for 100.000 iterations</li>
+<li>url.buildUrl: 433.48ms for 100.000 iterations</li>
+<li>url.stringifyQuery: 124.22ms for 100.000 iterations</li>
+<li>url.parseQuery: 101.59ms for 100.000 iterations</li>
+<li>cache.stableKey: 418.00ms for 100.000 iterations</li>
+<li>json.stableStringify: 297.89ms for 100.000 iterations</li>
+<li>json.safeJsonParse: 60.65ms for 100.000 iterations</li>
+<li>json.deepClone: 92.84ms for 100.000 iterations</li>
+<li>json.deepEqual: 126.24ms for 100.000 iterations</li>
 <li>cache.createLruCache.get (10000): 0.18ms for 1 iterations</li>
-<li>cache.createTtlCache.get (10000): 0.05ms for 1 iterations</li>
+<li>cache.createTtlCache.get (10000): 0.06ms for 1 iterations</li>
 <li>cache.createLruCache.get (100000): 0.02ms for 1 iterations</li>
-<li>cache.createTtlCache.get (100000): 0.00ms for 1 iterations</li>
-<li>list.uniqueBy (10000): 2.16ms for 1 iterations</li>
-<li>list.groupBy (10000): 1.78ms for 1 iterations</li>
-<li>list.sortBy (10000): 0.85ms for 1 iterations</li>
-<li>list.uniqueBy (100000): 18.31ms for 1 iterations</li>
-<li>list.groupBy (100000): 17.75ms for 1 iterations</li>
-<li>list.sortBy (100000): 4.53ms for 1 iterations</li>
-<li>list.uniqueBy high-cardinality (100000): 97.03ms for 1 iterations</li>
-<li>list.groupBy high-cardinality (100000): 47.97ms for 1 iterations</li>
-<li>list.sortBy high-cardinality (100000): 19.76ms for 1 iterations</li>
-<li>list.uniqueBy high-cardinality (250000): 166.74ms for 1 iterations</li>
-<li>list.groupBy high-cardinality (250000): 112.44ms for 1 iterations</li>
-<li>list.sortBy high-cardinality (250000): 57.75ms for 1 iterations</li></ul>
+<li>cache.createTtlCache.get (100000): 0.04ms for 1 iterations</li>
+<li>list.uniqueBy (10000): 6.08ms for 1 iterations</li>
+<li>list.groupBy (10000): 10.17ms for 1 iterations</li>
+<li>list.sortBy (10000): 14.20ms for 1 iterations</li>
+<li>list.uniqueBy (100000): 24.29ms for 1 iterations</li>
+<li>list.groupBy (100000): 31.40ms for 1 iterations</li>
+<li>list.sortBy (100000): 12.16ms for 1 iterations</li>
+<li>list.uniqueBy high-cardinality (100000): 67.96ms for 1 iterations</li>
+<li>list.groupBy high-cardinality (100000): 78.21ms for 1 iterations</li>
+<li>list.sortBy high-cardinality (100000): 39.67ms for 1 iterations</li>
+<li>list.uniqueBy high-cardinality (250000): 173.71ms for 1 iterations</li>
+<li>list.groupBy high-cardinality (250000): 219.34ms for 1 iterations</li>
+<li>list.sortBy high-cardinality (250000): 133.28ms for 1 iterations</li></ul>
         <h2>Test Coverage</h2>
         <div style="overflow:auto">
           <table style="width:100%; border-collapse: collapse;">
             <thead>
               <tr><th align="left">Package</th><th align="left">Lines</th><th align="left">Branches</th><th align="left">Functions</th></tr>
             </thead>
-            <tbody><tr><td><code>@jdsalasc/solvejs</code></td><td>50.16%</td><td>57.43%</td><td>17.14%</td></tr>
+            <tbody><tr><td><code>@jdsalasc/solvejs</code></td><td>48.84%</td><td>57.84%</td><td>16.14%</td></tr>
 <tr><td><code>@jdsalasc/solvejs-async</code></td><td>100.00%</td><td>96.94%</td><td>97.50%</td></tr>
 <tr><td><code>@jdsalasc/solvejs-cache</code></td><td>100.00%</td><td>95.97%</td><td>97.67%</td></tr>
 <tr><td><code>@jdsalasc/solvejs-constants</code></td><td>100.00%</td><td>100.00%</td><td>100.00%</td></tr>
 <tr><td><code>@jdsalasc/solvejs-date</code></td><td>100.00%</td><td>99.00%</td><td>100.00%</td></tr>
 <tr><td><code>@jdsalasc/solvejs-env</code></td><td>100.00%</td><td>97.52%</td><td>100.00%</td></tr>
+<tr><td><code>@jdsalasc/solvejs-json</code></td><td>100.00%</td><td>94.81%</td><td>100.00%</td></tr>
 <tr><td><code>@jdsalasc/solvejs-list</code></td><td>100.00%</td><td>100.00%</td><td>100.00%</td></tr>
 <tr><td><code>@jdsalasc/solvejs-numbers</code></td><td>100.00%</td><td>98.67%</td><td>100.00%</td></tr>
 <tr><td><code>@jdsalasc/solvejs-objects</code></td><td>100.00%</td><td>100.00%</td><td>100.00%</td></tr>
@@ -73,12 +78,13 @@
             <thead>
               <tr><th align="left">Package</th><th align="left">Version</th><th align="left">Tarball Size</th><th align="left">Unpacked Size</th><th align="left">Files</th></tr>
             </thead>
-            <tbody><tr><td><code>@jdsalasc/solvejs</code></td><td>1.9.0</td><td>2.49 KB</td><td>7.18 KB</td><td>7</td></tr>
+            <tbody><tr><td><code>@jdsalasc/solvejs</code></td><td>1.9.0</td><td>2.51 KB</td><td>7.39 KB</td><td>7</td></tr>
 <tr><td><code>@jdsalasc/solvejs-async</code></td><td>1.9.0</td><td>9.06 KB</td><td>53.17 KB</td><td>7</td></tr>
 <tr><td><code>@jdsalasc/solvejs-cache</code></td><td>0.1.0</td><td>9.61 KB</td><td>55.78 KB</td><td>7</td></tr>
 <tr><td><code>@jdsalasc/solvejs-constants</code></td><td>1.9.0</td><td>3.33 KB</td><td>12.06 KB</td><td>7</td></tr>
 <tr><td><code>@jdsalasc/solvejs-date</code></td><td>1.9.0</td><td>6.77 KB</td><td>45.08 KB</td><td>7</td></tr>
 <tr><td><code>@jdsalasc/solvejs-env</code></td><td>1.9.0</td><td>6.10 KB</td><td>43.97 KB</td><td>7</td></tr>
+<tr><td><code>@jdsalasc/solvejs-json</code></td><td>0.1.0</td><td>8.90 KB</td><td>48.70 KB</td><td>7</td></tr>
 <tr><td><code>@jdsalasc/solvejs-list</code></td><td>1.9.0</td><td>4.70 KB</td><td>26.32 KB</td><td>7</td></tr>
 <tr><td><code>@jdsalasc/solvejs-numbers</code></td><td>1.9.0</td><td>6.67 KB</td><td>45.00 KB</td><td>7</td></tr>
 <tr><td><code>@jdsalasc/solvejs-objects</code></td><td>1.9.0</td><td>5.03 KB</td><td>24.44 KB</td><td>7</td></tr>

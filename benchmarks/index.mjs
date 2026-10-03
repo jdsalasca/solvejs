@@ -6,6 +6,7 @@ import { percent } from "../packages/solvejs-numbers/dist/esm/index.js";
 import { isCellphoneNumber } from "../packages/solvejs-validators/dist/esm/index.js";
 import { buildUrl, stringifyQuery, parseQuery } from "../packages/solvejs-url/dist/esm/index.js";
 import { createLruCache, createTtlCache, memoizeAsync, stableKey } from "../packages/solvejs-cache/dist/esm/index.js";
+import { deepClone, deepEqual, safeJsonParse, stableStringify } from "../packages/solvejs-json/dist/esm/index.js";
 
 function run(label, iterations, fn) {
   const start = performance.now();
@@ -27,6 +28,10 @@ run("url.buildUrl", iterations, () => buildUrl("https://api.example.com", { path
 run("url.stringifyQuery", iterations, () => stringifyQuery({ page: 2, q: "shoes", tag: ["a", "b"] }));
 run("url.parseQuery", iterations, () => parseQuery("?page=2&q=shoes&tag=a&tag=b"));
 run("cache.stableKey", iterations, () => stableKey({ userId: 42, scopes: ["a", "b"], nested: { z: 1, y: 2 } }));
+run("json.stableStringify", iterations, () => stableStringify({ b: 1, a: 2, nested: { z: 1, y: 2 } }));
+run("json.safeJsonParse", iterations, () => safeJsonParse('{"a":1,"b":[1,2],"c":{"d":true}}'));
+run("json.deepClone", iterations, () => deepClone({ a: 1, nested: { b: [1, 2, 3] } }));
+run("json.deepEqual", iterations, () => deepEqual({ a: 1, nested: { b: [1, 2, 3] } }, { a: 1, nested: { b: [1, 2, 3] } }));
 
 function runCacheBenchmarks(size) {
   const lru = createLruCache({ maxSize: size });

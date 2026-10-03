@@ -45,6 +45,7 @@ npm i @jdsalasc/solvejs-date @jdsalasc/solvejs-validators @jdsalasc/solvejs-obje
 - `@jdsalasc/solvejs-schema`: `s.object`, `s.string`, `s.number`, `safeParse`, `toJsonSchema`.
 - `@jdsalasc/solvejs-url`: `buildUrl`, `withQuery`, `parseQuery`, `stringifyQuery`, `omitQuery`, `replacePathParam`, `getUrlParam`, `joinUrl`.
 - `@jdsalasc/solvejs-cache`: `stableKey`, `createTtlCache`, `createLruCache`, `memoizeAsync`, `createStaleWhileRevalidate`.
+- `@jdsalasc/solvejs-json`: `safeJsonParse`, `safeJsonStringify`, `stableStringify`, `deepClone`, `deepEqual`, `jsonMerge`.
 
 ## Quick Example
 
