@@ -4,6 +4,7 @@ import { toKebabCase } from "../packages/solvejs-string/dist/esm/index.js";
 import { groupBy, sortBy, unique, uniqueBy } from "../packages/solvejs-list/dist/esm/index.js";
 import { percent } from "../packages/solvejs-numbers/dist/esm/index.js";
 import { isCellphoneNumber } from "../packages/solvejs-validators/dist/esm/index.js";
+import { buildUrl, stringifyQuery, parseQuery } from "../packages/solvejs-url/dist/esm/index.js";
 
 function run(label, iterations, fn) {
   const start = performance.now();
@@ -21,6 +22,9 @@ run("string.toKebabCase", iterations, () => toKebabCase("Solve JS Utilities Fast
 run("list.unique", iterations, () => unique([1, 1, 2, 2, 3, 4, 4, 5]));
 run("numbers.percent", iterations, () => percent(25, 200, 2));
 run("validators.isCellphoneNumber", iterations, () => isCellphoneNumber("+573001112233"));
+run("url.buildUrl", iterations, () => buildUrl("https://api.example.com", { path: "users", query: { page: 2 } }));
+run("url.stringifyQuery", iterations, () => stringifyQuery({ page: 2, q: "shoes", tag: ["a", "b"] }));
+run("url.parseQuery", iterations, () => parseQuery("?page=2&q=shoes&tag=a&tag=b"));
 
 function runListScaleBenchmarks(size) {
   const rows = Array.from({ length: size }, (_, index) => ({

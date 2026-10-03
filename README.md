@@ -43,11 +43,12 @@ npm i @jdsalasc/solvejs-date @jdsalasc/solvejs-validators @jdsalasc/solvejs-obje
 - `@jdsalasc/solvejs-async`: `sleep`, `timeout`, `timeoutFallback`, `retry`, `pMap`, `createTaskQueue`, `createRateLimiter`.
 - `@jdsalasc/solvejs-env`: `getEnvString`, `getEnvNumber`, `getEnvObject`, `getEnvUrl`, `getEnvDsn`, `validateRequiredEnv`.
 - `@jdsalasc/solvejs-schema`: `s.object`, `s.string`, `s.number`, `safeParse`, `toJsonSchema`.
+- `@jdsalasc/solvejs-url`: `buildUrl`, `withQuery`, `parseQuery`, `stringifyQuery`, `omitQuery`, `replacePathParam`, `getUrlParam`, `joinUrl`.
 
 ## Quick Example
 
 ```ts
-import { parseDateStrict, slugify, countBy, toNumber, validateUuidV4, deepMerge, retry, s } from "@jdsalasc/solvejs";
+import { parseDateStrict, slugify, countBy, toNumber, validateUuidV4, deepMerge, retry, s, buildUrl } from "@jdsalasc/solvejs";
 
 parseDateStrict("2026-02-07", "YYYY-MM-DD");
 slugify("Build Better JS Apps");
@@ -57,6 +58,7 @@ validateUuidV4("550e8400-e29b-41d4-a716-446655440000");
 deepMerge({ app: { env: "dev" } }, { app: { version: 2 } });
 await retry(() => fetch("https://example.com/health"), { retries: 2, delayMs: 150 });
 s.object({ id: s.string(), age: s.number({ coerce: true }).int() }).safeParse({ id: "u1", age: "42" });
+buildUrl("https://api.example.com", { path: "users", query: { page: 2 } });
 ```
 
 ## Development

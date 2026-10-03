@@ -1,20 +1,22 @@
 # SolveJS Package Inventory
 
-Generated on 2026-02-19.
+Generated on 2026-10-03.
 
 | Package | Version | Functions | Consts | Types | Tests |
 |---|---:|---:|---:|---:|---:|
-| @jdsalasc/solvejs | 1.7.1 | 0 | 0 | 0 | 1 |
-| @jdsalasc/solvejs-async | 1.7.1 | 9 | 0 | 8 | 8 |
-| @jdsalasc/solvejs-constants | 1.7.1 | 1 | 6 | 0 | 3 |
-| @jdsalasc/solvejs-date | 1.7.1 | 13 | 0 | 1 | 4 |
-| @jdsalasc/solvejs-env | 1.7.1 | 9 | 0 | 1 | 9 |
-| @jdsalasc/solvejs-list | 1.7.1 | 10 | 0 | 0 | 2 |
-| @jdsalasc/solvejs-numbers | 1.7.1 | 15 | 0 | 0 | 3 |
-| @jdsalasc/solvejs-objects | 1.7.1 | 6 | 0 | 0 | 3 |
-| @jdsalasc/solvejs-regex | 1.7.1 | 4 | 1 | 1 | 2 |
-| @jdsalasc/solvejs-string | 1.7.1 | 8 | 0 | 0 | 2 |
-| @jdsalasc/solvejs-validators | 1.7.1 | 28 | 0 | 5 | 3 |
+| @jdsalasc/solvejs | 1.9.0 | 0 | 0 | 0 | 1 |
+| @jdsalasc/solvejs-async | 1.9.0 | 10 | 0 | 8 | 9 |
+| @jdsalasc/solvejs-constants | 1.9.0 | 1 | 8 | 0 | 3 |
+| @jdsalasc/solvejs-date | 1.9.0 | 18 | 0 | 1 | 6 |
+| @jdsalasc/solvejs-env | 1.9.0 | 10 | 0 | 1 | 10 |
+| @jdsalasc/solvejs-list | 1.9.0 | 12 | 0 | 0 | 4 |
+| @jdsalasc/solvejs-numbers | 1.9.0 | 16 | 0 | 0 | 16 |
+| @jdsalasc/solvejs-objects | 1.9.0 | 7 | 0 | 0 | 5 |
+| @jdsalasc/solvejs-regex | 1.9.0 | 5 | 1 | 1 | 4 |
+| @jdsalasc/solvejs-schema | 1.9.0 | 1 | 1 | 5 | 3 |
+| @jdsalasc/solvejs-string | 1.9.0 | 9 | 0 | 0 | 2 |
+| @jdsalasc/solvejs-url | 0.1.0 | 8 | 0 | 3 | 10 |
+| @jdsalasc/solvejs-validators | 1.9.0 | 31 | 0 | 7 | 32 |
 
 ## Notes
 
