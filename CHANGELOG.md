@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Added new package `@jdsalasc/solvejs-pagination` with `pageToOffset`, `offsetToPage`, `pageCount`, `clampPage`, `offsetToCursor`, `cursorToOffset`, `paginate`, `withPagination`, and a `PaginationError`. `paginate` clamps an out-of-range page by default and `withPagination` wraps an already-sliced page rather than slicing it, both documented in the package README. Migration impact: none, new package.
+
 - Added new package `@jdsalasc/solvejs-json` with `safeJsonParse`, `safeJsonStringify`, `stableStringify`, `deepClone`, `deepEqual`, `jsonMerge`, `pickJsonKeys`, `omitJsonKeys`, `getOrDefault`, and a `JsonError`. `stableStringify` sorts keys at every depth so its output is safe to hash or compare, and `safeJsonStringify` deliberately mirrors `JSON.stringify`, including dropping functions and reporting a value with no JSON representation as `undefined` rather than as an error. Migration impact: none, new package.
 
 - Added new package `@jdsalasc/solvejs-cache` with `stableKey`, `createTtlCache`, `createLruCache`, `memoizeAsync`, `createStaleWhileRevalidate`, and a `CacheError` carrying stable codes. Every time-dependent function accepts an injectable `now`, so expiry is testable without real timers, and `memoizeAsync` shares one in-flight promise per key and does not cache a rejection. Migration impact: none, new package.
