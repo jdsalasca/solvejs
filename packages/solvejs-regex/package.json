@@ -1,6 +1,6 @@
 {
   "name": "@jdsalasc/solvejs-regex",
-  "version": "1.8.0",
+  "version": "1.9.0",
   "description": "Safe TypeScript regex utilities with common production patterns for email, URLs, UUID v4, IPv4, ISO dates, colors, usernames, and escaping.",
   "license": "MIT",
   "type": "module",

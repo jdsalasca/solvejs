@@ -15,7 +15,8 @@
       "@jdsalasc/solvejs-validators": ["../solvejs-validators/src/index.ts"],
       "@jdsalasc/solvejs-objects": ["../solvejs-objects/src/index.ts"],
       "@jdsalasc/solvejs-async": ["../solvejs-async/src/index.ts"],
-      "@jdsalasc/solvejs-env": ["../solvejs-env/src/index.ts"]
+      "@jdsalasc/solvejs-env": ["../solvejs-env/src/index.ts"],
+      "@jdsalasc/solvejs-schema": ["../solvejs-schema/src/index.ts"]
     }
   },
   "include": ["src/**/*.ts"]

@@ -1,6 +1,6 @@
 {
   "name": "@jdsalasc/solvejs-string",
-  "version": "1.8.0",
+  "version": "1.9.0",
   "description": "Small TypeScript string utilities for slugs, case conversion, masking, truncation, title case, and HTML cleanup in production apps.",
   "license": "MIT",
   "type": "module",

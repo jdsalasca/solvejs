@@ -7,6 +7,7 @@ import {
   getEnvEnum,
   getEnvJson,
   getEnvNumber,
+  getEnvObject,
   getEnvString,
   getEnvUrl,
   validateRequiredEnv
@@ -62,6 +63,21 @@ test("getEnvJson parses JSON values and throws for invalid payloads", () => {
   assert.deepEqual(getEnvJson("FEATURE_FLAGS", env), { newCheckout: true, maxRetries: 3 });
   assert.deepEqual(getEnvJson("MISSING_JSON", env, { defaultValue: { enabled: false } }), { enabled: false });
   assert.throws(() => getEnvJson("BROKEN_JSON", { BROKEN_JSON: "{invalid" }), /valid JSON/);
+});
+
+test("getEnvObject parses JSON objects and validates shape", () => {
+  const env = { SERVICE: "{\"name\":\"api\",\"retries\":3}" };
+  const service = getEnvObject("SERVICE", env, {
+    validate: (value) =>
+      typeof value === "object" &&
+      value !== null &&
+      "name" in value &&
+      "retries" in value
+  });
+  assert.deepEqual(service, { name: "api", retries: 3 });
+  assert.deepEqual(getEnvObject("MISSING", env, { defaultValue: { enabled: true } }), { enabled: true });
+  assert.throws(() => getEnvObject("LIST", { LIST: "[1,2,3]" }), /JSON object/);
+  assert.throws(() => getEnvObject("SERVICE", env, { validate: () => false }), /expected object shape/);
 });
 
 test("getEnvUrl parses URLs and enforces protocols", () => {

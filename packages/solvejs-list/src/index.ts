@@ -103,6 +103,17 @@ export function countBy<T, K extends PropertyKey>(values: readonly T[], selector
 }
 
 /**
+ * Extracts a property value from every item in a list.
+ *
+ * @param values - Input collection.
+ * @param key - Object property key to read.
+ * @returns Array of selected property values preserving input order.
+ */
+export function pluck<T, K extends keyof T>(values: readonly T[], key: K): Array<T[K]> {
+  return values.map((value) => value[key]);
+}
+
+/**
  * Partitions values into two groups based on a predicate.
  *
  * @param values - Input collection.

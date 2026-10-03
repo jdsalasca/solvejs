@@ -9,7 +9,7 @@ Zero-dependency array/list utilities for JavaScript and TypeScript.
 ## Utilities
 
 - `unique`, `uniqueBy`, `compact`, `chunk`
-- `groupBy`, `countBy`, `keyBy`, `partition`
+- `groupBy`, `countBy`, `keyBy`, `pluck`, `partition`
 - `intersection`, `difference`
 - `sortBy`
 
@@ -31,12 +31,13 @@ npm i @jdsalasc/solvejs-list
 ## Quick example
 
 ```ts
-import { uniqueBy, groupBy, countBy, sortBy } from "@jdsalasc/solvejs-list";
+import { uniqueBy, groupBy, countBy, pluck, sortBy } from "@jdsalasc/solvejs-list";
 
 const rows = [{ id: "a", team: "x", score: 2 }, { id: "a", team: "x", score: 2 }, { id: "b", team: "y", score: 1 }];
 const uniqueRows = uniqueBy(rows, (r) => r.id);
 const byTeam = groupBy(uniqueRows, (r) => r.team);
 const totals = countBy(rows, (r) => r.team);
+const ids = pluck(uniqueRows, "id");
 sortBy(byTeam.x, (r) => r.score, "desc");
 ```
 

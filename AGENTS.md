@@ -172,6 +172,23 @@ Use:
   - rollback plan.
 7. Link one metric to validate impact post-merge (downloads, docs clicks, issue reduction).
 
+## Ultra-Short Audit Triggers
+
+To minimize human intervention, the following prompts should trigger a complete fullstack audit workflow (frontend UX + backend scalability + Playwright evidence + AI-ready implementation brief):
+
+- `audita fullstack`
+- `audit backend y frontend`
+- `playwright audit`
+- `strict ux + backend audit`
+
+When one of these appears, the agent must:
+
+1. Run runtime verification on target URL (default `http://localhost:3002` if not specified).
+2. Capture Playwright evidence in desktop and mobile for login, dashboard/root, report, and error pages.
+3. Perform backend code and contract audit (auth semantics, exception mapping, migrations, query efficiency, config hygiene).
+4. Return findings by severity (`P0`, `P1`, `P2`) with file references and evidence paths.
+5. Return a copy/paste AI execution brief with prioritized backlog and acceptance criteria.
+
 ## Branch and PR Conventions
 
 - Branch: `feat/<package>-<short-topic>` or `fix/<package>-<short-topic>`.

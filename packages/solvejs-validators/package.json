@@ -1,6 +1,6 @@
 {
   "name": "@jdsalasc/solvejs-validators",
-  "version": "1.8.0",
+  "version": "1.9.0",
   "description": "Structured TypeScript validators for forms and APIs with stable error codes, EN/ES/PT UI messages, and phone, postal, password, UUID, IP, URL checks.",
   "license": "MIT",
   "type": "module",

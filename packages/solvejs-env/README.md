@@ -13,6 +13,7 @@ Zero-dependency environment variable parsing and validation utilities for JavaSc
 - `getEnvEnum`
 - `getEnvArray`
 - `getEnvJson`
+- `getEnvObject`
 - `getEnvUrl`
 - `getEnvDsn`
 - `validateRequiredEnv`
@@ -36,6 +37,7 @@ import {
   getEnvDsn,
   getEnvEnum,
   getEnvJson,
+  getEnvObject,
   getEnvNumber,
   getEnvString,
   getEnvUrl,
@@ -53,6 +55,7 @@ const jwtSecret = getEnvString("JWT_SECRET");
 const enableCache = getEnvBoolean("ENABLE_CACHE", process.env, { defaultValue: false });
 const corsOrigins = getEnvArray("CORS_ORIGINS", process.env, { defaultValue: ["http://localhost:3000"] });
 const featureFlags = getEnvJson("FEATURE_FLAGS", process.env, { defaultValue: { newCheckout: false } });
+const serviceConfig = getEnvObject("SERVICE_CONFIG", process.env, { defaultValue: { retries: 3 } });
 const apiBaseUrl = getEnvUrl("API_BASE_URL", process.env, { defaultValue: "https://api.example.com", allowedProtocols: ["https"] });
 const databaseDsn = getEnvDsn("DATABASE_DSN", process.env, { requireAuth: true });
 ```

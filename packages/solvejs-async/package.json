@@ -1,6 +1,6 @@
 {
   "name": "@jdsalasc/solvejs-async",
-  "version": "1.8.0",
+  "version": "1.9.0",
   "description": "Reliable TypeScript async utilities for sleep, timeouts, retries, pMap concurrency, debouncing, throttling, queues, and rate limits.",
   "license": "MIT",
   "type": "module",

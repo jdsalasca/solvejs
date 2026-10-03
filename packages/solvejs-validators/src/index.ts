@@ -444,6 +444,40 @@ export function isHttpUrl(value: string): boolean {
 }
 
 /**
+ * Validates a domain name without protocol or path.
+ *
+ * @param value - Domain candidate.
+ * @returns Structured validation result.
+ */
+export function validateDomain(value: string): ValidationResult {
+  const normalized = value.trim().toLowerCase();
+  if (!normalized) {
+    return fail("EMPTY", "Domain cannot be empty.");
+  }
+  if (normalized.length > 253) {
+    return fail("TOO_LONG", "Domain must have at most 253 characters.");
+  }
+  const labels = normalized.split(".");
+  if (labels.length < 2) {
+    return fail("INVALID_FORMAT", "Domain must include a top-level domain.");
+  }
+  const valid = labels.every(
+    (label) => /^[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?$/.test(label)
+  );
+  return valid ? ok("Valid domain.") : fail("INVALID_FORMAT", "Domain does not match expected format.");
+}
+
+/**
+ * Boolean wrapper for `validateDomain`.
+ *
+ * @param value - Domain candidate.
+ * @returns `true` when the domain is valid.
+ */
+export function isDomain(value: string): boolean {
+  return validateDomain(value).ok;
+}
+
+/**
  * Validates postal codes using country-specific patterns.
  *
  * @param value - Postal code string.

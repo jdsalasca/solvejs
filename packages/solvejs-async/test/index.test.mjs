@@ -9,7 +9,8 @@ import {
   retry,
   sleep,
   throttlePromise,
-  timeout
+  timeout,
+  timeoutFallback
 } from "../dist/esm/index.js";
 
 test("sleep and timeout utilities", async () => {
@@ -24,6 +25,12 @@ test("sleep and timeout utilities", async () => {
     () => timeout(new Promise((resolve) => setTimeout(resolve, 50)), 5, "Too slow"),
     /Too slow/
   );
+});
+
+test("timeoutFallback returns fallback only when timeout wins", async () => {
+  assert.equal(await timeoutFallback(Promise.resolve("fast"), 30, "fallback"), "fast");
+  assert.equal(await timeoutFallback(new Promise((resolve) => setTimeout(resolve, 30)), 5, "fallback"), "fallback");
+  await assert.rejects(() => timeoutFallback(Promise.reject(new Error("broken")), 30, "fallback"), /broken/);
 });
 
 test("retry retries failures then resolves", async () => {

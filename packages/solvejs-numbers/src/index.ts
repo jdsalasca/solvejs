@@ -289,6 +289,29 @@ export function toCurrency(value: number, currency = "USD", locale = "en-US"): s
 }
 
 /**
+ * Formats a ratio or percentage number using `Intl.NumberFormat`.
+ *
+ * @param value - Numeric value to format.
+ * @param options - Formatting options.
+ * @param options.input - Whether `value` is a ratio (`0.12`) or percent (`12`).
+ * @param options.locale - BCP 47 locale tag.
+ * @param options.maximumFractionDigits - Maximum fraction digits.
+ * @returns Locale-aware percentage string.
+ */
+export function toPercent(
+  value: number,
+  options: { input?: "ratio" | "percent"; locale?: string; maximumFractionDigits?: number } = {}
+): string {
+  assertFinite(value, "value");
+  const input = options.input ?? "percent";
+  const ratio = input === "ratio" ? value : value / 100;
+  return new Intl.NumberFormat(options.locale ?? "en-US", {
+    style: "percent",
+    maximumFractionDigits: options.maximumFractionDigits ?? 2
+  }).format(ratio);
+}
+
+/**
  * Parses numeric text coming from forms or CSV-like inputs.
  *
  * @param value - Raw numeric-like input.

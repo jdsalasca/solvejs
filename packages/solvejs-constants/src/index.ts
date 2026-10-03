@@ -39,6 +39,29 @@ export const COMMON_HTTP_HEADERS = {
   USER_AGENT: "user-agent"
 } as const;
 
+export const HTTP_STATUS = {
+  OK: 200,
+  CREATED: 201,
+  NO_CONTENT: 204,
+  BAD_REQUEST: 400,
+  UNAUTHORIZED: 401,
+  FORBIDDEN: 403,
+  NOT_FOUND: 404,
+  CONFLICT: 409,
+  UNPROCESSABLE_ENTITY: 422,
+  TOO_MANY_REQUESTS: 429,
+  INTERNAL_SERVER_ERROR: 500,
+  SERVICE_UNAVAILABLE: 503
+} as const;
+
+export const CONTENT_TYPES = {
+  JSON: "application/json",
+  FORM_URLENCODED: "application/x-www-form-urlencoded",
+  MULTIPART_FORM_DATA: "multipart/form-data",
+  TEXT: "text/plain",
+  HTML: "text/html"
+} as const;
+
 /**
  * Parses common boolean-like text into a boolean value.
  *

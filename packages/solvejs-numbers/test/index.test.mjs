@@ -15,6 +15,7 @@ import {
   safeDivide,
   sum,
   toNumber,
+  toPercent,
   toCurrency
 } from "../dist/esm/index.js";
 
@@ -30,6 +31,8 @@ test("numbers helpers", () => {
   assert.equal(percentChange(120, 100, 1), 20);
   assert.equal(isBetween(5, 1, 10), true);
   assert.equal(toCurrency(10, "USD", "en-US"), "$10.00");
+  assert.equal(toPercent(12.345, { maximumFractionDigits: 1 }), "12.3%");
+  assert.equal(toPercent(0.1234, { input: "ratio", maximumFractionDigits: 1 }), "12.3%");
   assert.equal(toNumber("1,234.5"), 1234.5);
   assert.equal(toNumber("12,345,678.9"), 12345678.9);
   assert.equal(toNumber(" 42 "), 42);

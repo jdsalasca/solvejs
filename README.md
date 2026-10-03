@@ -32,29 +32,31 @@ npm i @jdsalasc/solvejs-date @jdsalasc/solvejs-validators @jdsalasc/solvejs-obje
 
 ## Packages
 
-- `@jdsalasc/solvejs-date`: `formatDate`, `parseDateStrict`, `parseUnixTimestamp`, `diffInDays`.
-- `@jdsalasc/solvejs-string`: `slugify`, `stripHtml`, `toTitleCase`, `truncate`.
-- `@jdsalasc/solvejs-list`: `uniqueBy`, `groupBy`, `partition`, `sortBy`.
-- `@jdsalasc/solvejs-regex`: `REGEX_PATTERNS`, `validateByName`, `escapeRegex`.
-- `@jdsalasc/solvejs-constants`: `TIME`, `FILE_SIZE_BYTES`, `HTTP_METHODS`, `parseBooleanString`.
-- `@jdsalasc/solvejs-numbers`: `toNumber`, `safeDivide`, `percentChange`, `calculateTaxAmount`, `applyDiscount`, `grossMargin`, `toCurrency`.
-- `@jdsalasc/solvejs-validators`: `validateCellphoneNumber`, `validateUsername`, `validateUuidV4`.
-- `@jdsalasc/solvejs-objects`: `pick`, `omit`, `get`, `set`, `deepMerge`.
-- `@jdsalasc/solvejs-async`: `sleep`, `timeout`, `retry`, `pMap`, `createTaskQueue`, `createRateLimiter`, `createTokenBucketLimiter`.
-- `@jdsalasc/solvejs-env`: `getEnvString`, `getEnvNumber`, `getEnvBoolean`, `getEnvEnum`, `getEnvArray`, `getEnvJson`, `getEnvUrl`, `getEnvDsn`, `validateRequiredEnv`.
+- `@jdsalasc/solvejs-date`: `formatDate`, `parseDateStrict`, `addBusinessDays`, `nextBusinessDay`, `diffInDays`.
+- `@jdsalasc/solvejs-string`: `slugify`, `normalizeWhitespace`, `stripHtml`, `toTitleCase`, `truncate`.
+- `@jdsalasc/solvejs-list`: `uniqueBy`, `groupBy`, `countBy`, `pluck`, `partition`, `sortBy`.
+- `@jdsalasc/solvejs-regex`: `REGEX_PATTERNS`, `validateByName`, `escapeRegex`, `literalRegex`.
+- `@jdsalasc/solvejs-constants`: `TIME`, `FILE_SIZE_BYTES`, `HTTP_METHODS`, `HTTP_STATUS`, `CONTENT_TYPES`.
+- `@jdsalasc/solvejs-numbers`: `toNumber`, `safeDivide`, `percentChange`, `toPercent`, `toCurrency`.
+- `@jdsalasc/solvejs-validators`: `validateCellphoneNumber`, `validateDomain`, `translateValidationResult`, `validateUuidV4`.
+- `@jdsalasc/solvejs-objects`: `pick`, `omit`, `mapValues`, `get`, `set`, `deepMerge`.
+- `@jdsalasc/solvejs-async`: `sleep`, `timeout`, `timeoutFallback`, `retry`, `pMap`, `createTaskQueue`, `createRateLimiter`.
+- `@jdsalasc/solvejs-env`: `getEnvString`, `getEnvNumber`, `getEnvObject`, `getEnvUrl`, `getEnvDsn`, `validateRequiredEnv`.
+- `@jdsalasc/solvejs-schema`: `s.object`, `s.string`, `s.number`, `safeParse`, `toJsonSchema`.
 
 ## Quick Example
 
 ```ts
-import { parseDateStrict, slugify, uniqueBy, toNumber, validateUuidV4, deepMerge, retry } from "@jdsalasc/solvejs";
+import { parseDateStrict, slugify, countBy, toNumber, validateUuidV4, deepMerge, retry, s } from "@jdsalasc/solvejs";
 
 parseDateStrict("2026-02-07", "YYYY-MM-DD");
 slugify("Build Better JS Apps");
-uniqueBy([{ id: "a" }, { id: "a" }, { id: "b" }], (x) => x.id);
+countBy([{ team: "api" }, { team: "web" }, { team: "api" }], (x) => x.team);
 toNumber("1,200");
 validateUuidV4("550e8400-e29b-41d4-a716-446655440000");
 deepMerge({ app: { env: "dev" } }, { app: { version: 2 } });
 await retry(() => fetch("https://example.com/health"), { retries: 2, delayMs: 150 });
+s.object({ id: s.string(), age: s.number({ coerce: true }).int() }).safeParse({ id: "u1", age: "42" });
 ```
 
 ## Development

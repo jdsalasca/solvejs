@@ -48,6 +48,26 @@ export async function timeout<T>(operation: PromiseLike<T>, ms: number, message?
   }
 }
 
+/**
+ * Runs an async operation with a timeout and returns a fallback when it times out.
+ *
+ * @param operation - Promise-like operation to guard.
+ * @param ms - Timeout in milliseconds.
+ * @param fallback - Value returned when the timeout wins.
+ * @returns Operation result, or fallback when the operation exceeds `ms`.
+ */
+export async function timeoutFallback<T>(operation: PromiseLike<T>, ms: number, fallback: T): Promise<T> {
+  const timeoutMessage = `__solvejs_timeout_fallback_${ms}__`;
+  try {
+    return await timeout(operation, ms, timeoutMessage);
+  } catch (error) {
+    if (error instanceof Error && error.message === timeoutMessage) {
+      return fallback;
+    }
+    throw error;
+  }
+}
+
 export type RetryOptions = {
   retries?: number;
   delayMs?: number;

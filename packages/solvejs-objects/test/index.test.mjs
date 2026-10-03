@@ -1,11 +1,12 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { deepMerge, get, hasOwn, omit, pick, set } from "../dist/esm/index.js";
+import { deepMerge, get, hasOwn, mapValues, omit, pick, set } from "../dist/esm/index.js";
 
 test("object helpers", () => {
   const source = { id: "u1", name: "Ada", role: "admin" };
   assert.deepEqual(pick(source, ["id", "name"]), { id: "u1", name: "Ada" });
   assert.deepEqual(omit(source, ["role"]), { id: "u1", name: "Ada" });
+  assert.deepEqual(mapValues({ a: 1, b: 2 }, (value) => value * 10), { a: 10, b: 20 });
   assert.equal(hasOwn(source, "id"), true);
 
   const profile = { user: { profile: { name: "Ada" } } };

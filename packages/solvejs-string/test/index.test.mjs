@@ -1,11 +1,12 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { capitalize, mask, slugify, stripHtml, toCamelCase, toKebabCase, toTitleCase, truncate } from "../dist/esm/index.js";
+import { capitalize, mask, normalizeWhitespace, slugify, stripHtml, toCamelCase, toKebabCase, toTitleCase, truncate } from "../dist/esm/index.js";
 
 test("string case and truncate helpers", () => {
   assert.equal(toKebabCase("HolaMundo JS"), "hola-mundo-js");
   assert.equal(toCamelCase("hola-mundo-js"), "holaMundoJs");
   assert.equal(capitalize("solvejs"), "Solvejs");
+  assert.equal(normalizeWhitespace("  SolveJS\n\t utilities   for apps  "), "SolveJS utilities for apps");
   assert.equal(truncate("JavaScript utilities", 10), "JavaScr...");
   assert.equal(slugify("Hello, SolveJS World!"), "hello-solve-js-world");
   assert.equal(stripHtml("<p>safe</p>"), "safe");

@@ -67,6 +67,26 @@ export function omit<T extends object, K extends keyof T>(value: T, keys: readon
 }
 
 /**
+ * Maps object values while preserving the original keys.
+ *
+ * @param value - Source object.
+ * @param mapper - Function that receives each value and key.
+ * @returns New object with mapped values.
+ */
+export function mapValues<T extends object, R>(
+  value: T,
+  mapper: (entryValue: T[keyof T], key: keyof T) => R
+): { [K in keyof T]: R } {
+  const output = {} as { [K in keyof T]: R };
+  for (const key of Reflect.ownKeys(value) as Array<keyof T>) {
+    if (!isUnsafeKey(key) && hasOwn(value, key)) {
+      output[key] = mapper(value[key], key);
+    }
+  }
+  return output;
+}
+
+/**
  * Gets a nested value using dot-separated path segments.
  *
  * @param value - Source object.

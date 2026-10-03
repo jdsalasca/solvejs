@@ -12,7 +12,7 @@ Zero-dependency number utilities for JavaScript and TypeScript.
 - `percent`, `percentChange`
 - `calculateTaxAmount`, `applyDiscount`, `grossMargin`
 - `safeDivide`, `isBetween`
-- `toCurrency`, `toNumber`, `randomInt`
+- `toCurrency`, `toPercent`, `toNumber`, `randomInt`
 
 ## When to use this package
 
@@ -32,12 +32,13 @@ npm i @jdsalasc/solvejs-numbers
 ## Quick example
 
 ```ts
-import { toNumber, safeDivide, percentChange, calculateTaxAmount, applyDiscount, grossMargin } from "@jdsalasc/solvejs-numbers";
+import { toNumber, toPercent, safeDivide, percentChange, calculateTaxAmount, applyDiscount, grossMargin } from "@jdsalasc/solvejs-numbers";
 
 const revenue = toNumber("12,500");
 const invalid = toNumber("1,2,3"); // null
 const ratio = safeDivide(50, 0, 0);
 const growth = percentChange(120, 100); // 20
+const growthLabel = toPercent(growth); // "20%"
 const tax = calculateTaxAmount(199.99, 19); // 38
 const discounted = applyDiscount(199.99, 15); // 169.99
 const margin = grossMargin(1000, 700); // 30

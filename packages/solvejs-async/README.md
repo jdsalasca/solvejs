@@ -8,7 +8,7 @@ Zero-dependency async/concurrency utilities for JavaScript and TypeScript.
 ## Utilities
 
 - `sleep`
-- `timeout`
+- `timeout`, `timeoutFallback`
 - `retry`
 - `pMap`
 - `debouncePromise`
@@ -34,7 +34,7 @@ npm i @jdsalasc/solvejs-async
 ## Quick example
 
 ```ts
-import { createTaskQueue, createRateLimiter, createTokenBucketLimiter, retry, timeout, pMap } from "@jdsalasc/solvejs-async";
+import { createTaskQueue, createRateLimiter, createTokenBucketLimiter, retry, timeout, timeoutFallback, pMap } from "@jdsalasc/solvejs-async";
 
 const data = await retry(
   () => timeout(fetch("https://api.example.com/items").then((r) => r.json()), 3000),
@@ -42,6 +42,7 @@ const data = await retry(
 );
 
 const ids = await pMap(data.items, async (item) => item.id, { concurrency: 4 });
+const cached = await timeoutFallback(fetch("https://api.example.com/cache").then((r) => r.json()), 300, []);
 const queue = createTaskQueue({ concurrency: 2 });
 const limiter = createRateLimiter({ maxCalls: 5, windowMs: 1000 });
 const burstLimiter = createTokenBucketLimiter({ capacity: 10, refillTokens: 2, refillIntervalMs: 1000 });

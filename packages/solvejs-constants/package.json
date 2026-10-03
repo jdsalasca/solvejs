@@ -1,6 +1,6 @@
 {
   "name": "@jdsalasc/solvejs-constants",
-  "version": "1.8.0",
+  "version": "1.9.0",
   "description": "Practical TypeScript constants for time, file sizes, HTTP methods, headers, delimiters, and boolean string parsing in backend/frontend apps.",
   "license": "MIT",
   "type": "module",

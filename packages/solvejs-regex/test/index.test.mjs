@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { REGEX_PATTERNS, escapeRegex, testPattern, validateByName, validateWithPattern } from "../dist/esm/index.js";
+import { REGEX_PATTERNS, escapeRegex, literalRegex, testPattern, validateByName, validateWithPattern } from "../dist/esm/index.js";
 
 test("regex helpers", () => {
   assert.equal(validateByName("user@example.com", "email"), true);
@@ -10,6 +10,8 @@ test("regex helpers", () => {
   assert.equal(validateByName("127.0.0.1", "ipv4"), true);
   assert.equal(validateByName("2026-02-07", "isoDate"), true);
   assert.equal(escapeRegex("a+b?"), "a\\+b\\?");
+  assert.equal(literalRegex("a+b?").test("a+b?"), true);
+  assert.equal(literalRegex("a+b?").test("aaab"), false);
 });
 
 test("regex helpers edge cases", () => {

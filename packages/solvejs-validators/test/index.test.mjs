@@ -7,6 +7,7 @@ import {
   isAddressDirection,
   isCellphoneNumber,
   isCreditCardNumber,
+  isDomain,
   isEmail,
   isHttpUrl,
   isIpv4,
@@ -20,6 +21,7 @@ import {
   validateAddressLine,
   validateCellphoneNumber,
   validateCreditCardNumber,
+  validateDomain,
   validateEmail,
   validateHttpUrl,
   validateIsoDateString,
@@ -47,6 +49,7 @@ test("boolean validators keep compatibility", () => {
   assert.equal(isAddressLine("221B Baker Street"), true);
   assert.equal(isStrongPassword("Aa123456!"), true);
   assert.equal(isCreditCardNumber("4111 1111 1111 1111"), true);
+  assert.equal(isDomain("api.solvejs.dev"), true);
   assert.equal(isIpv4("192.168.0.1"), true);
   assert.equal(isUuidV4("550e8400-e29b-41d4-a716-446655440000"), true);
   assert.equal(isIsoDateString("2026-02-07"), true);
@@ -75,6 +78,8 @@ test("structured validators return codes and messages", () => {
   assert.equal(validateCellphoneNumber("+447700900123", { country: "GB" }).ok, true);
   assert.equal(validateCellphoneNumber("+4915123456789", { country: "DE" }).ok, true);
   assert.equal(validateCreditCardNumber("1234").code, "INVALID_FORMAT");
+  assert.equal(validateDomain("https://solvejs.dev").code, "INVALID_FORMAT");
+  assert.equal(validateDomain("solvejs.dev").ok, true);
   assert.equal(validateIsoDateString("2026-02-30").code, "INVALID_FORMAT");
 });
 

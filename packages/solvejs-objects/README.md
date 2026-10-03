@@ -8,7 +8,7 @@ Zero-dependency object utilities for JavaScript and TypeScript.
 
 ## Utilities
 
-- `pick`, `omit`, `hasOwn`
+- `pick`, `omit`, `hasOwn`, `mapValues`
 - `get`, `set`
 - `deepMerge`
 
@@ -30,9 +30,10 @@ npm i @jdsalasc/solvejs-objects
 ## Quick example
 
 ```ts
-import { pick, set, deepMerge } from "@jdsalasc/solvejs-objects";
+import { pick, set, deepMerge, mapValues } from "@jdsalasc/solvejs-objects";
 
 const user = pick({ id: "u1", name: "Ada", role: "admin" }, ["id", "name"]);
+const labels = mapValues({ open: 2, closed: 1 }, (count) => `${count} tickets`);
 const state = { filters: {} };
 set(state, "filters.status", "active");
 deepMerge({ app: { flags: { a: true } } }, { app: { flags: { b: true } } });

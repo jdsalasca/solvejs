@@ -12,6 +12,7 @@ Zero-dependency regex utilities and production-ready patterns for JavaScript and
 - `validateByName`
 - `validateWithPattern`
 - `escapeRegex`
+- `literalRegex`
 
 ## When to use this package
 
@@ -31,8 +32,9 @@ npm i @jdsalasc/solvejs-regex
 ## Quick example
 
 ```ts
-import { REGEX_PATTERNS, validateWithPattern, escapeRegex } from "@jdsalasc/solvejs-regex";
+import { REGEX_PATTERNS, validateWithPattern, escapeRegex, literalRegex } from "@jdsalasc/solvejs-regex";
 
 validateWithPattern("550e8400-e29b-41d4-a716-446655440000", REGEX_PATTERNS.uuidV4);
 new RegExp(`^${escapeRegex("user.name")}$`);
+literalRegex("price $10.00").test("price $10.00");
 ```

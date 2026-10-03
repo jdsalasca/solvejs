@@ -45,6 +45,11 @@ type DsnOptions = {
   requireAuth?: boolean;
 };
 
+type ObjectOptions<T extends Record<string, unknown>> = {
+  defaultValue?: T;
+  validate?: (value: unknown) => value is T;
+};
+
 function readEnvRaw(name: string, env: EnvSource): string | undefined {
   return env[name];
 }
@@ -230,6 +235,31 @@ export function getEnvJson<T>(name: string, env: EnvSource = defaultEnvSource(),
   } catch {
     throw new Error(`Environment variable ${name} must contain valid JSON.`);
   }
+}
+
+/**
+ * Reads a JSON environment variable and ensures the parsed value is an object.
+ *
+ * @param name - Environment variable name.
+ * @param env - Source object, defaults to `process.env`.
+ * @param options - Object parsing options.
+ * @param options.defaultValue - Fallback object when the variable is missing.
+ * @param options.validate - Optional type guard for the parsed object shape.
+ * @returns Parsed object value.
+ */
+export function getEnvObject<T extends Record<string, unknown>>(
+  name: string,
+  env: EnvSource = defaultEnvSource(),
+  options: ObjectOptions<T> = {}
+): T {
+  const value = getEnvJson<unknown>(name, env, { defaultValue: options.defaultValue });
+  if (value == null || typeof value !== "object" || Array.isArray(value)) {
+    throw new Error(`Environment variable ${name} must contain a JSON object.`);
+  }
+  if (options.validate && !options.validate(value)) {
+    throw new Error(`Environment variable ${name} does not match the expected object shape.`);
+  }
+  return value as T;
 }
 
 /**

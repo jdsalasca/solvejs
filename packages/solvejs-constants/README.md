@@ -12,6 +12,8 @@ Zero-dependency constants and parsing helpers for JavaScript and TypeScript.
 - `FILE_SIZE_BYTES`
 - `HTTP_METHODS`
 - `COMMON_HTTP_HEADERS`
+- `HTTP_STATUS`
+- `CONTENT_TYPES`
 - `parseBooleanString`
 
 ## When to use this package
@@ -32,9 +34,10 @@ npm i @jdsalasc/solvejs-constants
 ## Quick example
 
 ```ts
-import { TIME, FILE_SIZE_BYTES, parseBooleanString } from "@jdsalasc/solvejs-constants";
+import { TIME, FILE_SIZE_BYTES, HTTP_STATUS, CONTENT_TYPES, parseBooleanString } from "@jdsalasc/solvejs-constants";
 
-const ttl = 15 * TIME.MINUTE;
+const ttl = 15 * TIME.MINUTE_MS;
 const maxUpload = 10 * FILE_SIZE_BYTES.MB;
+const response = { status: HTTP_STATUS.OK, type: CONTENT_TYPES.JSON };
 parseBooleanString("true"); // true
 ```

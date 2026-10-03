@@ -190,6 +190,28 @@ export function addBusinessDays(date: Date, amount: number): Date {
 }
 
 /**
+ * Returns the next UTC business day after the provided date.
+ *
+ * @param date - Source date.
+ * @returns A new Date on the next Monday-Friday day.
+ * @throws {TypeError} If `date` is invalid.
+ */
+export function nextBusinessDay(date: Date): Date {
+  return addBusinessDays(date, 1);
+}
+
+/**
+ * Returns the previous UTC business day before the provided date.
+ *
+ * @param date - Source date.
+ * @returns A new Date on the previous Monday-Friday day.
+ * @throws {TypeError} If `date` is invalid.
+ */
+export function previousBusinessDay(date: Date): Date {
+  return addBusinessDays(date, -1);
+}
+
+/**
  * Returns the UTC start of day for a date.
  *
  * @param date - Source date.

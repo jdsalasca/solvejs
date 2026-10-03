@@ -9,6 +9,7 @@ Zero-dependency string utilities for JavaScript and TypeScript.
 ## Utilities
 
 - `toKebabCase`, `toCamelCase`, `toTitleCase`
+- `normalizeWhitespace`
 - `slugify`
 - `stripHtml`
 - `mask`
@@ -32,9 +33,9 @@ npm i @jdsalasc/solvejs-string
 ## Quick example
 
 ```ts
-import { slugify, stripHtml, truncate } from "@jdsalasc/solvejs-string";
+import { normalizeWhitespace, slugify, stripHtml, truncate } from "@jdsalasc/solvejs-string";
 
-const plain = stripHtml("<p>Hello <b>world</b></p>");
+const plain = normalizeWhitespace(stripHtml("<p>Hello   <b>world</b></p>"));
 const slug = slugify(plain); // "hello-world"
 truncate(plain, 5); // "Hello..."
 ```

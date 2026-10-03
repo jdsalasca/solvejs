@@ -12,9 +12,11 @@ import {
   isValidDate,
   isWeekend,
   isLeapYear,
+  nextBusinessDay,
   parseDateStrict,
   parseIsoDate,
   parseUnixTimestamp,
+  previousBusinessDay,
   startOfDay,
   toIsoDate
 } from "../dist/esm/index.js";
@@ -83,5 +85,7 @@ test("business day helpers skip UTC weekends", () => {
   assert.equal(toIsoDate(addBusinessDays(friday, 1)), "2026-06-01");
   assert.equal(toIsoDate(addBusinessDays(new Date("2026-06-01T12:00:00.000Z"), -1)), "2026-05-29");
   assert.equal(toIsoDate(addBusinessDays(friday, 0)), "2026-05-29");
+  assert.equal(toIsoDate(nextBusinessDay(saturday)), "2026-06-01");
+  assert.equal(toIsoDate(previousBusinessDay(saturday)), "2026-05-29");
   assert.throws(() => addBusinessDays(friday, 1.5), /integer/i);
 });

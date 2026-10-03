@@ -1,6 +1,6 @@
 {
   "name": "@jdsalasc/solvejs",
-  "version": "1.8.0",
+  "version": "1.9.0",
   "description": "Production-ready zero-dependency TypeScript utilities for dates, strings, lists, objects, validation, numbers, async flows, regex, constants, and env parsing.",
   "license": "MIT",
   "type": "module",
@@ -28,16 +28,17 @@
     "lint": "tsc -p tsconfig.lint.json --noEmit"
   },
   "dependencies": {
-    "@jdsalasc/solvejs-async": "1.8.0",
-    "@jdsalasc/solvejs-constants": "1.8.0",
-    "@jdsalasc/solvejs-date": "1.8.0",
-    "@jdsalasc/solvejs-env": "1.8.0",
-    "@jdsalasc/solvejs-list": "1.8.0",
-    "@jdsalasc/solvejs-numbers": "1.8.0",
-    "@jdsalasc/solvejs-objects": "1.8.0",
-    "@jdsalasc/solvejs-regex": "1.8.0",
-    "@jdsalasc/solvejs-string": "1.8.0",
-    "@jdsalasc/solvejs-validators": "1.8.0"
+    "@jdsalasc/solvejs-async": "1.9.0",
+    "@jdsalasc/solvejs-constants": "1.9.0",
+    "@jdsalasc/solvejs-date": "1.9.0",
+    "@jdsalasc/solvejs-env": "1.9.0",
+    "@jdsalasc/solvejs-list": "1.9.0",
+    "@jdsalasc/solvejs-numbers": "1.9.0",
+    "@jdsalasc/solvejs-objects": "1.9.0",
+    "@jdsalasc/solvejs-regex": "1.9.0",
+    "@jdsalasc/solvejs-schema": "1.9.0",
+    "@jdsalasc/solvejs-string": "1.9.0",
+    "@jdsalasc/solvejs-validators": "1.9.0"
   },
   "publishConfig": {
     "access": "public"

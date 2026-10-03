@@ -49,6 +49,16 @@ export function capitalize(value: string): string {
 }
 
 /**
+ * Collapses repeated whitespace and trims the final string.
+ *
+ * @param value - Input text.
+ * @returns Text with single spaces between words.
+ */
+export function normalizeWhitespace(value: string): string {
+  return value.replace(/\s+/g, " ").trim();
+}
+
+/**
  * Truncates text to a fixed size using a suffix.
  *
  * @param value - Input text.

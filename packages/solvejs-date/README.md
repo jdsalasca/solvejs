@@ -10,7 +10,7 @@ Zero-dependency date utilities for JavaScript and TypeScript.
 
 - `formatDate`, `toIsoDate`
 - `parseDateStrict`, `parseIsoDate`, `parseUnixTimestamp`
-- `addDays`, `addBusinessDays`, `diffInDays`
+- `addDays`, `addBusinessDays`, `nextBusinessDay`, `previousBusinessDay`, `diffInDays`
 - `startOfDay`, `endOfDay`
 - `isBusinessDay`, `isWeekend`, `isLeapYear`, `daysInMonth`
 

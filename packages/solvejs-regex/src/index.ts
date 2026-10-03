@@ -61,3 +61,14 @@ export function validateByName(input: string, patternName: PatternName): boolean
 export function escapeRegex(value: string): string {
   return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }
+
+/**
+ * Builds a RegExp from plain text, escaping all special regex characters.
+ *
+ * @param value - Plain text to match literally.
+ * @param flags - Optional RegExp flags.
+ * @returns RegExp that matches the provided text literally.
+ */
+export function literalRegex(value: string, flags?: string): RegExp {
+  return new RegExp(escapeRegex(value), flags);
+}

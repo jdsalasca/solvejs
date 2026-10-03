@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.9.0 - 2026-05-28
+
+- Added new package `@jdsalasc/solvejs-schema` for zero-dependency schema validation, `safeParse`, optional fields, refinements, unions, literals, and JSON Schema output.
+- Added web-app utility helpers across all existing packages: `timeoutFallback`, `HTTP_STATUS`, `CONTENT_TYPES`, `nextBusinessDay`, `previousBusinessDay`, `getEnvObject`, `pluck`, `toPercent`, `mapValues`, `literalRegex`, `normalizeWhitespace`, and domain validation.
+- Integrated schema exports into the meta package `@jdsalasc/solvejs`.
+- Expanded README examples and function-level comments so both developers and AI assistants can discover and use the new utilities correctly.
+
 ## 1.8.0 - 2026-05-28
 
 - Added validator UX translations with `translateValidationResult` for EN/ES/PT field-aware messages.
