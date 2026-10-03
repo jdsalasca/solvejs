@@ -5,3 +5,8 @@ coverage/
 *.log
 .DS_Store
 .playwright-cli/
+
+# Stale build output accidentally committed inside src/; tsc emits to dist/ only.
+packages/*/src/*.js
+packages/*/src/*.d.ts
+packages/*/src/*.map
