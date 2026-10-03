@@ -22,6 +22,28 @@ Use it when you repeatedly write list transformation logic and want consistent, 
 - Sorting/grouping semantics rely on mapper outputs and do not infer locale-aware collation.
 - Large-list performance depends on data shape and key cardinality; benchmark with production-like payloads.
 
+### intersection and difference keep duplicates from the left side
+
+Both functions filter the left operand against a `Set` of the right one, so repeated values in
+the left operand survive. lodash deduplicates in both cases, so this is the one place where
+migrating from lodash changes output:
+
+```ts
+intersection([1, 1, 2], [2, 1]); // [1, 1, 2]   solvejs
+                               // [1, 2]       lodash _.intersection
+
+difference([1, 1, 2], [2]);    // [1, 1]       solvejs
+                             // [1]          lodash _.difference
+```
+
+Compose with `unique` when you need the lodash result:
+
+```ts
+import { difference, unique } from "@jdsalasc/solvejs-list";
+
+difference(unique(rows), blacklist); // matches _.difference
+```
+
 ## Install
 
 ```bash

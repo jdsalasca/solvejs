@@ -7,6 +7,9 @@
 - Documented the `roundTo` asymmetry on exact halfway values: `roundTo(1.005, 2)` returns `1.01` while `roundTo(-1.005, 2)` returns `-1`, because the `Number.EPSILON` correction only applies to positive values. Behavior is unchanged; see the Precision note in `packages/solvejs-numbers/README.md`. Migration impact: none.
 - Removed stale build output (`index.js`, `index.d.ts`, `index.js.map`) that was committed inside `packages/*/src/` for six packages. Migration impact: none, repository hygiene only.
 - Documented the `toKebabCase`/`toCamelCase`/`slugify` acronym behaviour: a run of capitals is not split, so `toCamelCase("parseHTTPResponse")` returns `"parseHttpresponse"` and `toKebabCase("HTTPServer")` returns `"httpserver"`. Also documented that `truncate` degrades to a truncated suffix when the limit is at or below the suffix length. Behavior is unchanged. Migration impact: none.
+- Documented the `solvejs-date` input anchoring rule: the helpers read the UTC calendar of the `Date` passed in, so `new Date(2024, 3, 8)` (local midnight) reports the previous day in eastern timezones. Use `fromUtcParts`, `parseIsoDate`, or a `T12:00:00.000Z` anchor.
+- Documented the two `parseIsoDate` leniency traps inherited from `new Date(value)`: an impossible calendar day rolls forward (`"2026-02-30"` becomes 2 March) and a slash date is read as US month/day/year in local time (`"07/02/2026"` is 2 July). `parseDateStrict` rejects both. Behavior is unchanged. Migration impact: none.
+- Documented that `intersection` and `difference` preserve duplicates from the left operand, which differs from lodash. Compose with `unique` to match `_.intersection` and `_.difference`. Behavior is unchanged. Migration impact: none.
 
 ## 1.9.0 - 2026-05-28
 
