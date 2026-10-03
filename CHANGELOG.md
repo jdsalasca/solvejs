@@ -6,6 +6,7 @@
 - Integrated `solvejs-url` into the meta package `@jdsalasc/solvejs`.
 - Documented the `roundTo` asymmetry on exact halfway values: `roundTo(1.005, 2)` returns `1.01` while `roundTo(-1.005, 2)` returns `-1`, because the `Number.EPSILON` correction only applies to positive values. Behavior is unchanged; see the Precision note in `packages/solvejs-numbers/README.md`. Migration impact: none.
 - Removed stale build output (`index.js`, `index.d.ts`, `index.js.map`) that was committed inside `packages/*/src/` for six packages. Migration impact: none, repository hygiene only.
+- Documented the `toKebabCase`/`toCamelCase`/`slugify` acronym behaviour: a run of capitals is not split, so `toCamelCase("parseHTTPResponse")` returns `"parseHttpresponse"` and `toKebabCase("HTTPServer")` returns `"httpserver"`. Also documented that `truncate` degrades to a truncated suffix when the limit is at or below the suffix length. Behavior is unchanged. Migration impact: none.
 
 ## 1.9.0 - 2026-05-28
 
