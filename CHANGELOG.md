@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- `npm run report:health` now measures the test trust table itself instead of copying hand-written numbers, and rewrites both `package-health-report.md` and `.html` from that single measurement. Line coverage is read back from `npm run report:perf` output so the two reports cannot disagree. Repeated runs are idempotent, and CRLF checkouts are handled. The markdown now has explicit `## Test Trust` and `## Package Status` sections.
+
 - Documented that in `@jdsalasc/solvejs-async` a `debouncePromise` call superseded by a newer call rejects immediately with `Error: Debounced by a newer call.` and that validation is synchronous for `sleep`/`debouncePromise`/`createRateLimiter`/`createTokenBucketLimiter` but arrives as a rejected promise for `retry`/`pMap`. Behavior is unchanged. Migration impact: none.
 - Removed an unreachable branch in `createTokenBucketLimiter`: `scheduleDrain` is only ever called after the drain loop has broken on an unaffordable queue head, so its `missingTokens === 0` early return could not execute. No behavior change. Migration impact: none.
 

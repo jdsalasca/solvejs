@@ -6,29 +6,28 @@ This report lists each package, its practical utilities, current status, known i
 
 ## Test Trust
 
-Measured with `npm run test:baseline`, which derives each package's minimum from its exported
-function count. Full figures in `docs/guides/performance-and-size.md`.
+13 packages, 191 test blocks. The minimum for each package is derived
+from its exported function count by `npm run test:baseline`.
 
 | Package | Function exports | Test blocks | Line coverage |
-|---|---:|---:|---:|
-| `@jdsalasc/solvejs` | 0 (re-exports) | 1 | 52.88% |
-| `@jdsalasc/solvejs-async` | 10 | 10 | 93.65% |
+|---|---|---|---|
+| `@jdsalasc/solvejs` | 0 (re-exports) | 1 | 52.90% |
+| `@jdsalasc/solvejs-async` | 10 | 21 | 100.00% |
 | `@jdsalasc/solvejs-constants` | 1 | 9 | 100.00% |
 | `@jdsalasc/solvejs-date` | 18 | 19 | 95.05% |
-| `@jdsalasc/solvejs-env` | 10 | 10 | 90.70% |
+| `@jdsalasc/solvejs-env` | 10 | 24 | 100.00% |
 | `@jdsalasc/solvejs-list` | 12 | 12 | 98.93% |
 | `@jdsalasc/solvejs-numbers` | 16 | 16 | 100.00% |
 | `@jdsalasc/solvejs-objects` | 7 | 7 | 98.76% |
 | `@jdsalasc/solvejs-regex` | 5 | 15 | 100.00% |
-| `@jdsalasc/solvejs-schema` | 1 | 6 | 86.94% |
+| `@jdsalasc/solvejs-schema` | 1 | 15 | 100.00% |
 | `@jdsalasc/solvejs-string` | 9 | 10 | 100.00% |
 | `@jdsalasc/solvejs-url` | 8 | 10 | 99.00% |
 | `@jdsalasc/solvejs-validators` | 31 | 32 | 98.37% |
 
-Every package meets the bar. The lowest line coverage belongs to `solvejs-schema`, then
-`solvejs-env` and `solvejs-async`; those are the next trust targets. The meta package figure is an
-aggregate over every re-exported module, so its 52.88% reflects the packages it re-exports rather
-than untested code of its own.
+## Package Status
+
+One row per package, refreshed by hand as behaviour changes.
 
 | Package | Practical utilities | Current status | Known issues | Weak points | Next improvements |
 |---|---|---|---|---|---|
