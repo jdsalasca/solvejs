@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Fixed `getUrlParam` in `@jdsalasc/solvejs-url`, which read a value out of text that appeared after a `#` fragment: `getUrlParam("/x#frag?a=1", "a")` returned `"1"` and now returns `null`. The fragment is now discarded before the query is located. Migration impact: none, unless a caller relied on the previous incorrect result.
+
 - Documented that `deepMerge` in `@jdsalasc/solvejs-objects` drops prototype-polluting keys only at levels where it merges two objects; a nested plain object with no counterpart on the target is assigned whole, so an own `__proto__` property inside it is carried as inert data. No prototype pollution is possible either way, because an own `__proto__` property is data rather than a prototype assignment. Behavior is unchanged. Migration impact: none.
 
 - `npm run report:health` now measures the test trust table itself instead of copying hand-written numbers, and rewrites both `package-health-report.md` and `.html` from that single measurement. Line coverage is read back from `npm run report:perf` output so the two reports cannot disagree. Repeated runs are idempotent, and CRLF checkouts are handled. The markdown now has explicit `## Test Trust` and `## Package Status` sections.

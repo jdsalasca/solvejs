@@ -206,7 +206,11 @@ export function omitQuery(url: string, names: string[]): string {
  * @returns The decoded value, or `null` when the key is absent.
  */
 export function getUrlParam(url: string, name: string): string | null {
-  const search = url.includes("?") ? url.slice(url.indexOf("?") + 1).split("#")[0] : "";
+  // Drop the fragment first: text after a `#` is not a query, so looking for the
+  // first `?` before stripping it would read "#frag?a=1" as a query.
+  const withoutFragment = url.split("#")[0];
+  const questionMark = withoutFragment.indexOf("?");
+  const search = questionMark === -1 ? "" : withoutFragment.slice(questionMark + 1);
   const value = new URLSearchParams(search).get(name);
   return value === null ? null : value;
 }

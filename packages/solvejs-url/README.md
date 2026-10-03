@@ -73,6 +73,8 @@ the point, so it cannot be turned off. Build the string yourself if order matter
 - `stringifyQuery` returns a string without a leading `?`. `buildUrl` and `withQuery` add it for you.
 - `getUrlParam` returns the **first** value when a key repeats, matching `URLSearchParams.get`. Use
   `parseQuery` when you need every occurrence as an array.
+- `getUrlParam` reads a relative or absolute URL and ignores anything after a `#`, so
+  `getUrlParam("/x#frag?a=1", "a")` is `null` rather than `"1"`.
 - An array value repeats the key: `stringifyQuery({ tag: ["a", "b"] })` is `"tag=a&tag=b"`.
 
 ## Errors

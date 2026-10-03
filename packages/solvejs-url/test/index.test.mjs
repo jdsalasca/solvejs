@@ -177,3 +177,59 @@ test("round trip a query string through parse and stringify", () => {
   );
   assert.deepEqual(parseQuery(stringifyQuery({ a: "x y" })), { a: "x y" }, "spaces survive a round trip");
 });
+
+test("a parseable URL with no host is rejected", () => {
+  // These match the scheme:// shape and survive `new URL`, but carry no host, so
+  // they fail the host check rather than the parse check.
+  for (const value of ["a://", "foo://", "custom://"]) {
+    assert.throws(
+      () => buildUrl(value),
+      (error) => error instanceof UrlError && error.code === "URL_INVALID_BASE",
+      `${value} must be rejected`
+    );
+  }
+
+  assert.throws(
+    () => withQuery("a://", { x: 1 }),
+    (error) => error.code === "URL_INVALID_BASE"
+  );
+  assert.throws(
+    () => omitQuery("a://", ["x"]),
+    (error) => error.code === "URL_INVALID_BASE"
+  );
+});
+
+test("hash accepts both a bare value and a prefixed one", () => {
+  assert.equal(buildUrl("https://a.dev", { hash: "top" }), "https://a.dev/#top");
+  assert.equal(buildUrl("https://a.dev", { hash: "#top" }), "https://a.dev/#top", "an existing # is not doubled");
+  assert.equal(buildUrl("https://a.dev", { hash: "" }), "https://a.dev/", "an empty hash is dropped");
+  assert.equal(buildUrl("https://a.dev", { hash: "a b" }), "https://a.dev/#a%20b", "the hash is encoded");
+});
+
+test("parseQuery accepts a query with or without the leading question mark", () => {
+  assert.deepEqual(parseQuery("?a=1&b=2"), { a: "1", b: "2" });
+  assert.deepEqual(parseQuery("a=1&b=2"), { a: "1", b: "2" });
+});
+
+test("omitQuery handles urls with no query, some keys, and all keys", () => {
+  assert.equal(omitQuery("https://a.dev/x", ["a"]), "https://a.dev/x", "nothing to remove");
+  assert.equal(omitQuery("https://a.dev/x?a=1", ["a"]), "https://a.dev/x", "removing the only key drops the question mark");
+  assert.equal(omitQuery("https://a.dev/x?a=1&b=2&c=3", ["b"]), "https://a.dev/x?a=1&c=3");
+  assert.equal(omitQuery("https://a.dev/x?a=1&a=2", ["a"]), "https://a.dev/x", "a repeated key is removed entirely");
+});
+
+test("joinUrl handles degenerate inputs", () => {
+  assert.equal(joinUrl(""), "/", "an empty base still yields a single slash");
+  assert.equal(joinUrl("https://a.dev", ""), "https://a.dev/", "an empty segment is ignored");
+  assert.equal(joinUrl("https://a.dev", "/"), "https://a.dev/", "a lone slash adds nothing");
+});
+
+test("stringifyQuery skips null and undefined inside an array value", () => {
+  assert.equal(stringifyQuery({ a: [1, null, undefined, 2] }), "a=1&a=2");
+  assert.equal(stringifyQuery({ a: [null] }), "", "an array of only nulls produces nothing");
+});
+
+test("getUrlParam reads a value that precedes a fragment", () => {
+  assert.equal(getUrlParam("https://a.dev/x?a=1#frag", "a"), "1", "the fragment does not leak into the value");
+  assert.equal(getUrlParam("https://a.dev/x#frag?a=1", "a"), null, "text after a hash is not a query");
+});
