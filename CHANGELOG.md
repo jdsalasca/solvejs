@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Added a `check:cjs` gate, run by `npm run quality`, that loads the `require()` entry point of every package and fails when one does not resolve, exports nothing, or left a `.js` file behind in `dist/cjs`. The CommonJS build is produced by renaming every output file and rewriting the require specifiers, and since every test suite exercises `dist/esm` only, a broken CommonJS build was previously unverified until a user hit it. Migration impact: none, tooling only.
+
 - Added a `check:meta` gate, run by `npm run quality`, that verifies every leaf workspace is declared in the meta package and re-exported from its entry point, and that no two packages export the same name. Because the meta package re-exports with `export *`, an ambiguous name is silently dropped from the namespace: every individual package keeps working while a user importing from `@jdsalasc/solvejs` gets a build error. The gate also catches a leaf that was added to the workspace but never wired into the meta.
 
 - Added `npm run quality`, which runs the full gate sequence that `AGENTS.md` lists: build, tests, the test baseline, the meta check, the documentation link check and lint. Migration impact: none, tooling only.

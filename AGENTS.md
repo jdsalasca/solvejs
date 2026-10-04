@@ -79,6 +79,11 @@ packages export an ambiguous name. `export *` drops a colliding name from the na
 duplicate export is a build error for anyone importing from `@jdsalasc/solvejs` while every
 individual package still works.
 
+`check:cjs` is part of that sequence too. Every test suite exercises `dist/esm` only, so the
+CommonJS entry point each package ships through `require()` would otherwise be unverified until a
+user hit it. The check loads the `require` entry point of every package and fails when one does not
+resolve, exports nothing, or left a `.js` file behind in `dist/cjs`.
+
 If you change growth or reporting artifacts, also run:
 
 ```bash
