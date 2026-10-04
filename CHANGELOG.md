@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Fixed the release workflow, which carried a hardcoded publish matrix of 11 packages while the workspace had 20. Nine packages were therefore not publishable: `solvejs-schema` had been published once at v1.0.0 and could never be updated, and the eight newer packages could not be released at all even though the meta package depends on them, so a tag would have shipped a `@jdsalasc/solvejs` that fails to install. The matrix is now derived from the workspaces by `scripts/release-matrix.mjs`, and the meta package publishes in a separate job that waits for every leaf, because matrix jobs run in parallel and would otherwise let the meta reach npm before its dependencies. `npm run check:release` fails if a package is ever listed by hand again or if the publish list stops matching the workspaces. Migration impact: none, release tooling only. Tagging a release now publishes all twenty packages instead of eleven.
+
 - Added a `check:pack` gate, run by `npm run quality`, that packs every package in dry-run mode and fails when a declared entry point or the README would not be published, or when source or test files would ship. The `files` field decides the tarball, and a mistake there is invisible until the package is on the registry. Migration impact: none, tooling only.
 
 - Added a `check:cjs` gate, run by `npm run quality`, that loads the `require()` entry point of every package and fails when one does not resolve, exports nothing, or left a `.js` file behind in `dist/cjs`. The CommonJS build is produced by renaming every output file and rewriting the require specifiers, and since every test suite exercises `dist/esm` only, a broken CommonJS build was previously unverified until a user hit it. Migration impact: none, tooling only.

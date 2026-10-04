@@ -7,7 +7,26 @@ on:
   workflow_dispatch:
 
 jobs:
-  publish:
+  plan:
+    name: Plan publish order
+    runs-on: ubuntu-latest
+    outputs:
+      leaves: ${{ steps.plan.outputs.leaves }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Build the publish list from the workspaces
+        id: plan
+        run: |
+          set -euo pipefail
+          MATRIX=$(node scripts/release-matrix.mjs)
+          echo "Publish order: $MATRIX"
+          echo "leaves=$MATRIX" >> "$GITHUB_OUTPUT"
+
+  publish-leaves:
+    name: Publish ${{ matrix.workspace }}
+    needs: plan
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -15,18 +34,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        workspace:
-          - packages/solvejs-date
-          - packages/solvejs-string
-          - packages/solvejs-list
-          - packages/solvejs-regex
-          - packages/solvejs-constants
-          - packages/solvejs-numbers
-          - packages/solvejs-validators
-          - packages/solvejs-objects
-          - packages/solvejs-async
-          - packages/solvejs-env
-          - packages/solvejs
+        workspace: ${{ fromJSON(needs.plan.outputs.leaves) }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -88,15 +96,86 @@ jobs:
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
+  publish-meta:
+    # The meta package depends on every leaf, so it must only reach the registry once all of them
+    # are there. A matrix job runs its legs in parallel, which would otherwise let a tag publish
+    # @jdsalasc/solvejs while one of its dependencies is still missing and break the install.
+    name: Publish @jdsalasc/solvejs
+    needs: publish-leaves
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      id-token: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          registry-url: https://registry.npmjs.org
+
+      - name: Check npm token
+        id: token
+        run: |
+          if [ -z "${NODE_AUTH_TOKEN}" ]; then
+            echo "NPM_TOKEN is missing. Skipping publish for this run."
+            echo "has_token=false" >> $GITHUB_OUTPUT
+          else
+            echo "has_token=true" >> $GITHUB_OUTPUT
+          fi
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+      - name: Install
+        if: steps.token.outputs.has_token == 'true'
+        run: npm install
+
+      - name: Build
+        if: steps.token.outputs.has_token == 'true'
+        run: npm run build
+
+      - name: Resolve package metadata
+        if: steps.token.outputs.has_token == 'true'
+        id: package
+        run: |
+          NAME=$(node -p "require('./packages/solvejs/package.json').name")
+          VERSION=$(node -p "require('./packages/solvejs/package.json').version")
+          echo "name=$NAME" >> $GITHUB_OUTPUT
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+
+      - name: Check if version exists
+        if: steps.token.outputs.has_token == 'true'
+        id: registry
+        run: |
+          set +e
+          npm view "${{ steps.package.outputs.name }}@${{ steps.package.outputs.version }}" version --json > /tmp/version.json 2>/tmp/npm-view.err
+          RESULT=$?
+          set -e
+          if [ $RESULT -eq 0 ]; then
+            echo "exists=true" >> $GITHUB_OUTPUT
+            echo "Version already exists on npm, skipping publish."
+          else
+            echo "exists=false" >> $GITHUB_OUTPUT
+            echo "Version not found on npm, publishing."
+          fi
+
+      - name: Publish meta package
+        if: steps.token.outputs.has_token == 'true' && steps.registry.outputs.exists != 'true'
+        run: npm publish --workspace packages/solvejs --access public
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
       - name: Create GitHub Release
-        if: steps.token.outputs.has_token == 'true' && matrix.workspace == 'packages/solvejs'
+        if: steps.token.outputs.has_token == 'true'
         id: gh_release
         uses: softprops/action-gh-release@v2
         with:
           generate_release_notes: true
 
       - name: Add community traceability links
-        if: steps.token.outputs.has_token == 'true' && matrix.workspace == 'packages/solvejs'
+        if: steps.token.outputs.has_token == 'true'
         uses: actions/github-script@v7
         with:
           script: |

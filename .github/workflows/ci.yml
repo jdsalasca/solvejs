@@ -38,6 +38,18 @@ jobs:
       - name: Pack dry run
         run: npm pack --workspaces --dry-run
 
+      - name: Check CommonJS output
+        run: npm run check:cjs
+
+      - name: Check publish contents
+        run: npm run check:pack
+
+      - name: Check meta package wiring
+        run: npm run check:meta
+
+      - name: Check release matrix covers every package
+        run: npm run check:release
+
       - name: Generate inventory report
         run: npm run inventory
 

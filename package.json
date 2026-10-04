@@ -33,8 +33,9 @@
     "test:uncovered": "node scripts/find-uncovered.mjs",
     "check:meta": "node scripts/check-meta-wiring.mjs",
     "check:cjs": "node scripts/check-cjs-output.mjs",
-    "quality": "npm run build && npm test && npm run test:baseline && npm run check:meta && npm run check:cjs && npm run check:pack && npm run docs:check-links && npm run lint",
-    "check:pack": "node scripts/check-pack-contents.mjs"
+    "quality": "npm run build && npm test && npm run test:baseline && npm run check:meta && npm run check:cjs && npm run check:pack && npm run check:release && npm run docs:check-links && npm run lint",
+    "check:pack": "node scripts/check-pack-contents.mjs",
+    "check:release": "node --test test/release-matrix.test.mjs"
   },
   "devDependencies": {
     "typescript": "^5.9.2"
