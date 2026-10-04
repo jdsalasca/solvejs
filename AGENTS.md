@@ -67,6 +67,18 @@ npm run test:baseline
 npm run docs:check-links
 ```
 
+Or run the whole sequence in one command:
+
+```bash
+npm run quality
+```
+
+`check:meta` is part of that sequence and must pass before any release. It verifies that every leaf
+workspace is declared in the meta package and re-exported from its entry point, and that no two
+packages export an ambiguous name. `export *` drops a colliding name from the namespace, so a
+duplicate export is a build error for anyone importing from `@jdsalasc/solvejs` while every
+individual package still works.
+
 If you change growth or reporting artifacts, also run:
 
 ```bash

@@ -6,12 +6,12 @@ This report lists each package, its practical utilities, current status, known i
 
 ## Test Trust
 
-20 packages, 407 test blocks. The minimum for each package is derived
+20 packages, 410 test blocks. The minimum for each package is derived
 from its exported function count by `npm run test:baseline`.
 
 | Package | Function exports | Test blocks | Line coverage |
 |---|---|---|---|
-| `@jdsalasc/solvejs` | 0 (re-exports) | 1 | 47.66% |
+| `@jdsalasc/solvejs` | 0 (re-exports) | 4 | 56.85% |
 | `@jdsalasc/solvejs-async` | 10 | 26 | 100.00% |
 | `@jdsalasc/solvejs-cache` | 5 | 31 | 100.00% |
 | `@jdsalasc/solvejs-constants` | 1 | 9 | 100.00% |
@@ -67,6 +67,13 @@ One row per package, refreshed by hand as behaviour changes.
 
 ## Known coverage exceptions
 
+- The `@jdsalasc/solvejs` meta package reports a lower figure than its leaves on purpose. The number
+  is an aggregate over every module the meta entry point re-exports, measured through the single
+  integration test in `packages/solvejs/test`, so it reflects how much of the whole surface that one
+  test touches rather than untested code. Each leaf package is at 100% in its own suite, and
+  `npm run check:meta` guarantees the re-export wiring itself is complete and unambiguous. Driving
+  this figure to 100% would mean duplicating every leaf test through the meta, which protects
+  nothing that the leaf suites plus the wiring check do not already cover.
 - `@jdsalasc/solvejs-env` sits at 99.18% branch coverage. The single uncovered branch is the `?? {}`
   fallback in `defaultEnvSource`, which only runs on a runtime with no `globalThis.process`, such as
   a browser bundle with no process shim. Deleting the guard would turn a clear "missing environment

@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+- Added a `check:meta` gate, run by `npm run quality`, that verifies every leaf workspace is declared in the meta package and re-exported from its entry point, and that no two packages export the same name. Because the meta package re-exports with `export *`, an ambiguous name is silently dropped from the namespace: every individual package keeps working while a user importing from `@jdsalasc/solvejs` gets a build error. The gate also catches a leaf that was added to the workspace but never wired into the meta.
+
+- Added `npm run quality`, which runs the full gate sequence that `AGENTS.md` lists: build, tests, the test baseline, the meta check, the documentation link check and lint. Migration impact: none, tooling only.
+
+- Added an integration test for `@jdsalasc/solvejs` that exercises one value and one error class from each of the 19 leaf packages through the meta entry point. No leaf test can catch a re-export that is declared but does not resolve in the built output, which is what this covers. Migration impact: none, tests only.
+
 - Fixed `@jdsalasc/solvejs-semver`: a wildcard operand is now treated as the interval it names, so `<2.x` keeps everything below `2.0.0`, `<=2.x` also keeps `2.99.99`, and `>1.2` moves past the whole `1.2.z` block. Previously every operator other than equality against a wildcard returned `false`, and `=1.2` threw `SEMVER_INVALID_RANGE` because `=` was not recognised as an operator. Migration impact: none for ranges written with an explicit version. A range that relied on `<2.x` returning `false` was already wrong and will now match the versions it was meant to match.
 
 - Fixed `@jdsalasc/solvejs-schema`: `s.array().min()` and `s.array().max()` now reject a count that is not a non-negative integer, and `s.number().min()` and `s.number().max()` now reject a non-finite bound. A negative item count previously reached `toJsonSchema()` and produced invalid JSON Schema, and `NaN` or `Infinity` produced a bound that could never be satisfied. A negative numeric bound stays legal because it is meaningful. Migration impact: a schema built with an invalid count or a non-finite bound now throws at build time instead of producing a schema that silently never matched.
