@@ -84,6 +84,11 @@ CommonJS entry point each package ships through `require()` would otherwise be u
 user hit it. The check loads the `require` entry point of every package and fails when one does not
 resolve, exports nothing, or left a `.js` file behind in `dist/cjs`.
 
+`check:pack` is the last of the release-safety gates. The `files` field decides the tarball, and a
+mistake there is invisible until the package is on the registry, so the check packs every package in
+dry-run mode and fails when a declared entry point, the README, or well over half the manifest is
+missing, or when source or test files would ship.
+
 If you change growth or reporting artifacts, also run:
 
 ```bash
