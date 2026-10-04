@@ -533,3 +533,39 @@ test("a country preset narrows the digit count, and ANY falls back to the 7 to 1
   const loweredCeiling = validateCellphoneNumber("+12345678901234", { country: "US", maxDigits: 20 });
   assert.equal(loweredCeiling.ok, true, "a raised ceiling accepts a longer number than US normally allows");
 });
+
+test("the typo aliases still resolve to the canonical direction validator", () => {
+  // These exist because an early release shipped the misspelled names. Users have them in their
+  // code, so they keep working; this test is what makes their eventual removal a deliberate act
+  // rather than an accident.
+  for (const locale of ["en", "es"]) {
+    for (const value of ["N", "S", "E", "O", "NE", "SW", "Calle 100", ""]) {
+      assert.equal(
+        isAddresDirection(value, { locale }),
+        isAddressDirection(value, { locale }),
+        `isAddresDirection must match for ${JSON.stringify(value)} under ${locale}`
+      );
+      assert.equal(
+        isAddresDirrection(value, { locale }),
+        isAddressDirection(value, { locale }),
+        `isAddresDirrection must match for ${JSON.stringify(value)} under ${locale}`
+      );
+    }
+  }
+});
+
+test("the built declarations mark the typo aliases as deprecated", async () => {
+  // The deprecation is delivered through JSDoc, which is the only mechanism an editor shows as a
+  // strikethrough. If the tag disappears from the build, users lose the warning silently, so it is
+  // asserted against the emitted .d.ts rather than the source.
+  const { readFileSync } = await import("node:fs");
+  const declarations = readFileSync(new URL("../dist/esm/index.d.ts", import.meta.url), "utf8");
+
+  for (const alias of ["isAddresDirection", "isAddresDirrection"]) {
+    const block = declarations.slice(0, declarations.indexOf(`declare function ${alias}`));
+    const start = block.lastIndexOf("/**");
+    const doc = block.slice(start);
+    assert.match(doc, /@deprecated/, `${alias} must carry @deprecated in the build`);
+    assert.match(doc, /isAddressDirection/, `${alias} must name its replacement`);
+  }
+});

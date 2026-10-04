@@ -43,6 +43,7 @@
 - [x] Harden release workflow with idempotent publish checks and explicit npm token validation.
 - [x] Publish package health report (status, issues, weaknesses, improvements) for contributors.
 - [x] Add deep edge-case tests for date timezone boundaries and object nested-path updates.
-- [ ] Expand validators locale/country coverage and document deprecation strategy for typo aliases.
+- [x] Document the deprecation strategy for the validators typo aliases.
+  - [ ] Expand validators coverage beyond the current 12 postal countries and 2 direction locales. Adding one means a rule plus its vectors, so it is deliberately left as a separate scoped task.
 - [x] Add lint baseline and CI enforcement across all workspaces.
 - [x] Start new async utilities package (`solvejs-async`) for retry/timeout/concurrency workflows.

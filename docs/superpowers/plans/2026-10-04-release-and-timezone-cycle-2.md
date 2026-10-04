@@ -166,6 +166,20 @@ git commit -m "test(date): pin DST transition and month-end boundaries"
   fixes: every assertion passed on the first run because the package was already correctly
   UTC-anchored. That is the useful outcome, because the claim was previously unproven, but it is not
   a defect found. The real defect this cycle was the release matrix in Task 1.
+- Cycle 2 Task 4: validators deprecation mechanism and coverage documentation. Complete. The two
+  misspelled aliases now carry `@deprecated`, which is the only mechanism an editor renders as a
+  strikethrough, and a test asserts the tag reaches the built `.d.ts`. The README gained the removal
+  policy and the explicit country/locale table. Two README claims written from memory were wrong and
+  were corrected against the code: `validateCreditCardNumber` does not inspect the card network, and
+  a phone number for the wrong country is accepted whenever its digit count fits the preset.
+
+## Next
+
+- Expand validators coverage beyond 12 postal countries and 2 direction locales. One country means a
+  rule plus its vectors, so it is a scoped task of its own.
+- Add a `check:versions` gate asserting the meta package's declared dependency versions match each
+  workspace's real version. Versions align today, but nothing enforces it and `solvejs-schema` shows
+  this class of drift is real.
 
 ## Findings worth keeping
 
@@ -175,6 +189,9 @@ git commit -m "test(date): pin DST transition and month-end boundaries"
   new test claimed US fall-back happens on 2024-10-06 and Australia ends DST the same day; both were
   corrected against the real 2024 calendar before the test was committed.
 - `isLeapYear` and `daysInMonth` take numbers, not a `Date`. Worth remembering when reading the API.
+- `@jdsalasc/solvejs@1.8.0` on npm resolves cleanly: all ten of its declared dependencies exist at
+  1.8.0 and it does not depend on `solvejs-schema`, so the schema version gap does not affect current
+  users. Verified with `npm view`, not assumed.
 
 ## Blockers
 

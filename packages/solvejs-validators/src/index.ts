@@ -281,6 +281,8 @@ export function isAddressDirection(value: string, options: { locale?: DirectionL
  * @param value - Direction text.
  * @param options - Validation options.
  * @returns `true` when the direction is valid.
+ * @deprecated Use {@link isAddressDirection}. This alias is kept only so existing code keeps
+ * working, and is removed in the next major release.
  */
 export function isAddresDirection(value: string, options: { locale?: DirectionLocale } = {}): boolean {
   return isAddressDirection(value, options);
@@ -292,6 +294,8 @@ export function isAddresDirection(value: string, options: { locale?: DirectionLo
  * @param value - Direction text.
  * @param options - Validation options.
  * @returns `true` when the direction is valid.
+ * @deprecated Use {@link isAddressDirection}. This alias is kept only so existing code keeps
+ * working, and is removed in the next major release.
  */
 export function isAddresDirrection(value: string, options: { locale?: DirectionLocale } = {}): boolean {
   return isAddressDirection(value, options);

@@ -4,54 +4,54 @@ Generated on 2026-10-04.
 
 ## Benchmark Snapshot
 
-- date.formatDate: 42.34ms for 100.000 iterations
-- string.toKebabCase: 77.95ms for 100.000 iterations
-- list.unique: 16.91ms for 100.000 iterations
-- numbers.percent: 3.91ms for 100.000 iterations
-- validators.isCellphoneNumber: 11.89ms for 100.000 iterations
-- url.buildUrl: 256.14ms for 100.000 iterations
-- url.stringifyQuery: 63.65ms for 100.000 iterations
-- url.parseQuery: 55.05ms for 100.000 iterations
-- cache.stableKey: 250.40ms for 100.000 iterations
-- json.stableStringify: 237.08ms for 100.000 iterations
-- json.safeJsonParse: 37.43ms for 100.000 iterations
-- json.deepClone: 55.84ms for 100.000 iterations
-- json.deepEqual: 88.63ms for 100.000 iterations
-- pagination.offsetToCursor: 1.72ms for 100.000 iterations
-- semver.parseVersion: 87.09ms for 100.000 iterations
-- semver.satisfies: 238.37ms for 100.000 iterations
-- semver.compareVersions: 90.87ms for 100.000 iterations
-- errors.createError: 1196.83ms for 100.000 iterations
-- errors.normalizeError: 2267.07ms for 100.000 iterations
-- errors.serializeError: 3661.68ms for 100.000 iterations
-- money.fromDecimal: 39.22ms for 100.000 iterations
-- money.addMoney: 37.27ms for 100.000 iterations
-- money.percentageOf: 24.31ms for 100.000 iterations
-- http.calculateBackoffDelay: 50.92ms for 100.000 iterations
-- http.parseContentType: 87.02ms for 100.000 iterations
-- http.negotiateContentType: 85.50ms for 100.000 iterations
-- cache.createLruCache.get (10000): 0.11ms for 1 iterations
-- cache.createTtlCache.get (10000): 0.11ms for 1 iterations
-- cache.createLruCache.get (100000): 0.02ms for 1 iterations
-- cache.createTtlCache.get (100000): 0.01ms for 1 iterations
-- list.uniqueBy (10000): 1.68ms for 1 iterations
-- list.groupBy (10000): 12.69ms for 1 iterations
-- list.sortBy (10000): 0.70ms for 1 iterations
-- list.uniqueBy (100000): 25.56ms for 1 iterations
-- list.groupBy (100000): 28.33ms for 1 iterations
-- list.sortBy (100000): 17.67ms for 1 iterations
-- list.uniqueBy high-cardinality (100000): 66.23ms for 1 iterations
-- list.groupBy high-cardinality (100000): 50.91ms for 1 iterations
-- list.sortBy high-cardinality (100000): 28.19ms for 1 iterations
-- list.uniqueBy high-cardinality (250000): 215.18ms for 1 iterations
-- list.groupBy high-cardinality (250000): 148.83ms for 1 iterations
-- list.sortBy high-cardinality (250000): 60.82ms for 1 iterations
+- date.formatDate: 44.27ms for 100.000 iterations
+- string.toKebabCase: 101.78ms for 100.000 iterations
+- list.unique: 15.67ms for 100.000 iterations
+- numbers.percent: 5.09ms for 100.000 iterations
+- validators.isCellphoneNumber: 21.02ms for 100.000 iterations
+- url.buildUrl: 409.72ms for 100.000 iterations
+- url.stringifyQuery: 87.12ms for 100.000 iterations
+- url.parseQuery: 79.09ms for 100.000 iterations
+- cache.stableKey: 387.62ms for 100.000 iterations
+- json.stableStringify: 251.85ms for 100.000 iterations
+- json.safeJsonParse: 53.79ms for 100.000 iterations
+- json.deepClone: 74.74ms for 100.000 iterations
+- json.deepEqual: 94.60ms for 100.000 iterations
+- pagination.offsetToCursor: 2.17ms for 100.000 iterations
+- semver.parseVersion: 124.66ms for 100.000 iterations
+- semver.satisfies: 347.43ms for 100.000 iterations
+- semver.compareVersions: 114.93ms for 100.000 iterations
+- errors.createError: 2089.07ms for 100.000 iterations
+- errors.normalizeError: 4794.64ms for 100.000 iterations
+- errors.serializeError: 5329.95ms for 100.000 iterations
+- money.fromDecimal: 64.58ms for 100.000 iterations
+- money.addMoney: 88.70ms for 100.000 iterations
+- money.percentageOf: 84.24ms for 100.000 iterations
+- http.calculateBackoffDelay: 121.61ms for 100.000 iterations
+- http.parseContentType: 300.23ms for 100.000 iterations
+- http.negotiateContentType: 410.67ms for 100.000 iterations
+- cache.createLruCache.get (10000): 0.17ms for 1 iterations
+- cache.createTtlCache.get (10000): 0.23ms for 1 iterations
+- cache.createLruCache.get (100000): 0.21ms for 1 iterations
+- cache.createTtlCache.get (100000): 0.00ms for 1 iterations
+- list.uniqueBy (10000): 5.48ms for 1 iterations
+- list.groupBy (10000): 5.66ms for 1 iterations
+- list.sortBy (10000): 5.25ms for 1 iterations
+- list.uniqueBy (100000): 59.21ms for 1 iterations
+- list.groupBy (100000): 53.39ms for 1 iterations
+- list.sortBy (100000): 16.79ms for 1 iterations
+- list.uniqueBy high-cardinality (100000): 182.75ms for 1 iterations
+- list.groupBy high-cardinality (100000): 144.75ms for 1 iterations
+- list.sortBy high-cardinality (100000): 51.15ms for 1 iterations
+- list.uniqueBy high-cardinality (250000): 857.63ms for 1 iterations
+- list.groupBy high-cardinality (250000): 225.66ms for 1 iterations
+- list.sortBy high-cardinality (250000): 123.18ms for 1 iterations
 
 ## Test Coverage (`node --test --experimental-test-coverage`)
 
 | Package | Lines | Branches | Functions |
 |---|---:|---:|---:|
-| @jdsalasc/solvejs | 56.85% | 52.85% | 32.62% |
+| @jdsalasc/solvejs | 56.88% | 52.85% | 32.62% |
 | @jdsalasc/solvejs-async | 100.00% | 100.00% | 100.00% |
 | @jdsalasc/solvejs-cache | 100.00% | 100.00% | 100.00% |
 | @jdsalasc/solvejs-constants | 100.00% | 100.00% | 100.00% |
@@ -95,7 +95,7 @@ Generated on 2026-10-04.
 | @jdsalasc/solvejs-semver | 0.1.0 | 11.33 KB | 72.10 KB | 7 |
 | @jdsalasc/solvejs-string | 1.9.0 | 3.93 KB | 18.52 KB | 7 |
 | @jdsalasc/solvejs-url | 0.1.0 | 7.38 KB | 37.35 KB | 7 |
-| @jdsalasc/solvejs-validators | 1.9.0 | 10.71 KB | 82.55 KB | 7 |
+| @jdsalasc/solvejs-validators | 1.9.0 | 12.18 KB | 86.83 KB | 7 |
 
 ## Notes
 
