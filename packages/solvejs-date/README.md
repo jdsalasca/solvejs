@@ -81,6 +81,10 @@ toIsoDate(next); // "2026-02-11"
 
 ## DST/Timezone matrix quick check
 
+Every helper reads the UTC calendar of its input, so a daylight saving transition cannot change the
+answer. This is pinned by tests that run the same assertions under `UTC`, `America/New_York`,
+`Europe/Madrid`, `Australia/Sydney` and `Asia/Kolkata` at the exact transition instants of 2024.
+
 ```ts
 import { diffInDays, parseIsoDate } from "@jdsalasc/solvejs-date";
 
@@ -91,4 +95,22 @@ const euEnd = parseIsoDate("2026-03-30T00:59:59.000Z");
 
 if (usStart && usEnd) diffInDays(usEnd, usStart); // 1
 if (euStart && euEnd) diffInDays(euEnd, euStart); // 1
+```
+
+`diffInDays` is `left - right`, which is what `date-fns` does, so a later date in the first position
+returns a negative number. Say it plainly, because getting it backwards is the one mistake this
+function invites:
+
+```ts
+diffInDays(new Date("2024-01-02T00:00:00Z"), new Date("2024-01-01T00:00:00Z")); // 1
+diffInDays(new Date("2024-01-01T00:00:00Z"), new Date("2024-01-02T00:00:00Z")); // -1
+```
+
+Business-day arithmetic is UTC too, so a month that ends on a weekend resolves to the following
+Monday regardless of where the code runs. Holidays are not consulted; only Saturday and Sunday are
+skipped.
+
+```ts
+addBusinessDays(new Date("2024-01-31T12:00:00Z"), 1); // "2024-02-01", Wednesday month end
+addBusinessDays(new Date("2024-03-31T12:00:00Z"), 1); // "2024-04-01", Sunday month end skips the weekend
 ```

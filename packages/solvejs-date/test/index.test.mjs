@@ -353,3 +353,128 @@ test("parseUnixTimestamp only accepts a numeric value", () => {
   assert.equal(parseUnixTimestamp(new Date()), null, "a Date is not a timestamp");
   assert.equal(parseUnixTimestamp(), null);
 });
+
+// The exact instants daylight saving starts or ends, per region. US DST runs from the second
+// Sunday in March to the first Sunday in November, Europe from the last Sunday in March to the
+// last Sunday in October, and the southern hemisphere on the opposite weeks.
+// Noon UTC is deliberately used: it can never fall inside a local spring-forward gap.
+const TRANSITIONS = [
+  ["2024-03-10", "US spring forward"],
+  ["2024-11-03", "US fall back"],
+  ["2024-03-31", "Europe spring forward"],
+  ["2024-10-27", "Europe fall back"],
+  ["2024-10-06", "Australia spring forward"],
+  ["2024-04-07", "Australia fall back"]
+];
+
+test("every helper is identical at a DST transition instant on every host timezone", () => {
+  // The package reads the UTC calendar of its input, so a transition is only interesting if it
+  // changes the answer. These assertions are the proof that it does not.
+  const original = process.env.TZ;
+  const snapshot = {};
+  try {
+    for (const tz of ["UTC", "America/New_York", "Australia/Sydney", "Europe/Madrid", "Asia/Kolkata"]) {
+      process.env.TZ = tz;
+      for (const [day, label] of TRANSITIONS) {
+        const base = new Date(`${day}T12:00:00Z`);
+        const key = `${day} ${label}`;
+        const observed = {
+          start: startOfDay(base).toISOString(),
+          end: endOfDay(base).toISOString(),
+          plusOne: addDays(base, 1).toISOString(),
+          minusOne: addDays(base, -1).toISOString(),
+          diff: diffInDays(base, addDays(base, 1)),
+          weekend: isWeekend(base),
+          business: isBusinessDay(base)
+        };
+
+        if (snapshot[key] === undefined) {
+          snapshot[key] = observed;
+          continue;
+        }
+        assert.deepEqual(observed, snapshot[key], `${key} differs under ${tz}`);
+      }
+    }
+  } finally {
+    if (original === undefined) delete process.env.TZ;
+    else process.env.TZ = original;
+  }
+
+// Spot-check one vector so the snapshot cannot pass by comparing nothing.
+  assert.equal(snapshot["2024-03-10 US spring forward"].start, "2024-03-10T00:00:00.000Z");
+  assert.equal(snapshot["2024-03-10 US spring forward"].plusOne, "2024-03-11T12:00:00.000Z");
+  assert.equal(snapshot["2024-03-10 US spring forward"].diff, -1, "diffInDays is left minus right");
+  assert.equal(snapshot["2024-04-07 Australia fall back"].plusOne, "2024-04-08T12:00:00.000Z");
+  assert.equal(snapshot["2024-11-03 US fall back"].end, "2024-11-03T23:59:59.999Z");
+});
+
+test("a DST transition day is still exactly one calendar day long", () => {
+  const springForward = new Date("2024-03-10T12:00:00Z");
+  const fallBack = new Date("2024-11-03T12:00:00Z");
+
+  for (const day of [springForward, fallBack]) {
+    const start = startOfDay(day);
+    const end = endOfDay(day);
+    assert.equal(addDays(start, 1).getTime(), end.getTime() + 1, `${day.toISOString()} is a whole UTC day`);
+    assert.equal(diffInDays(start, addDays(start, 1)), -1);
+    assert.equal(diffInDays(addDays(start, 1), start), 1, "the sign follows the documented left minus right");
+  }
+});
+
+test("business-day arithmetic lands correctly from a month end", () => {
+  const at = (day) => new Date(`${day}T12:00:00Z`);
+  const iso = (date) => date.toISOString().slice(0, 10);
+
+  // 2024-01-31 is a Wednesday, so the next business day is the very next day.
+  assert.equal(iso(addBusinessDays(at("2024-01-31"), 1)), "2024-02-01");
+  // 2024-03-31 is a Sunday, so it has to skip the whole weekend.
+  assert.equal(iso(addBusinessDays(at("2024-03-31"), 1)), "2024-04-01", "a Sunday month end skips to Monday");
+  // 2024-03-30 is a Saturday, so one business day forward is the Monday itself.
+  assert.equal(iso(addBusinessDays(at("2024-03-30"), 1)), "2024-04-01");
+  // 2024-08-31 is a Saturday.
+  assert.equal(iso(addBusinessDays(at("2024-08-31"), 1)), "2024-09-02", "a Saturday month end skips Monday too");
+
+  // Going backwards is symmetric: Monday the 11th goes back to Friday the 8th.
+  assert.equal(iso(addBusinessDays(at("2024-03-11"), -1)), "2024-03-08");
+  assert.equal(iso(previousBusinessDay(at("2024-03-11"))), "2024-03-08");
+  // Sunday the 10th goes back to Friday the 8th, skipping Saturday and Sunday.
+  assert.equal(iso(previousBusinessDay(at("2024-03-10"))), "2024-03-08");
+
+  assert.equal(addBusinessDays(at("2024-03-08"), 0).getTime(), at("2024-03-08").getTime(), "zero is a no-op");
+  assert.equal(iso(nextBusinessDay(at("2024-03-08"))), "2024-03-11", "Friday plus one is Monday");
+});
+
+test("a month end that is a business day still counts as business time", () => {
+  const at = (day) => new Date(`${day}T12:00:00Z`);
+  const iso = (date) => date.toISOString().slice(0, 10);
+
+  // 2024-01-31 Wednesday, 2024-05-31 Friday: the day itself is business time.
+  assert.equal(isBusinessDay(at("2024-01-31")), true);
+  assert.equal(isBusinessDay(at("2024-05-31")), true);
+  assert.equal(iso(addBusinessDays(at("2024-05-31"), 1)), "2024-06-03", "and the next one jumps the weekend");
+
+  // February 2024 has 29 days, so the 29th is a Thursday and the month does not end on a weekend.
+  assert.equal(daysInMonth(2024, 2), 29);
+  assert.equal(isBusinessDay(at("2024-02-29")), true);
+  assert.equal(iso(addBusinessDays(at("2024-02-29"), 1)), "2024-03-01");
+});
+
+test("leap-year rules follow the Gregorian calendar, not the naive every-four-years rule", () => {
+  assert.equal(isLeapYear(2024), true);
+  assert.equal(isLeapYear(2023), false);
+  assert.equal(isLeapYear(2000), true, "divisible by 400, so a leap year");
+  assert.equal(isLeapYear(1900), false, "divisible by 100 but not 400, so not a leap year");
+  assert.equal(isLeapYear(2100), false);
+  assert.equal(isLeapYear(2400), true);
+
+  assert.equal(daysInMonth(2024, 2), 29, "2024 is a leap year");
+  assert.equal(daysInMonth(2023, 2), 28);
+  assert.equal(daysInMonth(1900, 2), 28, "1900 is not a leap year");
+  assert.equal(daysInMonth(2000, 2), 29, "2000 is a leap year");
+  assert.equal(daysInMonth(2024, 1), 31);
+  assert.equal(daysInMonth(2024, 4), 30);
+
+// A leap day is a Friday in 2024, so the day arithmetic around it stays in the same week.
+  assert.equal(addBusinessDays(new Date("2024-02-28T12:00:00Z"), 2).toISOString().slice(0, 10), "2024-03-01",
+    "Wednesday plus two business days is Friday the leap day itself, which is not weekend time");
+});
