@@ -11,7 +11,7 @@ from its exported function count by `npm run test:baseline`.
 
 | Package | Function exports | Test blocks | Line coverage |
 |---|---|---|---|
-| `@jdsalasc/solvejs` | 0 (re-exports) | 4 | 56.85% |
+| `@jdsalasc/solvejs` | 0 (re-exports) | 4 | 56.88% |
 | `@jdsalasc/solvejs-async` | 10 | 26 | 100.00% |
 | `@jdsalasc/solvejs-cache` | 5 | 31 | 100.00% |
 | `@jdsalasc/solvejs-constants` | 1 | 9 | 100.00% |

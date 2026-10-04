@@ -77,7 +77,9 @@ The message is for humans and may be reworded in any release. The code is the co
 or framework error never reaches a client:
 
 ```ts
-catch (error) {
+try {
+  await saveUser(input);
+} catch (error) {
   throw normalizeError(error, { code: "SERVICE_UNAVAILABLE" });
 }
 ```

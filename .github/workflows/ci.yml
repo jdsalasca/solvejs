@@ -50,6 +50,9 @@ jobs:
       - name: Check release matrix covers every package
         run: npm run check:release
 
+      - name: Check README snippets parse
+        run: npm run check:snippets
+
       - name: Generate inventory report
         run: npm run inventory
 

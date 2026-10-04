@@ -90,6 +90,11 @@ mistake there is invisible until the package is on the registry, so the check pa
 dry-run mode and fails when a declared entry point, the README, or well over half the manifest is
 missing, or when source or test files would ship.
 
+`check:snippets` parses every TypeScript snippet in every package README. A README example is a
+promise that the reader can copy it, so a snippet that does not parse is worse than no snippet: the
+failure only shows up after a paste. It parses rather than executes, so a fragment referencing an
+undefined name is fine while an unbalanced brace or a stray keyword is not.
+
 If you change growth or reporting artifacts, also run:
 
 ```bash

@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Added a `check:snippets` gate, run by `npm run quality`, that parses every TypeScript snippet in every package README and fails on a syntax error. A README example is a promise that the reader can copy it, so a snippet that does not parse is worse than no snippet: the failure only shows up after a paste. It found a real defect on its first run, a bare `catch` block with no `try` in `solvejs-errors`, which is now a complete example. Migration impact: none, tooling and docs only.
+
 - Extended the `check:meta` gate to assert that every version the meta package pins matches the workspace's real version. The published meta package pins exact versions, so a drift makes npm look for a release that does not exist and the whole install fails. `solvejs-schema` already sat on npm at v1.0.0 while the repository declared 1.9.0, which is how this class of problem surfaced. Migration impact: none, tooling only.
 
 - Marked the two misspelled direction aliases in `@jdsalasc/solvejs-validators` as `@deprecated`, so `isAddresDirection` and `isAddresDirrection` now show a strikethrough in an editor and name their replacement. Both keep working and delegate to `isAddressDirection`. The README now states the removal policy: a deprecated alias is never removed in a minor or patch release, only in a major with an announcing changelog entry. A test asserts the tag survives into the built declarations, because a deprecation delivered through JSDoc disappears silently if the emitted `.d.ts` loses it. Migration impact: none, the aliases behave exactly as before.
