@@ -48,6 +48,23 @@ compare("Declared in the meta but not a workspace package", declared, leafNames)
 compare("Declared in the meta but not re-exported in src", declared, reexported);
 compare("Re-exported in src but not declared in the meta", reexported, declared);
 
+// A published meta package pins exact versions. If one of them drifts from the workspace's real
+// version, npm looks for a release that does not exist and the whole install fails. solvejs-schema
+// already sat on npm at v1.0.0 while the repository declared 1.9.0, which is how this class of
+// problem was found, so the equality is asserted here rather than left to the release step.
+for (const [name, declaredVersion] of Object.entries(metaPkg.dependencies ?? {})) {
+  const entry = workspaces.find(
+    (path) => JSON.parse(readFileSync(join(path, "package.json"), "utf8")).name === name
+  );
+  if (!entry) continue; // already reported as "not a workspace package"
+  const actual = JSON.parse(readFileSync(join(entry, "package.json"), "utf8")).version;
+  if (actual !== declaredVersion) {
+    problems.push(
+      `Version mismatch for ${name}: the meta package requires ${declaredVersion} but the workspace declares ${actual}`
+    );
+  }
+}
+
 // --- Ambiguous names ------------------------------------------------------------------------
 
 const namedExportsOf = (file) => {

@@ -74,10 +74,11 @@ npm run quality
 ```
 
 `check:meta` is part of that sequence and must pass before any release. It verifies that every leaf
-workspace is declared in the meta package and re-exported from its entry point, and that no two
-packages export an ambiguous name. `export *` drops a colliding name from the namespace, so a
-duplicate export is a build error for anyone importing from `@jdsalasc/solvejs` while every
-individual package still works.
+workspace is declared in the meta package and re-exported from its entry point, that no two packages
+export an ambiguous name, and that every version the meta package pins matches the workspace's real
+version. `export *` drops a colliding name from the namespace, so a duplicate export is a build error
+for anyone importing from `@jdsalasc/solvejs` while every individual package still works, and a
+version that drifts from its workspace makes npm look for a release that does not exist.
 
 `check:cjs` is part of that sequence too. Every test suite exercises `dist/esm` only, so the
 CommonJS entry point each package ships through `require()` would otherwise be unverified until a
