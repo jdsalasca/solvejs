@@ -35,7 +35,6 @@ import {
 } from "../dist/esm/index.js";
 
 const VALID_DIRECTIONS_EN = ["N", "S", "E", "W", "NE", "NW", "SE", "SW", "NORTH", "SOUTHWEST"];
-const VALID_DIRECTIONS_ES = ["N", "S", "E", "O", "NE", "NO", "SE", "SO", "NORTE", "SUROESTE"];
 
 test("translateValidationResult", () => {
   const source = validateEmail("");

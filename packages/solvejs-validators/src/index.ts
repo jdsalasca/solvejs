@@ -546,7 +546,7 @@ export function validateAddressLine(
   if (normalized.length > maxLength) {
     return fail("TOO_LONG", `Address line must have at most ${maxLength} characters.`);
   }
-  if (!/^[A-Za-z0-9À-ÖØ-öø-ÿ#.,'\/ -]+$/.test(normalized)) {
+  if (!/^[A-Za-z0-9À-ÖØ-öø-ÿ#.,'/ -]+$/.test(normalized)) {
     return fail("INVALID_CHARACTERS", "Address line contains unsupported characters.");
   }
 

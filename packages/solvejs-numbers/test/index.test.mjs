@@ -176,6 +176,6 @@ test("toNumber refuses a numeric string that overflows to Infinity", () => {
 
 const finite = "9".repeat(15);
   assert.equal(toNumber(finite), Number(finite), "a long digit run that stays finite is still parsed");
-  assert.equal(toNumber("123456789012345678"), 123456789012345678,
+  assert.equal(toNumber("123456789012345678"), Number("123456789012345678"),
     "precision beyond 2^53 is kept as the nearest double, not refused");
 });
