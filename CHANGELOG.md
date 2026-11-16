@@ -1,6 +1,8 @@
 # Changelog
 
-## Unreleased
+## 1.9.0 - 2026-11-16
+
+- Fixed three defects found by the external quality audit: an unused test fixture in `solvejs-validators`, a precision-losing numeric literal in the `solvejs-numbers` test, and an unnecessary escape in the address-line character class. Regenerated the package inventory, which omitted seven packages. Migration impact: none, tests and docs only; the address-line rule accepts exactly the same characters.
 
 - Added a `check:snippets` gate, run by `npm run quality`, that parses every TypeScript snippet in every package README and fails on a syntax error. A README example is a promise that the reader can copy it, so a snippet that does not parse is worse than no snippet: the failure only shows up after a paste. It found a real defect on its first run, a bare `catch` block with no `try` in `solvejs-errors`, which is now a complete example. Migration impact: none, tooling and docs only.
 
@@ -73,8 +75,6 @@
 - Documented that `set` in `@jdsalasc/solvejs-objects` mutates the target in place and returns the same reference, unlike lodash's immutable `_.set`, plus the fact that `get`/`set` always split paths on dots so a literal dotted key is unreachable by path. Behavior is unchanged. Migration impact: none.
 - Documented that `safeParse` in `@jdsalasc/solvejs-schema` is fail-fast and returns one issue for the first failing field rather than every field like zod, and that a successful parse drops unknown keys. Behavior is unchanged. Migration impact: none.
 - Documented that `parseBooleanString` in `@jdsalasc/solvejs-constants` throws on an unrecognised value instead of returning a fallback, so a typo in configuration fails at startup. Behavior is unchanged. Migration impact: none.
-
-## 1.9.0 - 2026-05-28
 
 - Added new package `@jdsalasc/solvejs-schema` for zero-dependency schema validation, `safeParse`, optional fields, refinements, unions, literals, and JSON Schema output.
 - Added web-app utility helpers across all existing packages: `timeoutFallback`, `HTTP_STATUS`, `CONTENT_TYPES`, `nextBusinessDay`, `previousBusinessDay`, `getEnvObject`, `pluck`, `toPercent`, `mapValues`, `literalRegex`, `normalizeWhitespace`, and domain validation.
