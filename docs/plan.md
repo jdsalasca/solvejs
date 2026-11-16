@@ -4,32 +4,33 @@ Updated on 2026-11-16.
 
 ## Current State (evidence)
 
-- 20 workspaces. 12 leaves and the meta package declare `1.9.0`; 8 new packages declare `0.1.0`.
-- npm carries `1.8.0` for the 12 older leaves, `1.0.0` for `solvejs-schema`, and nothing for the 8 new packages.
-- `CHANGELOG.md` already has a `1.9.0` section, but no `v1.9.0` tag exists and no `1.9.0` version is on npm. The release never happened.
-- `npm run quality` passes: build, tests, baseline, meta wiring, CJS output, pack contents, release matrix, README snippets, docs links and lint.
-- `release.yml` derives its matrix from the workspaces, but the repository has no `NPM_TOKEN` secret, so a tag alone publishes nothing. Local publish needs a valid npm session; the current npm token returns `401`.
-- The `teachers` external audit reports 49 errors and 4 warnings across 12 packages. Three are real defects; the rest are complexity and length thresholds stricter than this codebase's style.
+Release 1.9.0 shipped on 2026-11-16.
 
-## Round 1: Close the release (P0)
+- `@jdsalasc/solvejs@1.9.0` and all 19 leaves resolve from npm. The 12 older leaves are at `1.9.0`; the 8 new packages are at `0.1.0`.
+- A clean `npm i @jdsalasc/solvejs@1.9.0` installs 20 packages and the exported functions run.
+- `npm run quality` passed: build, tests, baseline, meta wiring, CJS output, pack contents, release matrix, README snippets, docs links and lint.
+- Publishing went through npm staged publishing and one batch approval, because the account uses a security key and the 2FA-bypass token is restricted to staging.
+- The `teachers` external audit reported 49 errors and 4 warnings across 12 packages. Three were real defects and are fixed; the rest are complexity and length thresholds stricter than this codebase's style.
+
+## Round 1: Close the release (P0) — DONE
 
 Goal: make `1.9.0` installable from npm with all 20 packages.
 
-1. Fix the three real audit defects:
-   - remove the unused `VALID_DIRECTIONS_ES` fixture;
-   - replace the precision-losing numeric literal with `Number(...)` in the `toNumber` test;
-   - drop the unnecessary `\/` escape in the address-line character class.
-2. Regenerate `docs/guides/package-inventory.md` and `.html`; seven packages are missing from the committed table.
-3. Merge `## Unreleased` into the `1.9.0` section and date it 2026-11-16. The version was never published, so its history belongs in one entry.
-4. Run `npm run quality` and commit on `develop`.
-5. Authenticate npm, publish the 19 leaves first, then the meta package, then create and push the `v1.9.0` tag.
+1. Fixed the three real audit defects:
+   - removed the unused `VALID_DIRECTIONS_ES` fixture;
+   - replaced the precision-losing numeric literal with `Number(...)` in the `toNumber` test;
+   - dropped the unnecessary `\/` escape in the address-line character class.
+2. Regenerated `docs/guides/package-inventory.md` and `.html`; seven packages were missing from the committed table.
+3. Merged `## Unreleased` into the `1.9.0` section and dated it 2026-11-16. The version had never been published, so its history belongs in one entry.
+4. Ran `npm run quality` and committed on `develop`.
+5. Staged the 20 packages, approved `pagination` plus an 18-package batch, and created the `v1.9.0` tag.
 
-Verification:
+Verification (all passed):
 
 - `npm view @jdsalasc/solvejs version` returns `1.9.0`.
 - Every leaf resolves at its declared version.
 - `npm pack --dry-run` contains no source or test files.
-- A clean `npm i @jdsalasc/solvejs@1.9.0` succeeds.
+- A clean `npm i @jdsalasc/solvejs@1.9.0` succeeds and imports work.
 
 ## Round 2: Input robustness (P1)
 
