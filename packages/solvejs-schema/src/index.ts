@@ -113,6 +113,39 @@ class OptionalSchema<T> extends BaseSchema<T | undefined> {
   }
 }
 
+function coerceToString(input: unknown, enabled: boolean | undefined): unknown {
+  if (enabled && (typeof input === "number" || typeof input === "boolean" || typeof input === "bigint")) {
+    return String(input);
+  }
+  return input;
+}
+
+function assertStringValue(value: unknown, path: string): asserts value is string {
+  if (typeof value !== "string") {
+    throw makeIssue(path, "invalid_type", "Expected string.");
+  }
+}
+
+function assertStringBounds(
+  parsed: string,
+  minLength: number | undefined,
+  maxLength: number | undefined,
+  path: string
+): void {
+  if (minLength !== undefined && parsed.length < minLength) {
+    throw makeIssue(path, "too_small", `String must contain at least ${minLength} characters.`);
+  }
+  if (maxLength !== undefined && parsed.length > maxLength) {
+    throw makeIssue(path, "too_big", `String must contain at most ${maxLength} characters.`);
+  }
+}
+
+function assertStringPattern(pattern: RegExp | undefined, parsed: string, path: string): void {
+  if (pattern && !pattern.test(parsed)) {
+    throw makeIssue(path, "invalid_string", "String does not match expected format.");
+  }
+}
+
 class StringSchema extends BaseSchema<string> {
   private minLength?: number;
   private maxLength?: number;
@@ -151,23 +184,11 @@ class StringSchema extends BaseSchema<string> {
   }
 
   parseAt(input: unknown, path: string): string {
-    let value = input;
-    if (this.options.coerce && (typeof value === "number" || typeof value === "boolean" || typeof value === "bigint")) {
-      value = String(value);
-    }
-    if (typeof value !== "string") {
-      throw makeIssue(path, "invalid_type", "Expected string.");
-    }
-    const parsed = this.options.trim ? value.trim() : value;
-    if (this.minLength !== undefined && parsed.length < this.minLength) {
-      throw makeIssue(path, "too_small", `String must contain at least ${this.minLength} characters.`);
-    }
-    if (this.maxLength !== undefined && parsed.length > this.maxLength) {
-      throw makeIssue(path, "too_big", `String must contain at most ${this.maxLength} characters.`);
-    }
-    if (this.pattern && !this.pattern.test(parsed)) {
-      throw makeIssue(path, "invalid_string", "String does not match expected format.");
-    }
+    const coerced = coerceToString(input, this.options.coerce);
+    assertStringValue(coerced, path);
+    const parsed = this.options.trim ? coerced.trim() : coerced;
+    assertStringBounds(parsed, this.minLength, this.maxLength, path);
+    assertStringPattern(this.pattern, parsed, path);
     return parsed;
   }
 
@@ -178,6 +199,32 @@ class StringSchema extends BaseSchema<string> {
     if (this.pattern) schema.pattern = this.pattern.source;
     if (this.format) schema.format = this.format;
     return schema;
+  }
+}
+
+type NumberBounds = { intOnly: boolean; minValue?: number; maxValue?: number };
+
+function coerceToNumber(input: unknown, enabled: boolean | undefined): unknown {
+  if (!enabled || typeof input !== "string") return input;
+  const normalized = input.trim();
+  return normalized ? Number(normalized) : Number.NaN;
+}
+
+function assertFiniteNumber(value: unknown, path: string): asserts value is number {
+  if (typeof value !== "number" || !Number.isFinite(value)) {
+    throw makeIssue(path, "invalid_type", "Expected finite number.");
+  }
+}
+
+function assertNumberBounds(value: number, bounds: NumberBounds, path: string): void {
+  if (bounds.intOnly && !Number.isInteger(value)) {
+    throw makeIssue(path, "invalid_number", "Expected integer.");
+  }
+  if (bounds.minValue !== undefined && value < bounds.minValue) {
+    throw makeIssue(path, "too_small", `Number must be greater than or equal to ${bounds.minValue}.`);
+  }
+  if (bounds.maxValue !== undefined && value > bounds.maxValue) {
+    throw makeIssue(path, "too_big", `Number must be less than or equal to ${bounds.maxValue}.`);
   }
 }
 
@@ -211,24 +258,14 @@ class NumberSchema extends BaseSchema<number> {
   }
 
   parseAt(input: unknown, path: string): number {
-    let value = input;
-    if (this.options.coerce && typeof value === "string") {
-      const normalized = value.trim();
-      value = normalized ? Number(normalized) : Number.NaN;
-    }
-    if (typeof value !== "number" || !Number.isFinite(value)) {
-      throw makeIssue(path, "invalid_type", "Expected finite number.");
-    }
-    if (this.intOnly && !Number.isInteger(value)) {
-      throw makeIssue(path, "invalid_number", "Expected integer.");
-    }
-    if (this.minValue !== undefined && value < this.minValue) {
-      throw makeIssue(path, "too_small", `Number must be greater than or equal to ${this.minValue}.`);
-    }
-    if (this.maxValue !== undefined && value > this.maxValue) {
-      throw makeIssue(path, "too_big", `Number must be less than or equal to ${this.maxValue}.`);
-    }
-    return value;
+    const coerced = coerceToNumber(input, this.options.coerce);
+    assertFiniteNumber(coerced, path);
+    assertNumberBounds(
+      coerced,
+      { intOnly: this.intOnly, minValue: this.minValue, maxValue: this.maxValue },
+      path
+    );
+    return coerced;
   }
 
   toJsonSchema(): JsonSchema {
