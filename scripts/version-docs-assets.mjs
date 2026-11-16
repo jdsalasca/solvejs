@@ -24,7 +24,7 @@ for (const file of files) {
   const after = before
     .replace(/(href="[^"]*styles\.css)(\?[^"]*)?"/g, `$1?v=${version}"`)
     .replace(/(href="[^"]*live\.css)(\?[^"]*)?"/g, `$1?v=${version}"`)
-    .replace(/(src="[^"]*app\.js)(\?[^"]*)?"/g, `$1?v=${version}"`);
+    .replace(/(src="[^"]*\.js)(\?[^"]*)?"/g, `$1?v=${version}"`);
   if (after !== before) {
     writeFileSync(file, after);
     changed += 1;

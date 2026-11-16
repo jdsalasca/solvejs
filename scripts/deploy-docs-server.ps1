@@ -16,6 +16,9 @@ if (Test-Path $stage) { Remove-Item $stage -Recurse -Force }
 New-Item -ItemType Directory $stage | Out-Null
 Copy-Item -Path "docs\*" -Destination $stage -Recurse
 $version = Get-Date -Format "yyyyMMddHHmmss"
+Rename-Item -Path "$stage\vendor" -NewName "vendor-$version"
+$liveIndex = Join-Path $stage "live\index.html"
+(Get-Content $liveIndex -Raw).Replace("../vendor/", "../vendor-$version/") | Set-Content $liveIndex -NoNewline
 node scripts/version-docs-assets.mjs $stage $version
 Compress-Archive -Path "$stage\*" -DestinationPath $zip -Force
 
