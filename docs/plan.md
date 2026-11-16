@@ -95,7 +95,7 @@ Built `@jdsalasc/solvejs-xlsx@0.1.0` from scratch, with no runtime dependencies:
 - XLSX reader: shared strings, inline strings, numbers, booleans, 1900/1904 dates via built-in and custom date formats, formula results and error cells; OOXML parts resolved through relationships with external-target rejection and a cell-materialisation budget.
 - Declarative API: `Xlsx`, `Sheet`, `Column`, `Row`, `Cell`, a custom JSX runtime (`jsxImportSource`) and the same components callable as factories without JSX.
 - 34 tests, including JSX rendering, style XML assertions, fragments, styled blank cells, coordinate and merge-overlap rejection, TypeScript compilation of `react-jsx` and `react-jsxdev` fixtures, direct-cell placement, date boundaries, ZIP corruption/ZIP64 rejection, XML strictness, compressed round-trips and a LibreOffice compatibility script that verifies both directions. A styled invoice was converted to PDF/PNG for visual review.
-- Measured 10,000 rows × 8 columns on Node 24 / Windows: stored write ~78 ms (3.43 MB), compressed write ~125 ms (415 KB), compressed read ~181 ms.
+- Measured 10,000 rows × 8 columns on Node 24 / Windows: stored write ~88 ms (3.43 MB), compressed write ~140 ms (415 KB), compressed read ~243 ms.
 
 Next in this line: PDF writer/reader, formula writing as an explicit opt-in, and richer style metadata on read.
 
@@ -108,7 +108,7 @@ Built `@jdsalasc/solvejs-pdf@0.1.0` from scratch, browser-first and with no runt
 - Layout: A4/Letter/A3/A5/custom sizes, margins, nested vertical/horizontal containers, percentage widths, automatic page breaks, split text blocks and views, tables that split by rows and repeat their header, repeated header/footer decorators with page numbers.
 - Browser viewer: `<solvejs-pdf-viewer>` custom element plus `createPdfViewer`/`mountPdfViewer`, iframe or compact preview, download/open actions, light/dark/auto themes, and a full `render` override for custom UI.
 - 27 tests covering the serializer, pagination, nested percentage widths, table splitting (including tables nested in padded views), JPEG parsing and data URLs, WinAnsi accents, links, JSX components, viewer DOM behavior and error paths; TSX fixtures compile for both JSX runtimes; the styled invoice and the viewer were reviewed as PNG/screenshots.
-- Benchmark on Node 24 / Windows: one-page invoice ~0.85 ms / 4.4 KB; 10-page report ~14.6 ms / 72 KB, or ~52 ms / 7.4 KB compressed.
+- Benchmark on Node 24 / Windows: one-page invoice ~0.85 ms / 4.4 KB; 10-page report ~14.6 ms / 72 KB, or ~40 ms / 7.4 KB compressed.
 
 Limitations for this slice: no PDF reading, no custom font embedding, no PNG images, no charts or forms. Next: PNG support, custom TTF embedding and an optional page-thumbnail renderer.
 
@@ -127,6 +127,30 @@ Delivered in `@jdsalasc/solvejs-xlsx@0.2.0`:
 7. 57 tests, LibreOffice formula/image round-trips, PNG visual review and metadata checks.
 
 Explicit non-goals: XLS/XLSB/ODS/DBF, charts, pivot tables, comments, data validation, conditional formatting, macros, encryption, formula evaluation and external workbook links. Formula values are cached results; the package does not calculate them.
+
+## Round 8: Codex Terra audits — done
+
+Ran two read-only Codex CLI audits with `gpt-6.1-terra` (medium) and implemented the P1/P2 findings.
+
+XLSX (`0.2.1`):
+
+- CSV protection now applies to cell objects and leading whitespace; malformed quote placement and single empty quoted fields are handled.
+- Imported hyperlinks require the hyperlink relationship type and a safe `http(s)`/`mailto`/`tel` scheme.
+- Workbook-wide cell/row budgets, image pixel/encoded-size limits and safe ZIP entry names bound untrusted input.
+- Merge rectangles are checked for intersections; shared formulas are translated for relative references.
+- Duplicate cells, invalid booleans and unknown cell types are rejected.
+- Row styles and two-cell image anchors are exposed; formatter fixes cover `0.00##`, negative scientific values, AM/PM and quoted literals.
+- 62 tests.
+
+PDF (`0.1.1`):
+
+- Pagination retries a split on a fresh page and preserves block widths.
+- Node/text/page/image/depth budgets are enforced during layout; encoded image size is checked before decoding.
+- Viewer hosts expose `ready`/`destroy`, revoke blob URLs on renderer/callback failure, respect disabled compact actions and expose status/alert semantics.
+- JPEG parsing requires 8-bit grayscale/RGB with scan and EOI markers; truncated and CMYK files fail.
+- Header/footer reservation is re-measured and repaginated; page backgrounds no longer create an empty first page; row children cannot silently lose blocks.
+- URI targets are percent-encoded independently of WinAnsi.
+- 35 tests, including xref/stream structure checks.
 
 ## Risks and Rollback
 

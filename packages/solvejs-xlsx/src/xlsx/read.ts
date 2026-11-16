@@ -20,8 +20,11 @@ type CellContext = {
   styles: ParsedStyles;
   date1904: boolean;
   includeFormulas: boolean;
+  includeStyles: boolean;
+  budget: { remaining: number };
 };
 type ParsedCell = { row: number; column: number; value: XlsxCellValue; formula?: string; styleIndex?: number };
+type SharedFormula = { row: number; column: number; formula: string };
 type LinkRef = { reference: string; relationshipId: string };
 type SheetColumns = Array<{ width?: number; styleIndex?: number }>;
 
@@ -30,6 +33,7 @@ type ParsedSheet = {
   merges: string[];
   columns: SheetColumns;
   rowHeights: Record<number, number>;
+  rowStyles: Record<number, XlsxReadStyle>;
   freeze?: { rows: number; columns: number };
   autoFilter?: string;
   formulas: Record<string, string>;
@@ -204,21 +208,106 @@ function numericValue(text: string, styleIndex: number | undefined, context: Cel
   return context.styles.dateStyles.has(style) ? dateFromExcelSerial(value, context.date1904) : value;
 }
 
+// eslint-disable-next-line complexity -- OOXML cell type dispatch
 function cellValue(type: string, node: XmlNode, context: CellContext, styleIndex: number | undefined): XlsxCellValue {
   const text = rawText(node);
   if (type === "inlineStr") return inlineText(node);
   if (type === "s") return sharedValue(text, context.shared);
-  if (type === "b") return text === "1";
+  if (type === "b") {
+    if (text !== "0" && text !== "1") failXlsx("XLSX_INVALID_XML", "Boolean cell is not 0 or 1.", { text });
+    return text === "1";
+  }
   if (type === "str" || type === "e") return text;
   if (type === "d") return dateValue(text);
+  if (type !== "n") failXlsx("XLSX_UNSUPPORTED", "Unknown cell type.", { type });
   return numericValue(text, styleIndex, context);
 }
 
-function formulaOf(node: XmlNode): string | undefined {
+function formulaOf(
+  node: XmlNode,
+  row: number,
+  column: number,
+  sharedFormulas: ReadonlyMap<string, SharedFormula>
+): string | undefined {
   const formula = firstChild(node, "f");
   if (!formula) return undefined;
   const text = textContent(formula);
-  return text.length > 0 ? text : undefined;
+  if (text.length > 0) return text;
+  const id = formula.attributes.si;
+  const base = id ? sharedFormulas.get(id) : undefined;
+  return base ? shiftFormula(base.formula, row - base.row, column - base.column) : undefined;
+}
+
+function columnNumber(letters: string): number {
+  let value = 0;
+  for (const character of letters) value = value * 26 + character.charCodeAt(0) - 64;
+  return value;
+}
+
+function lettersOf(column: number): string {
+  let value = column;
+  let letters = "";
+  while (value > 0) {
+    const remainder = (value - 1) % 26;
+    letters = String.fromCharCode(65 + remainder) + letters;
+    value = Math.floor((value - 1) / 26);
+  }
+  return letters;
+}
+
+type ShiftMatch = [columnAbsolute: string, letters: string, rowAbsolute: string, digits: string, offset: number];
+
+function shiftSegment(segment: string, rowDelta: number, columnDelta: number): string {
+  return segment.replace(/(\$?)([A-Z]{1,3})(\$?)(\d+)/g, (match, ...args: ShiftMatch) => {
+    const [columnAbsolute, letters, rowAbsolute, digits, offset] = args;
+    if (segment[offset + match.length] === "(") return match;
+    const column = columnNumber(letters) + (columnAbsolute ? 0 : columnDelta);
+    const row = Number(digits) + (rowAbsolute ? 0 : rowDelta);
+    if (column < 1 || row < 1) return match;
+    return `${columnAbsolute}${lettersOf(column)}${rowAbsolute}${row}`;
+  });
+}
+
+function shiftFormula(formula: string, rowDelta: number, columnDelta: number): string {
+  let output = "";
+  let index = 0;
+  while (index < formula.length) {
+    const quote = formula.indexOf('"', index);
+    if (quote === -1) {
+      output += shiftSegment(formula.slice(index), rowDelta, columnDelta);
+      break;
+    }
+    output += shiftSegment(formula.slice(index, quote), rowDelta, columnDelta);
+    const end = formula.indexOf('"', quote + 1);
+    if (end === -1) {
+      output += formula.slice(quote);
+      break;
+    }
+    output += formula.slice(quote, end + 1);
+    index = end + 1;
+  }
+  return output;
+}
+
+function sharedFormulaOf(cell: XmlNode): { id: string; formula: SharedFormula } | undefined {
+  const reference = cell.attributes.r;
+  const formula = firstChild(cell, "f");
+  const id = formula?.attributes.si;
+  const text = formula ? textContent(formula) : "";
+  if (!reference || !id || formula?.attributes.t !== "shared" || text.length === 0) return undefined;
+  const position = parseCellRef(reference);
+  return { id, formula: { row: position.row, column: position.column, formula: text } };
+}
+
+function parseSharedFormulas(sheetData: XmlNode): Map<string, SharedFormula> {
+  const shared = new Map<string, SharedFormula>();
+  for (const row of childrenNamed(sheetData, "row")) {
+    for (const cell of childrenNamed(row, "c")) {
+      const info = sharedFormulaOf(cell);
+      if (info) shared.set(info.id, info.formula);
+    }
+  }
+  return shared;
 }
 
 function styleIndexOf(node: XmlNode, reference: string): number | undefined {
@@ -230,7 +319,12 @@ function styleIndexOf(node: XmlNode, reference: string): number | undefined {
   return styleIndex;
 }
 
-function parseCell(node: XmlNode, context: CellContext, rowNumber: number): ParsedCell | null {
+function parseCell(
+  node: XmlNode,
+  context: CellContext,
+  rowNumber: number,
+  sharedFormulas: ReadonlyMap<string, SharedFormula>
+): ParsedCell | null {
   const reference = node.attributes.r;
   if (!reference) return null;
   const { row, column } = parseCellRef(reference);
@@ -242,16 +336,16 @@ function parseCell(node: XmlNode, context: CellContext, rowNumber: number): Pars
     row,
     column,
     value: cellValue(node.attributes.t ?? "n", node, context, styleIndex),
-    formula: context.includeFormulas ? formulaOf(node) : undefined,
+    formula: context.includeFormulas ? formulaOf(node, row, column, sharedFormulas) : undefined,
     styleIndex
   };
 }
 
-function applyCell(cell: ParsedCell, sheet: ParsedSheet, context: CellContext, budget: { remaining: number }): void {
+function applyCell(cell: ParsedCell, sheet: ParsedSheet, context: CellContext): void {
   const row = sheet.rows[cell.row - 1];
-  budget.remaining -= Math.max(0, cell.column - row.length - 1) + 1;
-  if (budget.remaining < 0) {
-    failXlsx("XLSX_LIMIT_EXCEEDED", "Sheet materialises too many cells.", { row: cell.row, column: cell.column });
+  context.budget.remaining -= Math.max(0, cell.column - row.length - 1) + 1;
+  if (context.budget.remaining < 0) {
+    failXlsx("XLSX_LIMIT_EXCEEDED", "Workbook materialises too many cells.", { row: cell.row, column: cell.column });
   }
   while (row.length < cell.column) row.push(null);
   row[cell.column - 1] = cell.value;
@@ -285,15 +379,42 @@ function rowHeightOf(node: XmlNode): number | undefined {
   return node.attributes.ht !== undefined && Number.isFinite(height) && height > 0 ? height : undefined;
 }
 
-function parseRow(node: XmlNode, context: CellContext, sheet: ParsedSheet, budget: { remaining: number }): void {
+function rowStyleOf(node: XmlNode, context: CellContext): XlsxReadStyle | undefined {
+  if (!context.includeStyles || node.attributes.s === undefined) return undefined;
+  const styleIndex = Number(node.attributes.s);
+  return Number.isInteger(styleIndex) ? context.styles.cellStyles[styleIndex] : undefined;
+}
+
+function spendRowBudget(context: CellContext, sheet: ParsedSheet, rowNumber: number): void {
+  context.budget.remaining -= Math.max(0, rowNumber - sheet.rows.length - 1) + 1;
+  if (context.budget.remaining < 0) {
+    failXlsx("XLSX_LIMIT_EXCEEDED", "Workbook materialises too many rows.", { row: rowNumber });
+  }
+}
+
+function parseRow(
+  node: XmlNode,
+  context: CellContext,
+  sheet: ParsedSheet,
+  sharedFormulas: ReadonlyMap<string, SharedFormula>
+): void {
   const rowNumber = rowNumberOf(node);
   const height = rowHeightOf(node);
+  const style = rowStyleOf(node, context);
   if (height !== undefined) sheet.rowHeights[rowNumber] = height;
+  if (style) sheet.rowStyles[rowNumber] = style;
+  spendRowBudget(context, sheet, rowNumber);
   while (sheet.rows.length < rowNumber) sheet.rows.push([]);
+  const seen = new Set<number>();
 
   for (const child of childrenNamed(node, "c")) {
-    const parsed = parseCell(child, context, rowNumber);
-    if (parsed) applyCell(parsed, sheet, context, budget);
+    const parsed = parseCell(child, context, rowNumber, sharedFormulas);
+    if (!parsed) continue;
+    if (seen.has(parsed.column)) {
+      failXlsx("XLSX_INVALID_XML", "Duplicate cell in a row.", { row: rowNumber, column: parsed.column });
+    }
+    seen.add(parsed.column);
+    applyCell(parsed, sheet, context);
   }
 }
 
@@ -387,6 +508,7 @@ function emptySheet(): ParsedSheet {
     merges: [],
     columns: [],
     rowHeights: {},
+    rowStyles: Object.create(null),
     formulas: Object.create(null),
     styles: Object.create(null),
     linkRefs: [],
@@ -406,8 +528,8 @@ function parseSheet(xml: string, context: CellContext): ParsedSheet {
   parseDrawingRef(worksheet, sheet);
   const sheetData = firstChild(worksheet, "sheetData");
   if (!sheetData) return sheet;
-  const budget = { remaining: XLSX_LIMITS.maxCells };
-  for (const row of childrenNamed(sheetData, "row")) parseRow(row, context, sheet, budget);
+  const sharedFormulas = parseSharedFormulas(sheetData);
+  for (const row of childrenNamed(sheetData, "row")) parseRow(row, context, sheet, sharedFormulas);
   return sheet;
 }
 
@@ -420,6 +542,18 @@ function worksheetRelationships(
   return bytes ? parseRels(decode(bytes), true) : undefined;
 }
 
+function hasControlCharacters(value: string): boolean {
+  for (const character of value) {
+    if ((character.codePointAt(0) ?? 0) < 0x20) return true;
+  }
+  return false;
+}
+
+function safeExternalHref(target: string): string | undefined {
+  if (target.length === 0 || target.length > 2083 || hasControlCharacters(target)) return undefined;
+  return /^(https?:\/\/|mailto:|tel:)/i.test(target) ? target : undefined;
+}
+
 function resolveLinks(
   sheet: ParsedSheet,
   relationships: ReadonlyMap<string, Relationship> | undefined
@@ -428,25 +562,33 @@ function resolveLinks(
   if (relationships) {
     for (const link of sheet.linkRefs) {
       const relationship = relationships.get(link.relationshipId);
-      if (relationship?.targetMode === "External") links[link.reference] = relationship.target;
+      if (!relationship || relationship.targetMode !== "External") continue;
+      if (!relationship.type.endsWith("/hyperlink")) continue;
+      const href = safeExternalHref(relationship.target);
+      if (href) links[link.reference] = href;
     }
   }
   return Object.keys(links).length > 0 ? links : undefined;
 }
 
-type ImageAnchor = { row: number; column: number; width?: number; height?: number; relationshipId: string };
+type ImageAnchor = { row: number; column: number; width?: number; height?: number; relationshipId: string; to?: string };
 type ReadImage = NonNullable<XlsxSheetData["images"]>[number];
 type AnchorPosition = { row: number; column: number };
 
-function anchorPosition(anchor: XmlNode): AnchorPosition | undefined {
-  const from = firstChild(anchor, "from");
-  if (!from) return undefined;
-  const colNode = firstChild(from, "col");
-  const rowNode = firstChild(from, "row");
+function anchorPosition(anchor: XmlNode, childName: "from" | "to"): AnchorPosition | undefined {
+  const child = firstChild(anchor, childName);
+  if (!child) return undefined;
+  const colNode = firstChild(child, "col");
+  const rowNode = firstChild(child, "row");
   const column = colNode ? Number(textContent(colNode)) : Number.NaN;
   const row = rowNode ? Number(textContent(rowNode)) : Number.NaN;
   if (!Number.isInteger(column) || !Number.isInteger(row) || column < 0 || row < 0) return undefined;
   return { row, column };
+}
+
+function anchorReference(anchor: XmlNode, childName: "from" | "to"): string | undefined {
+  const position = anchorPosition(anchor, childName);
+  return position ? cellReferenceFor(position.row + 1, position.column + 1) : undefined;
 }
 
 function anchorRelationship(anchor: XmlNode): string | undefined {
@@ -468,10 +610,10 @@ function anchorSize(anchor: XmlNode): { width?: number; height?: number } {
 }
 
 function imageAnchorOf(anchor: XmlNode): ImageAnchor | undefined {
-  const position = anchorPosition(anchor);
+  const position = anchorPosition(anchor, "from");
   const relationshipId = anchorRelationship(anchor);
   if (!position || !relationshipId) return undefined;
-  return { ...position, relationshipId, ...anchorSize(anchor) };
+  return { ...position, relationshipId, ...anchorSize(anchor), to: anchorReference(anchor, "to") };
 }
 
 function imageFromAnchor(
@@ -487,6 +629,7 @@ function imageFromAnchor(
   const media = readMedia(mediaBytes);
   return {
     anchor: cellReferenceFor(anchor.row + 1, anchor.column + 1),
+    ...(anchor.to ? { to: anchor.to } : {}),
     width: anchor.width ?? media.width,
     height: anchor.height ?? media.height,
     format: media.format,
@@ -620,6 +763,7 @@ function baseMetadata(
     ...(parsed.merges.length > 0 ? { merges: parsed.merges } : {}),
     ...columnMetadata(parsed, styles, includeStyles),
     ...(Object.keys(parsed.rowHeights).length > 0 ? { rowHeights: parsed.rowHeights } : {}),
+    ...(includeStyles && Object.keys(parsed.rowStyles).length > 0 ? { rowStyles: parsed.rowStyles } : {}),
     ...(parsed.freeze ? { freeze: parsed.freeze } : {}),
     ...(parsed.autoFilter ? { autoFilter: parsed.autoFilter } : {})
   };
@@ -675,7 +819,9 @@ export async function readXlsx(bytes: Uint8Array, options: ReadXlsxOptions = {})
     shared: parts.shared,
     styles: parts.styles,
     date1904: parts.workbook.date1904,
-    includeFormulas: options.includeFormulas !== false
+    includeFormulas: options.includeFormulas !== false,
+    includeStyles: options.includeStyles === true,
+    budget: { remaining: XLSX_LIMITS.maxWorkbookCells }
   };
   const selected = selectSheets(parts.workbook.sheets, options.sheets);
   const sheets = selected.map((sheet) =>

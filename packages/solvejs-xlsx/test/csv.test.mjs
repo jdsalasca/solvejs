@@ -15,6 +15,14 @@ test("preserves blank rows and strips a UTF-8 BOM", () => {
   const text = "\uFEFFa,b\r\n\r\nc,d\r\n";
   assert.deepEqual(readCsv(text), [["a", "b"], [""], ["c", "d"]]);
   assert.deepEqual(readCsv(text, { skipEmptyLines: true }), [["a", "b"], ["c", "d"]]);
+  assert.deepEqual(readCsv('""'), [[""]]);
+});
+
+test("rejects characters after a closing quote", () => {
+  assert.throws(
+    () => readCsv('"a"x,b'),
+    (error) => error instanceof XlsxError && error.code === "XLSX_INVALID_INPUT"
+  );
 });
 
 test("writes CSV and TSV with quoting and formula protection", () => {
@@ -22,12 +30,15 @@ test("writes CSV and TSV with quoting and formula protection", () => {
     ["name", "note"],
     ["Ada, A.", 'say "hi"'],
     ["=SUM(A1:A2)", "0010"],
+    ["  =SUM(A1:A2)", { value: "=HYPERLINK(\"x\")" }],
     ["line\nbreak", null]
   ];
   const csv = writeCsv(rows);
   assert.match(csv, /"Ada, A\."/);
   assert.match(csv, /"say ""hi"""/);
   assert.match(csv, /'=SUM\(A1:A2\)/);
+  assert.match(csv, /' {2}=SUM\(A1:A2\)/);
+  assert.match(csv, /'=HYPERLINK/);
   assert.match(csv, /"line\nbreak"/);
   assert.equal(
     writeCsv([["a", "b"]], { delimiter: "\t", protectFormulas: false }),
@@ -37,6 +48,7 @@ test("writes CSV and TSV with quoting and formula protection", () => {
     ["name", "note"],
     ["Ada, A.", 'say "hi"'],
     ["'=SUM(A1:A2)", "0010"],
+    ["'  =SUM(A1:A2)", "'=HYPERLINK(\"x\")"],
     ["line\nbreak", ""]
   ]);
 });
@@ -52,6 +64,10 @@ test("converts rows to objects without prototype pollution", () => {
   assert.equal({}.polluted, undefined);
   assert.equal(Object.getPrototypeOf(record), null);
   assert.deepEqual(sheetToJson(rows, { blankrows: true, defval: "" }).length, 1);
+  assert.throws(
+    () => sheetToJson(rows, { skipHeader: true }),
+    (error) => error instanceof XlsxError && error.code === "XLSX_INVALID_INPUT"
+  );
 });
 
 test("converts objects to rows in first-seen key order", () => {

@@ -174,6 +174,17 @@ test("rejects overlapping model merges and out-of-bounds freeze", () => {
   );
 });
 
+test("resolves shared formulas with relative references", async () => {
+  const styles =
+    '<?xml version="1.0" encoding="UTF-8"?><styleSheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"><cellXfs count="1"><xf numFmtId="0"/></cellXfs></styleSheet>';
+  const rows =
+    '<row r="1"><c r="A1"><v>1</v></c><c r="B1"><f t="shared" ref="B1:B3" si="0">A1*2</f><v>2</v></c></row>' +
+    '<row r="2"><c r="A2"><v>2</v></c><c r="B2"><f t="shared" si="0"/><v>4</v></c></row>' +
+    '<row r="3"><c r="A3"><v>3</v></c><c r="B3"><f t="shared" si="0"/><v>6</v></c></row>';
+  const workbook = await readXlsx(minimalFixture("", styles, rows));
+  assert.deepEqual({ ...workbook.sheets[0].formulas }, { B1: "A1*2", B2: "A2*2", B3: "A3*2" });
+});
+
 test("does not treat [Red]0 as a date format", async () => {
   const styles =
     '<?xml version="1.0" encoding="UTF-8"?><styleSheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"><numFmts count="1"><numFmt numFmtId="164" formatCode="[Red]0"/></numFmts><cellXfs count="1"><xf numFmtId="164"/></cellXfs></styleSheet>';

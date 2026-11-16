@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.12.1 - 2026-11-16
+
+- Hardened `@jdsalasc/solvejs-xlsx@0.2.1` after the Codex Terra audit: CSV protection now covers cell objects and leading whitespace; imported hyperlinks are filtered by relationship type and safe scheme; workbook-wide cell/row budgets and image pixel/encoded-size limits bound reads; merge rectangles are checked for intersections; shared formulas are translated for relative references; duplicate cells, invalid booleans and unknown cell types fail; row styles and two-cell image anchors are exposed; formatter fixes cover optional decimals, negative scientific values, AM/PM and quoted literals; ZIP entry names reject traversal. Migration impact: none, additive API plus stricter malformed-input validation.
+
+- Hardened `@jdsalasc/solvejs-pdf@0.1.1` after the Codex Terra audit: pagination retries splits on a fresh page and preserves block widths; node/text/page/image/depth budgets are enforced during layout; the viewer exposes `ready`/`destroy`, revokes blob URLs when custom renderers or callbacks fail, respects disabled compact actions and exposes accessible status/error semantics; JPEG validation requires 8-bit grayscale/RGB with scan and EOI markers; header/footer reservation is re-measured and repaginated; link URIs are percent-encoded independently of WinAnsi; page backgrounds no longer create an empty first page; rows reject children that produce multiple blocks. Migration impact: none for valid documents; unsupported CMYK/truncated JPEGs now fail.
+
+- Bumped the meta package to `1.12.1` to pin and re-export the audited XLSX and PDF versions. Migration impact: none.
+
 ## 1.12.0 - 2026-11-16
 
 - Rebuilt `@jdsalasc/solvejs-xlsx@0.2.0` around the pain points in the SheetJS issue tracker. The package now includes a zero-dependency CSV/TSV parser and writer, `sheetToJson`/`jsonToRows`, formula writing with cached values, hyperlinks, PNG/JPEG images with DrawingML anchors, column and row styles, number/date formatting (`formatCellValue`, `formatExcelNumber`, `formatExcelDate`), and a metadata-rich reader: merged ranges, column widths/styles, row heights, frozen panes, auto-filter, formulas, links, images and cell styles. `readXlsx` gained `sheets`, `includeStyles` and `includeFormulas` options for large workbooks and lightweight reads. Security hardening: null-prototype XML attributes and JSON records to block prototype pollution, CSV formula-injection protection, strict hyperlink schemes, image/type limits, and new adversarial tests. Migration impact: additive; existing `rows` remain arrays of primitive values, while formulas, links and styles live in new optional sheet maps.

@@ -431,14 +431,33 @@ function assertMergeRange(sheet: SheetModel, range: MergeRange): void {
   assertRangeEmpty(sheet, range);
 }
 
+function assertNoMergeIntersections(sheet: SheetModel, ranges: readonly MergeRange[]): void {
+  const sorted = [...ranges].sort((a, b) => a.startRow - b.startRow || a.startColumn - b.startColumn);
+  for (let left = 0; left < sorted.length; left += 1) {
+    for (let right = left + 1; right < sorted.length; right += 1) {
+      const a = sorted[left];
+      const b = sorted[right];
+      if (b.startRow >= a.endRow) break;
+      if (b.startColumn < a.endColumn && a.startColumn < b.endColumn) {
+        failXlsx("XLSX_INVALID_INPUT", "Merged ranges cannot intersect.", { sheet: sheet.name });
+      }
+    }
+  }
+}
+
 function assertMergeRanges(sheet: SheetModel): void {
+  const ranges: MergeRange[] = [];
   sheet.rows.forEach((row, rowIndex) => {
     row.cells.forEach((cell, columnIndex) => {
       if (!cell) return;
       const range = mergeRangeOf(cell, rowIndex, columnIndex);
-      if (range) assertMergeRange(sheet, range);
+      if (range) {
+        ranges.push(range);
+        assertMergeRange(sheet, range);
+      }
     });
   });
+  assertNoMergeIntersections(sheet, ranges);
 }
 
 function invalidFreeze(value: number): boolean {

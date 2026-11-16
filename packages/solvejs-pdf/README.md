@@ -252,11 +252,13 @@ export function InvoiceViewer() {
       fileName: "invoice.pdf"
     });
     host.current?.append(viewer);
-    return () => viewer.remove();
+    return () => viewer.destroy();
   }, []);
   return <div ref={host} />;
 }
 ```
+
+`createPdfViewer` returns a host with `ready` and `destroy` attached, so unmounting revokes the blob URL instead of leaking it.
 
 ### Next.js
 
@@ -279,7 +281,7 @@ export const InvoiceViewer = dynamic(
 | `renderPdf(element)` | Returns uncompressed PDF bytes synchronously. |
 | `renderPdfCompressed(element)` | Returns Flate-compressed PDF bytes as a promise. |
 | `buildPdfDocument(element)` | Returns the laid-out `{ pages, metadata }` model. |
-| `createPdfViewer(options)` | Creates a detached viewer host for React refs. |
+| `createPdfViewer(options)` | Creates a detached viewer host with `ready` and `destroy` for React refs. |
 | `mountPdfViewer(options, target?)` | Mounts a viewer and returns `{ element, ready, destroy }`. |
 | `definePdfViewer(tag?)` | Registers `<solvejs-pdf-viewer>`. |
 | `PdfError` | Stable codes: `PDF_INVALID_INPUT`, `PDF_LIMIT_EXCEEDED`, `PDF_UNSUPPORTED`. |
@@ -292,7 +294,7 @@ export const InvoiceViewer = dynamic(
 - Text wrapping, alignment, line height, colors, backgrounds, borders, rounded corners, padding and margins.
 - Nested `View` and `Row` layouts with numeric or percentage widths.
 - Automatic pagination, forced pages, split text/views, split tables with repeated headers, repeated headers/footers with page numbers.
-- JPEG images embedded with `DCTDecode`.
+- JPEG images embedded with `DCTDecode`: 8-bit grayscale or RGB, with validated scan and EOI markers.
 - Optional Flate compression through the platform `CompressionStream`.
 
 ## Not supported (yet)
@@ -300,15 +302,23 @@ export const InvoiceViewer = dynamic(
 - Reading or parsing existing PDFs.
 - Custom TTF/OTF font embedding and Unicode outside WinAnsi.
 - PNG, WebP, GIF or SVG images.
+- CMYK or 12-bit JPEG images; these are rejected instead of producing incorrect colors.
 - Charts, forms, annotations other than links, outlines, encryption or digital signatures.
-- Right-to-left text shaping and complex scripts.
+
+## Limits and fidelity
+
+- Standard Type 1 fonts only; unsupported Unicode characters become `?` and repeated whitespace is collapsed during wrapping. Supply text your chosen font can represent.
+- Tables cannot split a single row taller than the page; keep individual rows within the printable height.
+- Images use one-cell anchors on write; the reader also accepts two-cell anchors and returns their `to` marker.
+- `Row` children must produce one layout block; wrap multiple blocks in a `View`.
 
 ## Security notes
 
-- Link targets must use `http`, `https`, `mailto` or `tel`; `javascript:` is rejected.
-- The viewer creates blob URLs and revokes them on `destroy()`.
+- Link targets must use `http`, `https`, `mailto` or `tel`; `javascript:` is rejected. Non-ASCII URI characters are percent-encoded independently of the text font.
+- The viewer creates blob URLs and revokes them on `destroy()`; custom renderers that throw also trigger revocation.
 - `render` returning a string is treated as trusted HTML; prefer returning a DOM node.
-- A PDF generator is an input boundary: cap pages, rows and image sizes for untrusted documents with `PDF_LIMITS`.
+- A PDF generator is an input boundary: cap pages, rows, text, block count and image sizes for untrusted documents with `PDF_LIMITS`.
+- The layout engine enforces page, block, text and nesting budgets before serialization.
 
 ## Performance
 
@@ -318,7 +328,7 @@ Measured with `npm run benchmark --workspace packages/solvejs-pdf` on Node 24 / 
 |---|---:|---:|
 | One-page invoice with a styled table (A4) | ~0.85 ms | 4.4 KB |
 | 10-page report generated from 120 wrapped paragraphs | ~14.6 ms | 72 KB |
-| Same 10-page report with Flate compression | ~52 ms | 7.4 KB |
+| Same 10-page report with Flate compression | ~40 ms | 7.4 KB |
 
 Times are machine-dependent. The serializer and layout engine are synchronous and allocation-light; compression is optional and uses the platform `CompressionStream`.
 

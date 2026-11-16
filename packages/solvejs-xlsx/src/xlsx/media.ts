@@ -47,6 +47,9 @@ function dataUrlBytes(source: string): Uint8Array {
 function sourceBytes(source: Uint8Array | string): Uint8Array {
   if (source instanceof Uint8Array) return source;
   if (typeof source !== "string") failXlsx("XLSX_INVALID_INPUT", "Expected image bytes, a data URL or base64.");
+  if (source.length > XLSX_LIMITS.maxEntryBytes * 2) {
+    failXlsx("XLSX_LIMIT_EXCEEDED", "Encoded image exceeds the configured limit.", { length: source.length });
+  }
   return source.startsWith("data:") ? dataUrlBytes(source) : decodeBase64(source);
 }
 
@@ -55,7 +58,9 @@ function isPng(data: Uint8Array): boolean {
 }
 
 function pngSize(data: Uint8Array): { width: number; height: number } {
-  if (data.length < 24) failXlsx("XLSX_INVALID_INPUT", "PNG header is truncated.");
+  if (data.length < 24 || data[12] !== 0x49 || data[13] !== 0x48 || data[14] !== 0x44 || data[15] !== 0x52) {
+    failXlsx("XLSX_INVALID_INPUT", "PNG header is invalid.");
+  }
   const view = new DataView(data.buffer, data.byteOffset, data.byteLength);
   return { width: view.getUint32(16), height: view.getUint32(20) };
 }
@@ -79,6 +84,11 @@ function jpegSize(data: Uint8Array): { width: number; height: number } {
       continue;
     }
     if (length < 8) failXlsx("XLSX_INVALID_INPUT", "JPEG frame header is too short.");
+    if (data[offset + 2] !== 8) failXlsx("XLSX_UNSUPPORTED", "Only 8-bit JPEG images are supported.");
+    const components = data[offset + 7];
+    if (components !== 1 && components !== 3) {
+      failXlsx("XLSX_UNSUPPORTED", "Only grayscale and RGB JPEG images are supported.", { components });
+    }
     return {
       height: (data[offset + 3] << 8) | data[offset + 4],
       width: (data[offset + 5] << 8) | data[offset + 6]
@@ -87,22 +97,37 @@ function jpegSize(data: Uint8Array): { width: number; height: number } {
   return failXlsx("XLSX_INVALID_INPUT", "JPEG frame header was not found.");
 }
 
+function hasJpegScan(data: Uint8Array): boolean {
+  let scan = false;
+  for (let index = 0; index + 1 < data.length; index += 1) {
+    if (data[index] !== 0xff) continue;
+    if (data[index + 1] === 0xda) scan = true;
+    if (data[index + 1] === 0xd9) return scan;
+  }
+  return false;
+}
+
 function assertFormat(expected: "png" | "jpeg" | undefined, actual: "png" | "jpeg"): void {
   if (expected && expected !== actual) failXlsx("XLSX_INVALID_INPUT", `Expected a ${expected.toUpperCase()} image.`);
 }
 
 function mediaOf(data: Uint8Array): MediaImage {
-  if (isPng(data)) {
-    const size = pngSize(data);
-    if (size.width <= 0 || size.height <= 0) failXlsx("XLSX_INVALID_INPUT", "PNG dimensions are invalid.");
-    return { data, format: "png", ...size };
-  }
-  if (data[0] === 0xff && data[1] === 0xd8) {
-    const size = jpegSize(data);
-    if (size.width <= 0 || size.height <= 0) failXlsx("XLSX_INVALID_INPUT", "JPEG dimensions are invalid.");
-    return { data, format: "jpeg", ...size };
-  }
+  if (isPng(data)) return pngMedia(data);
+  if (data[0] === 0xff && data[1] === 0xd8) return jpegMedia(data);
   return failXlsx("XLSX_UNSUPPORTED", "Only PNG and JPEG images are supported.");
+}
+
+function pngMedia(data: Uint8Array): MediaImage {
+  const size = pngSize(data);
+  if (size.width <= 0 || size.height <= 0) failXlsx("XLSX_INVALID_INPUT", "PNG dimensions are invalid.");
+  return { data, format: "png", ...size };
+}
+
+function jpegMedia(data: Uint8Array): MediaImage {
+  if (!hasJpegScan(data)) failXlsx("XLSX_INVALID_INPUT", "JPEG scan data is incomplete.");
+  const size = jpegSize(data);
+  if (size.width <= 0 || size.height <= 0) failXlsx("XLSX_INVALID_INPUT", "JPEG dimensions are invalid.");
+  return { data, format: "jpeg", ...size };
 }
 
 /** Decodes an image and reads its intrinsic pixel dimensions. */
@@ -112,6 +137,12 @@ export function readMedia(source: Uint8Array | string, expected?: "png" | "jpeg"
     failXlsx("XLSX_LIMIT_EXCEEDED", "Image exceeds the configured byte limit.", { bytes: data.length });
   }
   const media = mediaOf(data);
+  if (media.width * media.height > XLSX_LIMITS.maxImagePixels) {
+    failXlsx("XLSX_LIMIT_EXCEEDED", "Image exceeds the configured pixel limit.", {
+      width: media.width,
+      height: media.height
+    });
+  }
   assertFormat(expected, media.format);
   return media;
 }
@@ -139,11 +170,18 @@ function assertImageInput(input: XlsxImageInput | undefined): asserts input is X
   }
 }
 
+function validDimension(value: number): boolean {
+  return Number.isFinite(value) && value > 0;
+}
+
 function imageSize(input: XlsxImageInput, media: MediaImage): { width: number; height: number } {
   const width = input.width ?? media.width;
   const height = input.height ?? media.height;
-  if (!Number.isFinite(width) || width <= 0 || !Number.isFinite(height) || height <= 0) {
+  if (!validDimension(width) || !validDimension(height)) {
     failXlsx("XLSX_INVALID_INPUT", "Expected positive image dimensions.", { width, height });
+  }
+  if (width > XLSX_LIMITS.maxImageDisplay || height > XLSX_LIMITS.maxImageDisplay) {
+    failXlsx("XLSX_LIMIT_EXCEEDED", "Image display size exceeds the configured limit.", { width, height });
   }
   return { width, height };
 }

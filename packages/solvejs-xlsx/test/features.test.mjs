@@ -14,9 +14,11 @@ import {
 import { parseXml } from "../dist/esm/xml/parse.js";
 import { readFileSync } from "node:fs";
 import { readZip } from "../dist/esm/zip/read.js";
+import { writeZip } from "../dist/esm/zip/write.js";
 
 const png = readFileSync(new URL("./fixtures/tiny.png", import.meta.url));
 const jpeg = readFileSync(new URL("./fixtures/tiny.jpg", import.meta.url));
+const encoder = new TextEncoder();
 
 test("writes and reads workbook properties", async () => {
   const bytes = writeXlsx({ title: "Report", creator: "SolveJS", sheets: [{ name: "One", rows: [["ok"]] }] });
@@ -63,6 +65,20 @@ test("writes and reads hyperlinks", async () => {
     A1: "https://example.com/docs",
     B1: "mailto:hi@example.com"
   });
+});
+
+test("drops imported hyperlinks with dangerous schemes", async () => {
+  const bytes = writeXlsx({
+    sheets: [{ name: "Links", rows: [[{ value: "Docs", href: "https://safe.example" }]] }]
+  });
+  const files = await readZip(bytes);
+  const relsName = "xl/worksheets/_rels/sheet1.xml.rels";
+  const rels = new TextDecoder().decode(files.get(relsName)).replace("https://safe.example", "javascript:alert(1)");
+  const mutated = new Map(files);
+  mutated.set(relsName, encoder.encode(rels));
+  const evil = writeZip([...mutated].map(([name, data]) => ({ name, data })));
+  const sheet = (await readXlsx(evil)).sheets[0];
+  assert.equal(sheet.links, undefined);
 });
 
 test("writes internal hyperlink locations without external relationships", async () => {
@@ -184,6 +200,36 @@ test("rejects unsupported image data", () => {
   assert.throws(
     () => writeXlsx({ sheets: [{ name: "Bad", rows: [], images: [{ data: new Uint8Array([1, 2, 3]) }] }] }),
     (error) => error instanceof XlsxError && error.code === "XLSX_UNSUPPORTED"
+  );
+});
+
+test("reads row styles when requested", async () => {
+  const bytes = renderXlsx(
+    Xlsx({
+      children: Sheet({
+        name: "Rows",
+        children: Row({
+          style: { fill: Colors.LightGray, bold: true },
+          children: Cell({ value: "Styled row" })
+        })
+      })
+    })
+  );
+  const sheet = (await readXlsx(bytes, { includeStyles: true })).sheets[0];
+  assert.equal(sheet.rowStyles?.[1].fill, Colors.LightGray);
+  assert.equal(sheet.rowStyles?.[1].bold, true);
+});
+
+test("rejects image dimensions above the pixel budget", () => {
+  const header = new Uint8Array(24);
+  header.set([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]);
+  header.set([0x49, 0x48, 0x44, 0x52], 12);
+  const view = new DataView(header.buffer);
+  view.setUint32(16, 100_000);
+  view.setUint32(20, 100_000);
+  assert.throws(
+    () => writeXlsx({ sheets: [{ name: "Huge", rows: [], images: [{ data: header }] }] }),
+    (error) => error instanceof XlsxError && error.code === "XLSX_LIMIT_EXCEEDED"
   );
 });
 

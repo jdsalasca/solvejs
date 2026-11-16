@@ -10,6 +10,8 @@ test("formats common Excel number patterns", () => {
   assert.equal(formatExcelNumber(-1234.5, "#,##0.00;(#,##0.00)"), "(1,234.50)");
   assert.equal(formatExcelNumber(1234.5, "#,##0.00;[Red](#,##0.00)"), "1,234.50");
   assert.equal(formatExcelNumber(12345, "0.00E+00"), "1.23E+4");
+  assert.equal(formatExcelNumber(1.5, "0.00##"), "1.50");
+  assert.equal(formatExcelNumber(-12345, "0.00E+00"), "-1.23E+4");
 });
 
 test("formats dates and times with Excel tokens", () => {
@@ -19,6 +21,8 @@ test("formats dates and times with Excel tokens", () => {
   assert.equal(formatExcelDate(date, "d-mmm-yy"), "16-Nov-26");
   assert.equal(formatExcelDate(date, "hh:mm"), "00:00");
   assert.equal(formatExcelDate(new Date(Date.UTC(2026, 10, 16, 12, 34, 56)), "mm:ss"), "34:56");
+  assert.equal(formatExcelDate(new Date(Date.UTC(2026, 10, 16, 15, 30)), "h:mm AM/PM"), "3:30 PM");
+  assert.equal(formatExcelDate(date, '"Day "yyyy'), "Day 2026");
   assert.equal(formatExcelDate(date, "m/d/yy h:mm"), "11/16/26 0:00");
 });
 

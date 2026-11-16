@@ -69,13 +69,21 @@ function assertSupportedZip(view: DataView, eocd: number): { count: number; cent
   return { count, centralOffset, centralSize };
 }
 
+function assertSafeName(name: string): void {
+  if (name.startsWith("/") || name.includes("\\") || name.split("/").includes("..")) {
+    failXlsx("XLSX_INVALID_ZIP", "ZIP entry name escapes the archive root.", { name });
+  }
+}
+
 function decodeName(view: DataView, offset: number, length: number, flags: number): string {
   assertRange(view, offset, length, "entry name");
   const bytes = new Uint8Array(view.buffer, view.byteOffset + offset, length);
   if ((flags & UTF8_FLAG) === 0 && bytes.some((byte) => byte > 127)) {
     failXlsx("XLSX_UNSUPPORTED", "Non-UTF-8 ZIP entry names are not supported.");
   }
-  return new TextDecoder().decode(bytes);
+  const name = new TextDecoder().decode(bytes);
+  assertSafeName(name);
+  return name;
 }
 
 function readCentralEntries(view: DataView, eocd: number): CentralEntry[] {

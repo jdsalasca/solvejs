@@ -119,9 +119,12 @@ test("supports the compact preview without an iframe", async () => {
   try {
     const context = await mountPdfViewer({
       document: Pdf({ children: Text({ value: "Hello" }) }),
-      iframe: false
+      iframe: false,
+      open: false,
+      download: false
     }).ready;
     assert.equal(context.frame, null);
+    assert.equal(context.toolbar.children[2].children.length, 0);
   } finally {
     dom.restore();
   }
@@ -160,7 +163,26 @@ test("creates a detached host for React refs", async () => {
     assert.ok(host.shadowRoot);
     assert.equal(host.parent, null);
     assert.ok(context.frame);
-    host.remove();
+    assert.equal(typeof host.destroy, "function");
+    host.destroy();
+    assert.deepEqual(dom.revoked, ["blob:solvejs-pdf"]);
+  } finally {
+    dom.restore();
+  }
+});
+
+test("revokes the blob URL when a custom renderer throws", async () => {
+  const dom = installDom();
+  try {
+    const handle = mountPdfViewer({
+      document: Pdf({ children: Text({ value: "Hello" }) }),
+      render: () => {
+        throw new Error("renderer failed");
+      }
+    });
+    await assert.rejects(handle.ready, /renderer failed/);
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    assert.deepEqual(dom.revoked, ["blob:solvejs-pdf"]);
   } finally {
     dom.restore();
   }

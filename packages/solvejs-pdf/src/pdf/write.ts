@@ -198,12 +198,22 @@ function streamObject(data: Uint8Array, compressed: boolean): Uint8Array {
   return builder.toBytes();
 }
 
+function escapeUri(value: string): string {
+  let encoded: string;
+  try {
+    encoded = encodeURI(value);
+  } catch {
+    encoded = value;
+  }
+  return encoded.replace(/[\\()]/g, "\\$&");
+}
+
 function annotationObject(link: PdfLink, pageHeight: number): Uint8Array {
   const bottom = pageHeight - link.y - link.height;
   return textBytes(
     `<< /Type /Annot /Subtype /Link /Rect [${num(link.x)} ${num(bottom)} ${num(link.x + link.width)} ${num(
       pageHeight - link.y
-    )}] /Border [0 0 0] /A << /S /URI /URI (${escapeLiteral(link.href)}) >> >>`
+    )}] /Border [0 0 0] /A << /S /URI /URI (${escapeUri(link.href)}) >> >>`
   );
 }
 

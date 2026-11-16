@@ -89,6 +89,15 @@ test("writes link annotations over clickable text", () => {
   assert.match(text, /\/URI \(https:\/\/example\.com\/docs\)/);
 });
 
+test("percent-encodes non-ASCII link targets independently of the text font", () => {
+  const bytes = renderPdf(
+    Pdf({
+      children: Link({ href: "https://example.com/año", children: Text({ value: "Año" }) })
+    })
+  );
+  assert.match(latin1(bytes), /\/URI \(https:\/\/example\.com\/a%C3%B1o\)/);
+});
+
 test("builds a document model with A4 dimensions", () => {
   const document = buildPdfDocument(Pdf({ children: Text({ value: "A4" }) }));
   assert.equal(document.pages.length, 1);

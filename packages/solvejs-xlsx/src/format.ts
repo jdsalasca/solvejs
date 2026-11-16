@@ -43,8 +43,9 @@ function numberBody(value: number, pattern: string, decimals: { max: number; min
   let text = value.toFixed(decimals.max);
   if (decimals.max > decimals.min) {
     const [integer, fraction = ""] = text.split(".");
-    text = `${integer}${fraction ? `.${fraction.replace(/0+$/, "")}` : ""}`;
-    if (text.endsWith(".")) text = text.slice(0, -1);
+    let trimmed = fraction.replace(/0+$/, "");
+    if (trimmed.length < decimals.min) trimmed = fraction.slice(0, decimals.min);
+    text = decimals.min === 0 && trimmed.length === 0 ? integer : `${integer}.${trimmed}`;
   }
   return /#,##|0,000/.test(pattern) ? grouped(text) : text;
 }
@@ -77,7 +78,7 @@ export function formatExcelNumber(value: number, format = "General"): string {
   if (format === "General" || format === "@" || format.length === 0) return String(value);
   const pattern = stripDecorations(sectionFor(value, format));
   if (pattern.includes("@")) return String(value);
-  if (/E[+-]0+/i.test(pattern)) return scientificText(Math.abs(value), pattern);
+  if (/E[+-]0+/i.test(pattern)) return scientificText(value, pattern);
   return signedText(patternText(value, pattern), pattern, value < 0);
 }
 
@@ -87,7 +88,7 @@ function isMinuteToken(next: string | undefined, seenHour: boolean): boolean {
   return lower?.startsWith("s") === true || next === ":" || next === ".";
 }
 
-type DateState = { seenHour: boolean };
+type DateState = { seenHour: boolean; ampm: boolean };
 type DateHandler = (value: Date, state: DateState, next: string | undefined) => string;
 
 const DATE_HANDLERS: Record<string, DateHandler> = {
@@ -107,11 +108,12 @@ const DATE_HANDLERS: Record<string, DateHandler> = {
   d: (value) => String(value.getUTCDate()),
   hh: (value, state) => {
     state.seenHour = true;
-    return String(value.getUTCHours()).padStart(2, "0");
+    const hours = state.ampm ? value.getUTCHours() % 12 || 12 : value.getUTCHours();
+    return String(hours).padStart(2, "0");
   },
   h: (value, state) => {
     state.seenHour = true;
-    return String(value.getUTCHours());
+    return String(state.ampm ? value.getUTCHours() % 12 || 12 : value.getUTCHours());
   },
   ss: (value) => String(value.getUTCSeconds()).padStart(2, "0"),
   s: (value) => String(value.getUTCSeconds()),
@@ -122,9 +124,18 @@ const DATE_HANDLERS: Record<string, DateHandler> = {
 export function formatExcelDate(value: Date, format = "yyyy-mm-dd"): string {
   if (Number.isNaN(value.getTime())) failXlsx("XLSX_INVALID_INPUT", "Expected a valid Date.");
   const tokens = format.match(/\[[^\]]*\]|"[^"]*"|\\.|yyyy|yy|mmmm|mmm|mm|m|dddd|ddd|dd|d|hh|h|ss|s|AM\/PM|./gi) ?? [];
-  const state: DateState = { seenHour: false };
+  const state: DateState = { seenHour: false, ampm: /AM\/PM/i.test(format) };
   let output = "";
   tokens.forEach((token, index) => {
+    if (token.startsWith('"') && token.endsWith('"')) {
+      output += token.slice(1, -1);
+      return;
+    }
+    if (token.startsWith("\\")) {
+      output += token.slice(1);
+      return;
+    }
+    if (token.startsWith("[")) return;
     const handler = DATE_HANDLERS[token.toLowerCase()];
     output += handler ? handler(value, state, tokens[index + 1]) : token;
   });

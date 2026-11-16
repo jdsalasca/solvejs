@@ -45,22 +45,37 @@ function readSegment(data: Uint8Array, offset: number): Segment {
 function frameOf(data: Uint8Array, segment: Segment): PdfImage {
   if (segment.length < 8) failPdf("PDF_INVALID_INPUT", "JPEG frame header is too short.");
   const offset = segment.next - segment.length;
+  if (data[offset + 2] !== 8) failPdf("PDF_UNSUPPORTED", "Only 8-bit JPEG images are supported.");
   const height = readUint16(data, offset + 3);
   const width = readUint16(data, offset + 5);
   const components = data[offset + 7];
+  if (components !== 1 && components !== 3) {
+    failPdf("PDF_UNSUPPORTED", "Only grayscale and RGB JPEG images are supported.", { components });
+  }
   if (width <= 0 || height <= 0) {
     failPdf("PDF_INVALID_INPUT", "JPEG dimensions must be positive.", { width, height });
   }
   return { data, width, height, colorSpace: colorSpaceOf(components) };
 }
 
+function hasMarker(data: Uint8Array, marker: number): boolean {
+  for (let index = 0; index + 1 < data.length; index += 1) {
+    if (data[index] === 0xff && data[index + 1] === marker) return true;
+  }
+  return false;
+}
+
 /** Reads the dimensions and color space of a baseline or progressive JPEG. */
+// eslint-disable-next-line complexity -- JPEG segment state machine with explicit validation
 export function parseJpeg(data: Uint8Array): PdfImage {
   if (data.length > PDF_LIMITS.maxImageBytes) {
     failPdf("PDF_LIMIT_EXCEEDED", "Image exceeds the configured byte limit.", { bytes: data.length });
   }
   if (data.length < 4 || data[0] !== 0xff || data[1] !== 0xd8) {
     failPdf("PDF_INVALID_INPUT", "Expected a JPEG image beginning with FFD8.");
+  }
+  if (!hasMarker(data, 0xda) || !hasMarker(data, 0xd9)) {
+    failPdf("PDF_INVALID_INPUT", "JPEG scan data is incomplete.");
   }
 
   let offset = 2;
@@ -115,6 +130,9 @@ export function decodeImageSource(source: Uint8Array | string): Uint8Array {
   if (source instanceof Uint8Array) return source;
   if (typeof source !== "string") {
     failPdf("PDF_INVALID_INPUT", "Expected image bytes, a data URL or a base64 string.");
+  }
+  if (source.length > PDF_LIMITS.maxImageBytes * 2) {
+    failPdf("PDF_LIMIT_EXCEEDED", "Encoded image exceeds the configured limit.", { length: source.length });
   }
   return source.startsWith("data:") ? decodeDataUrl(source) : decodeBase64(source);
 }

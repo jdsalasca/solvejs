@@ -1,3 +1,4 @@
+import { failPdf } from "../errors.js";
 import type { PdfFontKey, MeasuredLine } from "../pdf/fonts.js";
 import type { PdfImage } from "../pdf/images.js";
 import type { PdfPageModel } from "../pdf/model.js";
@@ -127,6 +128,8 @@ function splitTextBlock(block: TextBlock, maxHeight: number): [Block, Block] | n
   });
   head.marginBottom = 0;
   tail.marginTop = 0;
+  head.width = block.width;
+  tail.width = block.width;
   return [head, tail];
 }
 
@@ -141,7 +144,14 @@ export function boxBlock(children: Block[], style: ResolvedStyle, explicitHeight
   const content =
     children.reduce((total, child) => total + child.marginTop + child.height + child.marginBottom, 0) +
     Math.max(0, children.length - 1) * style.gap;
-  const height = explicitHeight ?? style.paddingTop + style.paddingBottom + style.borderWidth * 2 + content;
+  const naturalHeight = style.paddingTop + style.paddingBottom + style.borderWidth * 2 + content;
+  if (explicitHeight !== undefined && explicitHeight < naturalHeight) {
+    failPdf("PDF_INVALID_INPUT", "Explicit height is smaller than the box content.", {
+      height: explicitHeight,
+      required: naturalHeight
+    });
+  }
+  const height = explicitHeight ?? naturalHeight;
   const block: BoxBlock = {
     kind: "box",
     height,
@@ -188,12 +198,16 @@ function splitBoxBlock(block: BoxBlock, maxHeight: number): [Block, Block] | nul
     const tail = boxBlock([parts[1], ...block.children.slice(1)], style);
     head.marginBottom = 0;
     tail.marginTop = 0;
+    head.width = block.width;
+    tail.width = block.width;
     return [head, tail];
   }
   const head = boxBlock(block.children.slice(0, count), style);
   const tail = boxBlock(block.children.slice(count), style);
   head.marginBottom = 0;
   tail.marginTop = 0;
+  head.width = block.width;
+  tail.width = block.width;
   return [head, tail];
 }
 
@@ -364,6 +378,8 @@ function splitTable(block: TableBlock, maxHeight: number): [Block, Block] | null
   const tail = tableBlock({ ...block, rows: block.rows.slice(count) });
   head.marginBottom = 0;
   tail.marginTop = 0;
+  head.width = block.width;
+  tail.width = block.width;
   return [head, tail];
 }
 

@@ -69,6 +69,7 @@ export type XlsxSheetData = {
   merges?: string[];
   columns?: Array<{ width?: number; style?: XlsxReadStyle }>;
   rowHeights?: Record<number, number>;
+  rowStyles?: Record<number, XlsxReadStyle>;
   freeze?: { rows: number; columns: number };
   autoFilter?: string;
   links?: Record<string, string>;
@@ -76,6 +77,7 @@ export type XlsxSheetData = {
   styles?: Record<string, XlsxReadStyle>;
   images?: Array<{
     anchor: string;
+    to?: string;
     width: number;
     height: number;
     format: "png" | "jpeg";
@@ -109,7 +111,10 @@ export const XLSX_LIMITS = {
   maxRows: 100_000,
   maxColumns: 10_000,
   maxCells: 1_000_000,
-  maxSheets: 100
+  maxWorkbookCells: 2_000_000,
+  maxSheets: 100,
+  maxImagePixels: 40_000_000,
+  maxImageDisplay: 10_000
 } as const;
 
 const INVALID_SHEET_CHARS = /[\\/?*[\]:]/;

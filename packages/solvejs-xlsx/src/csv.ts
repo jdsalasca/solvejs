@@ -35,7 +35,6 @@ export type JsonToRowsOptions = {
   skipHeader?: boolean;
 };
 
-const FORMULA_PREFIXES = new Set(["=", "+", "-", "@"]);
 const MAX_FIELD_LENGTH = XLSX_LIMITS.maxXmlLength;
 
 function validateDelimiter(value: string, quote: string): string {
@@ -59,6 +58,8 @@ export function readCsv(text: string, options: CsvOptions = {}): string[][] {
   let row: string[] = [];
   let field = "";
   let quoted = false;
+  let closedQuote = false;
+  let started = false;
   let index = 0;
 
   const pushField = (): void => {
@@ -72,19 +73,41 @@ export function readCsv(text: string, options: CsvOptions = {}): string[][] {
     if (!options.skipEmptyLines || row.some((value) => value.length > 0)) rows.push(row);
     if (rows.length > XLSX_LIMITS.maxRows) failXlsx("XLSX_LIMIT_EXCEEDED", "CSV has too many rows.");
     row = [];
+    started = false;
   };
 
   while (index < source.length) {
     const character = source[index];
+    if (closedQuote) {
+      if (source.startsWith(delimiter, index)) {
+        pushField();
+        closedQuote = false;
+        started = true;
+        index += delimiter.length;
+        continue;
+      }
+      if (character === "\r" || character === "\n") {
+        pushRow();
+        closedQuote = false;
+        index += character === "\r" && source[index + 1] === "\n" ? 2 : 1;
+        continue;
+      }
+      if (character === " " || character === "\t") {
+        index += 1;
+        continue;
+      }
+      failXlsx("XLSX_INVALID_INPUT", "Unexpected character after a closing CSV quote.", { index });
+    }
     if (quoted) {
       if (character === quote) {
-    // eslint-disable-next-line max-depth -- quote escape inside the parser's field loop
-    if (source[index + 1] === quote) {
+        // eslint-disable-next-line max-depth -- quote escape inside the parser's field loop
+        if (source[index + 1] === quote) {
           field += quote;
           index += 2;
           continue;
         }
         quoted = false;
+        closedQuote = true;
         index += 1;
         continue;
       }
@@ -94,11 +117,13 @@ export function readCsv(text: string, options: CsvOptions = {}): string[][] {
     }
     if (character === quote && field.length === 0) {
       quoted = true;
+      started = true;
       index += 1;
       continue;
     }
     if (source.startsWith(delimiter, index)) {
       pushField();
+      started = true;
       index += delimiter.length;
       continue;
     }
@@ -108,11 +133,12 @@ export function readCsv(text: string, options: CsvOptions = {}): string[][] {
       continue;
     }
     field += character;
+    started = true;
     index += 1;
   }
 
   if (quoted) failXlsx("XLSX_INVALID_INPUT", "CSV has an unterminated quoted field.");
-  if (field.length > 0 || row.length > 0) pushRow();
+  if (closedQuote || started || field.length > 0 || row.length > 0) pushRow();
   return rows;
 }
 
@@ -130,9 +156,9 @@ function cellText(value: XlsxCell): string {
   return isCellObject(value) ? primitiveCellText(value.value) : primitiveCellText(value);
 }
 
-function protectedText(value: XlsxCell, text: string, protectFormulas: boolean): string {
-  if (!protectFormulas || typeof value !== "string") return text;
-  return FORMULA_PREFIXES.has(text[0]) || text[0] === "\t" ? `'${text}` : text;
+function protectedText(text: string, protectFormulas: boolean): string {
+  if (!protectFormulas) return text;
+  return /^[\s]*[=+\-@\t]/.test(text) ? `'${text}` : text;
 }
 
 function needsQuotes(text: string, delimiter: string, quote: string): boolean {
@@ -140,13 +166,14 @@ function needsQuotes(text: string, delimiter: string, quote: string): boolean {
 }
 
 function csvField(value: XlsxCell, delimiter: string, quote: string, protectFormulas: boolean): string {
-  const text = protectedText(value, cellText(value), protectFormulas);
+  const text = protectedText(cellText(value), protectFormulas);
   return needsQuotes(text, delimiter, quote) ? `${quote}${text.split(quote).join(quote + quote)}${quote}` : text;
 }
 
 /** Serializes rows into CSV/TSV text. */
 export function writeCsv(rows: readonly (readonly XlsxCell[])[], options: CsvOptions = {}): string {
   const quote = options.quote ?? '"';
+  if (quote.length !== 1) failXlsx("XLSX_INVALID_INPUT", "CSV quote must be one character.", { quote });
   const delimiter = validateDelimiter(options.delimiter ?? ",", quote);
   const lineEnding = options.lineEnding ?? "\r\n";
   const protectFormulas = options.protectFormulas !== false;
@@ -200,6 +227,9 @@ export function sheetToJson(
   options: SheetToJsonOptions = {}
 ): Array<Record<string, XlsxCellValue>> {
   if (rows.length === 0) return [];
+  if (options.skipHeader && !options.header) {
+    failXlsx("XLSX_INVALID_INPUT", "sheetToJson requires a header array when skipHeader is true.");
+  }
   const { header, start } = headerFor(rows, options);
   const defval = options.defval ?? null;
   return rows

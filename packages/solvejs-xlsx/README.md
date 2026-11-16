@@ -279,10 +279,10 @@ The formatter covers common number, currency, percentage, scientific, date and t
 - Number formats, including custom formats.
 - Merged cells on write (`colSpan`/`rowSpan`), validated against overlaps and worksheet bounds; merged ranges read back.
 - Styled blank cells, column default styles and row default styles.
-- Formulas with cached values; hyperlinks with worksheet relationships.
-- PNG and JPEG images embedded through DrawingML and read back with anchor, size and bytes.
+- Formulas with cached values, including shared formulas with relative references; hyperlinks with worksheet relationships.
+- PNG and JPEG images embedded through DrawingML and read back with anchor, size and bytes, including two-cell anchor markers.
 - CSV/TSV import/export and JSON row mapping with leading-zero and formula-injection safety.
-- Shared strings and inline strings on read; formulas, links, styles, widths, heights and freeze metadata.
+- Shared strings and inline strings on read; formulas, links, styles, widths, heights, freeze and row styles metadata.
 - DEFLATE-compressed ZIP entries through the standard streams.
 - Workbook title and creator in `docProps/core.xml`.
 - XML 1.0 escaping, control-character sanitization and a null-prototype XML attribute map.
@@ -301,13 +301,14 @@ The formatter covers common number, currency, percentage, scientific, date and t
 ## Security notes
 
 - ZIP entries are checked for path traversal, duplicate names, CRC, sizes and local/central header consistency.
+- Workbook-wide cell and row budgets, per-entry/total byte budgets and image pixel/encoded-size limits bound untrusted reads.
 - Decompression is streamed and cancelled when it exceeds the per-entry or total budget; declared sizes are pre-checked.
 - ZIP64 is rejected explicitly rather than truncated.
 - The XML parser rejects DTDs, unknown entities, duplicate attributes, multiple roots and over-deep nesting. XML attributes use a null prototype, so a malicious `__proto__` name cannot pollute `Object.prototype`.
-- The reader resolves workbook, styles, shared strings and worksheets through OOXML relationships and rejects external targets except worksheet hyperlinks.
+- The reader resolves workbook, styles, shared strings and worksheets through OOXML relationships and rejects external targets except worksheet hyperlinks. Imported hyperlinks must use the hyperlink relationship type and a safe `http(s)`, `mailto` or `tel` scheme; `javascript:`/`data:` targets are dropped.
 - Strings are written as inline strings (`t="inlineStr"`), so a value such as `=SUM(A1:A2)` is data, not a formula.
 - Hyperlinks must be `http(s)`, `mailto`, `tel` or internal `#` targets; `javascript:` and `data:` are rejected.
-- CSV export prefixes formula-looking strings with an apostrophe by default; `sheetToJson` creates null-prototype records.
+- CSV export prefixes formula-looking strings with an apostrophe by default, including cell objects and values with leading whitespace; `sheetToJson` creates null-prototype records.
 - The writer never emits macros or external links.
 
 ## Dates
@@ -320,9 +321,9 @@ Measured with `npm run benchmark --workspace packages/solvejs-xlsx` on Node 24 /
 
 | Operation | Time | Output |
 |---|---:|---:|
-| `writeXlsx` (stored) | ~78 ms | 3.43 MB |
-| `writeXlsxCompressed` | ~125 ms | 415 KB |
-| `readXlsx` (compressed) | ~181 ms | 10,000 rows |
+| `writeXlsx` (stored) | ~88 ms | 3.43 MB |
+| `writeXlsxCompressed` | ~140 ms | 415 KB |
+| `readXlsx` (compressed) | ~243 ms | 10,000 rows |
 
 Times are machine-dependent; the script is included so you can measure your own hardware. Compression reduces the archive by roughly 8× on repetitive tabular data.
 
@@ -340,7 +341,7 @@ The compatibility check converts a generated workbook to CSV and reads a LibreOf
 ## Limitations
 
 - Formulas are stored and read but never evaluated; the cached `value` is what readers see.
-- Images are limited to PNG and JPEG and one-cell anchors; there are no charts, shapes or floating drawings.
+- Images are limited to PNG and JPEG; the writer uses one-cell anchors and the reader also accepts two-cell anchors. There are no charts, shapes or floating drawings.
 - The reader returns row arrays; use `sheetToJson` for header-based objects.
 - Column widths are character units, not pixels.
 - The stored writer is larger than a compressed workbook; use the compressed variants for large exports.

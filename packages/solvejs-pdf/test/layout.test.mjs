@@ -6,7 +6,9 @@ import {
   Heading,
   Image,
   Pdf,
+  PdfPage,
   Row,
+  Spacer,
   Table,
   Text,
   View,
@@ -114,6 +116,34 @@ test("tables split by rows and repeat their header", () => {
   assert.ok(bodyTexts.includes("Item 39"));
 });
 
+test("retries a split on a fresh page instead of failing", () => {
+  const long = "A long paragraph that must move to a fresh page and split there. ".repeat(30);
+  const document = buildPdfDocument(
+    Pdf({
+      page: { width: 320, height: 300 },
+      margin: 20,
+      children: [
+        Spacer({ height: 220 }),
+        View({ width: 180, padding: 18, background: PdfColors.SoftGray, children: Text({ value: long }) })
+      ]
+    })
+  );
+  assert.ok(document.pages.length >= 2);
+  const textOps = document.pages.flatMap((page) => page.ops.filter((op) => op.kind === "text"));
+  assert.ok(textOps.length > 2);
+  assert.ok(textOps.every((op) => op.x >= 38 && op.x <= 218));
+});
+
+test("does not create an empty page before a PdfPage with a page background", () => {
+  const document = buildPdfDocument(
+    Pdf({
+      background: PdfColors.White,
+      children: PdfPage({ children: Text({ value: "Body" }) })
+    })
+  );
+  assert.equal(document.pages.length, 1);
+});
+
 test("splits a table nested inside a padded view", () => {
   const rows = Array.from({ length: 30 }, (_, index) => ({
     item: `Nested ${index}`,
@@ -190,10 +220,28 @@ test("accepts JPEG data URLs and base64 strings", () => {
   assert.equal(fromBase64.pages[0].ops.find((op) => op.kind === "image").width, 20);
 });
 
+test("rejects an explicit box height smaller than its content", () => {
+  assert.throws(
+    () =>
+      buildPdfDocument(
+        Pdf({ children: View({ height: 10, padding: 4, children: Text({ value: "Too tall" }) }) })
+      ),
+    (error) => error.code === "PDF_INVALID_INPUT"
+  );
+});
+
+test("rejects truncated JPEG data", () => {
+  assert.throws(
+    () => renderPdf(Pdf({ children: Image({ src: new Uint8Array([0xff, 0xd8, 0xff, 0xd9]) }) })),
+    (error) => error.code === "PDF_INVALID_INPUT"
+  );
+});
+
 test("rejects non-JPEG image data", () => {
   assert.throws(
     () => renderPdf(Pdf({ children: Image({ src: new Uint8Array([1, 2, 3, 4]) }) })),
     (error) => error.code === "PDF_INVALID_INPUT"
   );
 });
+
 

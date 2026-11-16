@@ -39,6 +39,12 @@ export type PdfViewerHandle = {
   destroy: () => void;
 };
 
+/** A viewer host with cleanup and readiness attached for React refs. */
+export type PdfViewerHost = HTMLElement & {
+  ready: Promise<PdfViewerContext>;
+  destroy: () => void;
+};
+
 const DEFAULT_HEIGHT = 720;
 
 const STYLES = `
@@ -153,26 +159,42 @@ function createToolbar(input: ToolbarInput): { toolbar: HTMLElement; frame: HTML
   return { toolbar, frame };
 }
 
-function emptyState(fileName: string, download: () => void, open: () => void, labels: Required<PdfViewerLabels>): HTMLElement {
+type EmptyStateInput = {
+  fileName: string;
+  labels: Required<PdfViewerLabels>;
+  options: PdfViewerOptions;
+  download: () => void;
+  open: () => void;
+};
+
+function emptyState(input: EmptyStateInput): HTMLElement {
+  const { fileName, labels, options, download, open } = input;
   const empty = node("div", "empty");
   empty.append(node("div", "icon", "PDF"), node("h3", undefined, fileName));
   empty.append(node("p", undefined, "This viewer is using the compact preview. Open or download the document to see every page."));
   const actions = node("div", "actions");
-  const openButton = node("button", "button");
-  openButton.type = "button";
-  openButton.append(icon(OPEN_ICON), node("span", undefined, labels.open));
-  openButton.addEventListener("click", open);
-  const downloadButton = node("button", "button primary");
-  downloadButton.type = "button";
-  downloadButton.append(icon(DOWNLOAD_ICON), node("span", undefined, labels.download));
-  downloadButton.addEventListener("click", download);
-  actions.append(openButton, downloadButton);
-  empty.append(actions);
+  if (options.open !== false) {
+    const openButton = node("button", "button");
+    openButton.type = "button";
+    openButton.append(icon(OPEN_ICON), node("span", undefined, labels.open));
+    openButton.addEventListener("click", open);
+    actions.append(openButton);
+  }
+  if (options.download !== false) {
+    const downloadButton = node("button", "button primary");
+    downloadButton.type = "button";
+    downloadButton.append(icon(DOWNLOAD_ICON), node("span", undefined, labels.download));
+    downloadButton.addEventListener("click", download);
+    actions.append(downloadButton);
+  }
+  if (actions.children.length > 0) empty.append(actions);
   return empty;
 }
 
 function errorState(message: string, labels: Required<PdfViewerLabels>): HTMLElement {
-  return node("div", "error", `${labels.error}: ${message}`);
+  const error = node("div", "error", `${labels.error}: ${message}`);
+  error.setAttribute("role", "alert");
+  return error;
 }
 
 async function bytesOf(options: PdfViewerOptions): Promise<Uint8Array> {
@@ -202,6 +224,8 @@ function mountShell(host: HTMLElement, options: PdfViewerOptions, labels: Requir
   if (options.className) viewer.classList.add(options.className);
   root.append(viewer);
   const loading = node("div", "empty");
+  loading.setAttribute("role", "status");
+  loading.setAttribute("aria-live", "polite");
   loading.append(node("div", "icon", "PDF"), node("p", undefined, labels.loading));
   viewer.append(loading);
   return { root, viewer };
@@ -216,10 +240,13 @@ function downloader(blobUrl: string, fileName: string): () => void {
   };
 }
 
-function opener(blobUrl: string, download: () => void): () => void {
+function opener(blobUrl: string): () => void {
   return () => {
-    const opened = window.open(blobUrl, "_blank", "noopener,noreferrer");
-    if (!opened) download();
+    const anchor = node("a");
+    anchor.href = blobUrl;
+    anchor.target = "_blank";
+    anchor.rel = "noopener noreferrer";
+    anchor.click();
   };
 }
 
@@ -236,10 +263,10 @@ type DrawViewerInput = {
 function drawViewer(input: DrawViewerInput): PdfViewerContext {
   const { viewer, host, data, fileName, labels, options, blobUrl } = input;
   const download = downloader(blobUrl, fileName);
-  const open = opener(blobUrl, download);
+  const open = opener(blobUrl);
   const { toolbar, frame } = createToolbar({ fileName, labels, options, download, open });
   viewer.replaceChildren(toolbar);
-  const body = frame ?? emptyState(fileName, download, open, labels);
+  const body = frame ?? emptyState({ fileName, labels, options, download, open });
   if (frame) frame.src = blobUrl;
   viewer.append(body);
 
@@ -286,13 +313,23 @@ function startViewer(options: PdfViewerOptions, host: HTMLElement): PdfViewerHan
   const ready = bytesOf(options).then((data) => {
     if (destroyed) throw new PdfError("PDF_UNSUPPORTED", "Viewer was destroyed before rendering.");
     blobUrl = URL.createObjectURL(new Blob([data as unknown as BlobPart], { type: "application/pdf" }));
-    const context = drawViewer({ viewer, host, data, fileName, labels, options, blobUrl });
-    options.onReady?.(context);
-    return context;
+    try {
+      const context = drawViewer({ viewer, host, data, fileName, labels, options, blobUrl });
+      options.onReady?.(context);
+      return context;
+    } catch (error) {
+      URL.revokeObjectURL(blobUrl);
+      blobUrl = "";
+      throw error;
+    }
   });
 
   ready.catch((error: unknown) => {
     if (destroyed) return;
+    if (blobUrl) {
+      URL.revokeObjectURL(blobUrl);
+      blobUrl = "";
+    }
     viewer.replaceChildren(errorState(error instanceof Error ? error.message : String(error), labels));
     options.onError?.(error);
   });
@@ -302,15 +339,21 @@ function startViewer(options: PdfViewerOptions, host: HTMLElement): PdfViewerHan
 }
 
 /** Creates a viewer host without appending it to the page. */
-export function createPdfViewer(options: PdfViewerOptions): HTMLElement {
+export function createPdfViewer(options: PdfViewerOptions): PdfViewerHost {
+  if (typeof document === "undefined") {
+    throw new PdfError("PDF_UNSUPPORTED", "PdfViewer requires a browser DOM.");
+  }
   const host = node("div", "solvejs-pdf-viewer");
   if (host.attachShadow) host.attachShadow({ mode: "open" });
-  startViewer(options, host);
-  return host;
+  const handle = startViewer(options, host);
+  return Object.assign(host, { ready: handle.ready, destroy: handle.destroy }) as PdfViewerHost;
 }
 
 /** Mounts a viewer immediately and returns its handle. */
 export function mountPdfViewer(options: PdfViewerOptions, target?: HTMLElement): PdfViewerHandle {
+  if (typeof document === "undefined") {
+    throw new PdfError("PDF_UNSUPPORTED", "PdfViewer requires a browser DOM.");
+  }
   const host = node("div", "solvejs-pdf-viewer");
   if (host.attachShadow) host.attachShadow({ mode: "open" });
   (target ?? document.body).append(host);
