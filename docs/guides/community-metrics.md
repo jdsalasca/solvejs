@@ -1,29 +1,29 @@
 # SolveJS Community Metrics
 
-Generated on 2026-02-18.
+Generated on 2026-11-16.
 
 ## GitHub Snapshot
 
 - Stars: **1**
 - Forks: **0**
-- Open issues: **0**
+- Open issues: **66**
 - Watchers: **1**
 
 ## npm Last-Month Downloads
 
-Total across tracked packages: **9,900**
+Total across tracked packages: **319**
 
 | Package | Downloads (last month) |
 |---|---:|
-| @jdsalasc/solvejs | 1,418 |
-| @jdsalasc/solvejs-date | 1,183 |
-| @jdsalasc/solvejs-string | 1,171 |
-| @jdsalasc/solvejs-list | 1,191 |
-| @jdsalasc/solvejs-regex | 1,182 |
-| @jdsalasc/solvejs-constants | 1,186 |
-| @jdsalasc/solvejs-numbers | 1,034 |
-| @jdsalasc/solvejs-validators | 1,038 |
-| @jdsalasc/solvejs-objects | 497 |
+| @jdsalasc/solvejs | 29 |
+| @jdsalasc/solvejs-date | 50 |
+| @jdsalasc/solvejs-string | 63 |
+| @jdsalasc/solvejs-list | 28 |
+| @jdsalasc/solvejs-regex | 38 |
+| @jdsalasc/solvejs-constants | 31 |
+| @jdsalasc/solvejs-numbers | 29 |
+| @jdsalasc/solvejs-validators | 26 |
+| @jdsalasc/solvejs-objects | 25 |
 
 ## Notes
 
