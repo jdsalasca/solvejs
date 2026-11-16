@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>SolveJS Report Studio</title>
+    <link rel="stylesheet" href="/styles.css" />
+    <script type="importmap">
+      {
+        "imports": {
+          "@jdsalasc/solvejs-xlsx": "/pkg-xlsx/index.js",
+          "@jdsalasc/solvejs-pdf": "/pkg-pdf/index.js",
+          "@jdsalasc/solvejs-pdf/viewer": "/pkg-pdf/viewer.js"
+        }
+      }
+    </script>
+  </head>
+  <body>
+    <header class="topbar">
+      <div class="brand"><span class="mark">S</span> SolveJS Report Studio</div>
+      <a href="https://github.com/jdsalasca/solvejs" target="_blank" rel="noreferrer">GitHub</a>
+    </header>
+
+    <main>
+      <section class="panel form-panel">
+        <div class="panel-head">
+          <div>
+            <p class="eyebrow">ZERO-DEPENDENCY DEMO</p>
+            <h1>One invoice, two formats.</h1>
+            <p class="lead">Edit the data, preview the PDF, and download the matching XLSX workbook.</p>
+          </div>
+          <button id="add-item" class="ghost" type="button">+ Add item</button>
+        </div>
+
+        <div class="grid two">
+          <label>Invoice number<input id="invoice-number" value="1042" /></label>
+          <label>Customer<input id="customer" value="Ada Lovelace" /></label>
+          <label>Company<input id="company" value="Analytical Engines Ltd." /></label>
+          <label>Tax rate (%)<input id="tax" type="number" min="0" max="40" step="0.5" value="8" /></label>
+        </div>
+
+        <div class="items-head">
+          <span>Description</span><span>Qty</span><span>Unit</span><span></span>
+        </div>
+        <div id="items" class="items"></div>
+
+        <div class="actions">
+          <button id="download-xlsx" class="primary" type="button">Download XLSX</button>
+          <span id="status" role="status" aria-live="polite"></span>
+        </div>
+      </section>
+
+      <section class="panel preview-panel">
+        <div class="panel-head compact">
+          <div>
+            <p class="eyebrow">LIVE PREVIEW</p>
+            <h2>Invoice PDF</h2>
+          </div>
+          <span class="pill">@jdsalasc/solvejs-pdf</span>
+        </div>
+        <div id="viewer"></div>
+      </section>
+    </main>
+
+    <script type="module" src="/app.js"></script>
+  </body>
+</html>

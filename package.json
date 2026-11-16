@@ -30,6 +30,7 @@
     "example:env:test": "node --test examples/env-bootstrap/test.mjs",
     "example:invoice": "node examples/invoice-workflow/index.mjs",
     "example:invoice:test": "node --test examples/invoice-workflow/test.mjs",
+    "example:studio": "node examples/report-studio/server.mjs",
     "report:health": "node scripts/generate-health-report.mjs",
     "test:uncovered": "node scripts/find-uncovered.mjs",
     "check:meta": "node scripts/check-meta-wiring.mjs",

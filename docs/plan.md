@@ -152,6 +152,42 @@ PDF (`0.1.1`):
 - URI targets are percent-encoded independently of WinAnsi.
 - 35 tests, including xref/stream structure checks.
 
+## Round 9: Third Terra audit, print setup and Report Studio - done
+
+Ran a third read-only Codex CLI audit with `gpt-6.1-terra` (medium) on both packages and implemented the remaining P1/P2 findings.
+
+XLSX (`0.2.2`):
+
+- Merge validation now caps the inspected area and the number of merged ranges; intersection detection is a sweep instead of a quadratic pair check.
+- Shared formulas are translated with a quote-aware tokenizer, including quoted sheet names and `#REF!` at worksheet boundaries.
+- Duplicate worksheet rows, malformed page setup and invalid defined names fail with stable codes.
+- `pageSetup` writes orientation, paper size and fit-to-page values, including the `fitToPage` flag. Global `definedNames` write and read back; sheet-scoped imported names are skipped.
+- Formatter fixes cover zero padding (`00000`), thousands scaling (`0,`), elapsed `[h]`/`[m]`/`[s]` tokens and bounded decimal placeholders.
+- CSV formula protection now respects the original value type, so numeric `-5` is not quoted while the string `"-5"` is protected.
+- Two-cell image anchors preserve both marker offsets.
+- 66 tests.
+
+PDF (`0.1.2`):
+
+- Layout traversal is iterative and budgeted; row children, table cells and aggregate image bytes count against document budgets. Table cell text has its own limit.
+- JPEG parsing walks segment lengths and marker order, validates the scan and EOI, preserves embedded JPEG bytes, and rejects progressive/arithmetic frames, multiple scans and truncated segments.
+- Header/footer heights are measured on every page and repaginated to a verified fixed point; non-convergence fails instead of overlapping the body.
+- Row primitives are rejected; table cell text is bounded; link URI encoding preserves existing `%XX` escapes and rejects malformed Unicode.
+- Viewer numeric `height` attributes (`height="640"`) now become `640px` instead of being dropped as invalid CSS.
+- 40 tests, including middle-page decorators, row primitives, oversized table text, progressive JPEGs, extra scans and pre-encoded link targets.
+
+Report Studio (`examples/report-studio`):
+
+- Framework-free app served by a zero-dependency Node server: one editable invoice dataset generates a paginated PDF preview and a matching XLSX download.
+- Exercises formulas with cached values, print setup, frozen headers, auto-filter, defined names, hyperlinks, viewer lifecycle and money formatting.
+- Screenshot checked in the repo and the app is linked from the root README.
+
+Competitor study:
+
+- XLSX gaps ranked: data validation, conditional formatting, comments, streaming and template editing. Page setup and defined names were implemented this round.
+- PDF gaps ranked: PNG with transparency, page templates/watermarks, outlines/bookmarks and custom TTF fonts. Reading/editing existing PDFs stays out of scope.
+- Both package READMEs now include a capability matrix with the honest gaps and use-case guidance.
+
 ## Risks and Rollback
 
 - Publishing eight `0.1.0` packages for the first time is irreversible: npm does not allow

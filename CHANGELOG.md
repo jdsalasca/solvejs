@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.12.2 - 2026-11-16
+
+- Upgraded `@jdsalasc/solvejs-xlsx@0.2.2` with print setup (`pageSetup`: orientation, paper size, fit-to-page) and global defined names, written and read back. Merge validation now bounds its work and uses an intersection sweep; shared formulas translate quoted sheet names and worksheet boundaries; duplicate rows, invalid page setup and invalid names fail with stable codes. Formatter coverage grew to zero padding, thousands scaling and elapsed-time tokens, and CSV formula protection now leaves numeric values untouched. Migration impact: none; additive API plus stricter malformed-input validation.
+
+- Upgraded `@jdsalasc/solvejs-pdf@0.1.2` with stronger resource budgets (row children, table cells, aggregate image bytes), structural JPEG segment/scan validation, all-page header/footer measurement with convergence checks, row-child rejection, bounds-checked table text and link URIs that preserve existing `%XX` escapes. The viewer now turns numeric `height` attributes such as `height="640"` into pixels instead of dropping the invalid CSS value. Migration impact: none for valid documents; progressive/arithmetic JPEGs and primitives in `Row` now fail explicitly.
+
+- Added the [Report Studio example](examples/report-studio), a framework-free app that generates a matching PDF and XLSX invoice from one dataset, with a screenshot and a walkthrough. Added competitor capability matrices and real-world recipes to both package READMEs, and recorded the third Terra audit in `docs/plan.md`. Bumped the meta package to `1.12.2`. Migration impact: none.
+
 ## 1.12.1 - 2026-11-16
 
 - Hardened `@jdsalasc/solvejs-xlsx@0.2.1` after the Codex Terra audit: CSV protection now covers cell objects and leading whitespace; imported hyperlinks are filtered by relationship type and safe scheme; workbook-wide cell/row budgets and image pixel/encoded-size limits bound reads; merge rectangles are checked for intersections; shared formulas are translated for relative references; duplicate cells, invalid booleans and unknown cell types fail; row styles and two-cell image anchors are exposed; formatter fixes cover optional decimals, negative scientific values, AM/PM and quoted literals; ZIP entry names reject traversal. Migration impact: none, additive API plus stricter malformed-input validation.

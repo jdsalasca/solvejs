@@ -90,6 +90,19 @@ buildUrl("https://api.example.com", { path: "users", query: { page: 2 } });
 await retry(() => fetch("https://api.example.com/health"), { retries: 2, delayMs: 150 });
 ```
 
+## One dataset, two formats: Report Studio
+
+Most report features stop at “here is a PDF” or “here is a spreadsheet”. The [Report Studio example](examples/report-studio) generates both from the same editable invoice, so the totals, line items and formatting cannot drift apart.
+
+![SolveJS Report Studio](examples/report-studio/screenshot.png)
+
+```bash
+npm run build
+npm run example:studio   # http://localhost:4174
+```
+
+The app is plain HTML, CSS and JavaScript. It uses the PDF package for layout and the built-in viewer, and the XLSX package for formulas with cached values, frozen rows, print setup and defined names. Read the [example walkthrough](examples/report-studio/README.md) for the parts that matter in production.
+
 ## Who it is for
 
 - **API and backend teams** that need consistent validation, error shapes, and retries without adding a framework.
@@ -111,6 +124,7 @@ await retry(() => fetch("https://api.example.com/health"), { retries: 2, delayMs
 - Form and API validation recipes: [`docs/problems/form-validators.md`](docs/problems/form-validators.md)
 - Async, retry, and rate limiting: [`docs/problems/async-control.md`](docs/problems/async-control.md)
 - Invoice and fintech workflow: [`docs/problems/invoice-fintech.md`](docs/problems/invoice-fintech.md)
+- PDF + XLSX report app: [`examples/report-studio`](examples/report-studio)
 - Framework examples: [Next.js](examples/nextjs-route-handler), [Express](examples/express-middleware), [environment bootstrap](examples/env-bootstrap)
 - Comparisons: [SolveJS vs lodash](docs/guides/solvejs-vs-lodash.html), [SolveJS vs date-fns and validator](docs/guides/solvejs-vs-datefns-validator.html)
 
