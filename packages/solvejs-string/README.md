@@ -4,7 +4,7 @@
 [![node](https://img.shields.io/node/v/@jdsalasc/solvejs-string)](https://www.npmjs.com/package/@jdsalasc/solvejs-string)
 
 
-Zero-dependency string utilities for JavaScript and TypeScript.
+Zero-dependency string utilities for APIs and UI: slugify, normalize whitespace, strip HTML, title/kebab/camel/snake case, truncate, and mask. Typed, deterministic, and ready for user-generated content.
 
 ## Utilities
 

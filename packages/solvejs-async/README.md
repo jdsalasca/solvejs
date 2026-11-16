@@ -3,7 +3,7 @@
 [![npm](https://img.shields.io/npm/v/@jdsalasc/solvejs-async)](https://www.npmjs.com/package/@jdsalasc/solvejs-async)
 [![node](https://img.shields.io/node/v/@jdsalasc/solvejs-async)](https://www.npmjs.com/package/@jdsalasc/solvejs-async)
 
-Zero-dependency async/concurrency utilities for JavaScript and TypeScript.
+Zero-dependency async control for Node.js and the browser: sleep, timeout, fallback, retry with backoff, concurrency-limited `pMap`, promise debounce/throttle, task queues, rate limiters, and token buckets. Stop hand-rolling race conditions and unhandled rejections.
 
 ## Utilities
 

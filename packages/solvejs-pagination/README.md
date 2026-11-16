@@ -3,7 +3,7 @@
 [![npm](https://img.shields.io/npm/v/@jdsalasc/solvejs-pagination)](https://www.npmjs.com/package/@jdsalasc/solvejs-pagination)
 [![node](https://img.shields.io/node/v/@jdsalasc/solvejs-pagination)](https://www.npmjs.com/package/@jdsalasc/solvejs-pagination)
 
-Zero-dependency pagination utilities for offset and cursor conversion, page clamping, and API response envelopes.
+Zero-dependency pagination helpers for APIs and UIs: page/offset conversion, page counts, clamping, opaque cursors, slicing, and response envelopes with links. One-based pages and cursor semantics are explicit.
 
 ## Utilities
 

@@ -1,7 +1,7 @@
 {
   "name": "@jdsalasc/solvejs",
-  "version": "1.9.0",
-  "description": "Production-ready zero-dependency TypeScript utilities for dates, strings, lists, objects, validation, numbers, async flows, regex, constants, and env parsing.",
+  "version": "1.10.0",
+  "description": "Zero-dependency TypeScript utilities for dates, validation, money, caching, HTTP, JSON, URLs, pagination, semver, errors, env, schema, strings, lists, and objects.",
   "license": "MIT",
   "type": "module",
   "sideEffects": false,
@@ -28,25 +28,25 @@
     "lint": "tsc -p tsconfig.lint.json --noEmit"
   },
   "dependencies": {
-    "@jdsalasc/solvejs-async": "1.9.0",
-    "@jdsalasc/solvejs-cache": "0.1.0",
-    "@jdsalasc/solvejs-constants": "1.9.0",
-    "@jdsalasc/solvejs-date": "1.9.0",
-    "@jdsalasc/solvejs-env": "1.9.0",
-    "@jdsalasc/solvejs-http": "0.1.0",
-    "@jdsalasc/solvejs-errors": "0.1.0",
-    "@jdsalasc/solvejs-json": "0.1.0",
-    "@jdsalasc/solvejs-list": "1.9.0",
-    "@jdsalasc/solvejs-numbers": "1.9.0",
-    "@jdsalasc/solvejs-money": "0.1.0",
-    "@jdsalasc/solvejs-pagination": "0.1.0",
-    "@jdsalasc/solvejs-objects": "1.9.0",
-    "@jdsalasc/solvejs-regex": "1.9.0",
-    "@jdsalasc/solvejs-schema": "1.9.0",
-    "@jdsalasc/solvejs-semver": "0.1.0",
-    "@jdsalasc/solvejs-string": "1.9.0",
-    "@jdsalasc/solvejs-validators": "1.9.0",
-    "@jdsalasc/solvejs-url": "0.1.0"
+    "@jdsalasc/solvejs-async": "1.10.0",
+    "@jdsalasc/solvejs-cache": "0.2.0",
+    "@jdsalasc/solvejs-constants": "1.10.0",
+    "@jdsalasc/solvejs-date": "1.10.0",
+    "@jdsalasc/solvejs-env": "1.10.0",
+    "@jdsalasc/solvejs-http": "0.2.0",
+    "@jdsalasc/solvejs-errors": "0.2.0",
+    "@jdsalasc/solvejs-json": "0.2.0",
+    "@jdsalasc/solvejs-list": "1.10.0",
+    "@jdsalasc/solvejs-numbers": "1.10.0",
+    "@jdsalasc/solvejs-money": "0.2.0",
+    "@jdsalasc/solvejs-pagination": "0.2.0",
+    "@jdsalasc/solvejs-objects": "1.10.0",
+    "@jdsalasc/solvejs-regex": "1.10.0",
+    "@jdsalasc/solvejs-schema": "1.10.0",
+    "@jdsalasc/solvejs-semver": "0.2.0",
+    "@jdsalasc/solvejs-string": "1.10.0",
+    "@jdsalasc/solvejs-validators": "1.10.0",
+    "@jdsalasc/solvejs-url": "0.2.0"
   },
   "publishConfig": {
     "access": "public"
@@ -75,6 +75,15 @@
     "form validators",
     "regex utilities",
     "number utilities",
-    "solvejs"
+    "solvejs",
+    "esm",
+    "commonjs",
+    "nodejs",
+    "typescript",
+    "javascript",
+    "tree-shakeable",
+    "utility library",
+    "monorepo",
+    "no dependencies"
   ]
 }

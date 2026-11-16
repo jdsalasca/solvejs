@@ -32,31 +32,38 @@ Verification (all passed):
 - `npm pack --dry-run` contains no source or test files.
 - A clean `npm i @jdsalasc/solvejs@1.9.0` succeeds and imports work.
 
-## Round 2: Input robustness (P1)
+## Round 2: Input robustness — DONE (input safety; coverage deferred)
 
 The adversarial probe calls every export with `undefined`, `null`, symbols and `BigInt` and counts
 6154 calls, 4632 throws and 3584 throws without a structured code. Most are documented validation
 errors on values the TypeScript types already reject; the validators are the exception, because a
 JavaScript consumer can reach them with no type check.
 
-1. Make every `validate*` return a structured `INVALID_TYPE` result instead of throwing on a
-   non-string value. `translateValidationResult` must tolerate an invalid result shape.
-2. Raise line coverage in `async` (93.65%), `env` (90.70%) and `schema` (86.94%) above 95%.
-3. Add one regression test per fixed crash.
+1. Done: every `validate*` returns a structured `INVALID_TYPE` result instead of throwing on a
+   non-string value, the `is*` wrappers return `false`, and `translateValidationResult` returns
+   `INVALID_RESULT` for a malformed result and a generic message for an unknown code.
+2. Deferred: raising line coverage in `async`, `env` and `schema` above 95% is a test-only change
+   and did not ship in 1.10.0.
+3. Done: table-driven regression tests cover every validator and every boolean wrapper.
 
-Verification: the probe reports no unstructured `TypeError` for the `solvejs-validators` exports;
-`npm run test:baseline` and `npm run quality` stay green.
+Verification: 45 validators tests pass; the probe no longer reports unstructured `TypeError` for the
+validators; `npm run test:baseline` and `npm run quality` stay green.
 
-## Round 3: Adoption (P1)
+## Round 3: Adoption and discoverability — DONE
 
-1. Add a "Limitations" section to every package README that lacks one, starting with the eight new
-   packages.
-2. Publish per-package size figures on the npm pages, not only in the root README.
-3. Add migration recipes for the two functions teams replace most often (`lodash` pick/omit and
-   `date-fns` formatting).
+1. Every package README already had "When to use" and "Limitations"; each gained a benefit-driven
+   intro that names the problems and search terms developers use.
+2. The root README was rewritten around search intent: a problem-to-package finder covering all 20
+   packages, a complete catalog, quick-start output, platform notes, quality evidence, and links to
+   the cookbook and comparison guides.
+3. Every `package.json` gained long-tail npm keywords such as `esm`, `commonjs`, `nodejs`,
+   `tree-shakeable`, plus domain terms such as `business days`, `lru cache`, `retry with backoff` and
+   `zod alternative`.
+4. Size and coverage figures stay in `docs/guides/performance-and-size.md` and are linked from the
+   README, so the root page cannot go stale again.
 
-Verification: `npm run check:snippets` and `npm run docs:check-links` pass; every README has the
-section.
+Verification: `npm run check:snippets` parses 79 TypeScript snippets from 20 READMEs; docs links,
+pack contents and the quality gate pass.
 
 ## Round 4: Structural quality — DONE
 

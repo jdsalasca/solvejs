@@ -3,7 +3,7 @@
 [![npm](https://img.shields.io/npm/v/@jdsalasc/solvejs-schema)](https://www.npmjs.com/package/@jdsalasc/solvejs-schema)
 [![node](https://img.shields.io/node/v/@jdsalasc/solvejs-schema)](https://www.npmjs.com/package/@jdsalasc/solvejs-schema)
 
-Zero-dependency TypeScript schema validation for web apps, APIs, forms, config files, and AI tool inputs.
+Zero-dependency schema validation for API payloads, forms, config files, and AI tool inputs: string, number, boolean, literal, array, object, union, optional, and refine, with `safeParse` and JSON Schema output. A small alternative to Zod when you only need the essentials.
 
 ## Utilities
 

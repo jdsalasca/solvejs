@@ -4,7 +4,7 @@
 [![node](https://img.shields.io/node/v/@jdsalasc/solvejs)](https://www.npmjs.com/package/@jdsalasc/solvejs)
 
 
-Zero-dependency JavaScript and TypeScript utility suite for real production pain points.
+One import surface for every SolveJS utility: dates, validation, money, caching, HTTP, JSON, URLs, pagination, semver, errors, environment config, and more. Install once and tree-shake what you use; zero runtime dependencies, ESM + CJS + TypeScript declarations.
 
 Includes date, string, list, regex, constants, numbers, validators, object, async, env, and schema utilities.
 

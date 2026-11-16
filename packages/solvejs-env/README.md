@@ -3,7 +3,7 @@
 [![npm](https://img.shields.io/npm/v/@jdsalasc/solvejs-env)](https://www.npmjs.com/package/@jdsalasc/solvejs-env)
 [![node](https://img.shields.io/node/v/@jdsalasc/solvejs-env)](https://www.npmjs.com/package/@jdsalasc/solvejs-env)
 
-Zero-dependency environment variable parsing and validation utilities for JavaScript and TypeScript.
+Zero-dependency environment parsing for Node.js startups: required strings, numbers with bounds, booleans, enums, arrays, JSON, URLs, and DSNs. Fail fast with a clear message instead of shipping `undefined` to production.
 
 ## Utilities
 

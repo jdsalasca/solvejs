@@ -4,7 +4,7 @@
 [![node](https://img.shields.io/node/v/@jdsalasc/solvejs-list)](https://www.npmjs.com/package/@jdsalasc/solvejs-list)
 
 
-Zero-dependency array/list utilities for JavaScript and TypeScript.
+Zero-dependency array utilities for analytics, dashboards, and forms: `uniqueBy`, `groupBy`, `countBy`, `chunk`, `partition`, `pluck`, `sortBy`, and set-style intersections. The everyday lodash-style helpers without the dependency.
 
 ## Utilities
 

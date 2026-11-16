@@ -1,6 +1,6 @@
 {
   "name": "@jdsalasc/solvejs-objects",
-  "version": "1.9.0",
+  "version": "1.10.0",
   "description": "Safe TypeScript object utilities for pick/omit, own-property checks, nested get/set, and prototype-hardened deep merges for config and state.",
   "license": "MIT",
   "type": "module",
@@ -52,6 +52,16 @@
     "set nested value",
     "has own property",
     "zero dependency",
-    "solvejs"
+    "solvejs",
+    "esm",
+    "commonjs",
+    "nodejs",
+    "typescript",
+    "javascript",
+    "tree-shakeable",
+    "lodash alternative",
+    "deep merge",
+    "nested object",
+    "object helpers"
   ]
 }

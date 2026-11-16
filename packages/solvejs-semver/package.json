@@ -1,6 +1,6 @@
 {
   "name": "@jdsalasc/solvejs-semver",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "TypeScript semantic version utilities for parsing, comparison, range satisfaction, and incrementing, with strict validation and no dependencies.",
   "license": "MIT",
   "type": "module",
@@ -53,6 +53,14 @@
     "typescript",
     "javascript",
     "zero dependency",
-    "solvejs"
+    "solvejs",
+    "esm",
+    "commonjs",
+    "nodejs",
+    "tree-shakeable",
+    "version parser",
+    "semver range",
+    "semver alternative",
+    "prerelease"
   ]
 }

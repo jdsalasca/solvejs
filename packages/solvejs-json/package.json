@@ -1,6 +1,6 @@
 {
   "name": "@jdsalasc/solvejs-json",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "TypeScript JSON utilities for safe parsing, stable stringification, deep cloning, and key picking at API boundaries, with structured errors instead of throws.",
   "license": "MIT",
   "type": "module",
@@ -53,6 +53,14 @@
     "typescript",
     "javascript",
     "zero dependency",
-    "solvejs"
+    "solvejs",
+    "esm",
+    "commonjs",
+    "nodejs",
+    "tree-shakeable",
+    "stable stringify",
+    "deep equal",
+    "json merge",
+    "json clone"
   ]
 }

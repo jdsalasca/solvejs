@@ -1,6 +1,6 @@
 {
   "name": "@jdsalasc/solvejs-money",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "TypeScript money utilities using integer minor units for lossless arithmetic, exact percentage application, largest-remainder allocation, and formatting, with no floating point rounding.",
   "license": "MIT",
   "type": "module",
@@ -55,6 +55,14 @@
     "typescript",
     "javascript",
     "zero dependency",
-    "solvejs"
+    "solvejs",
+    "esm",
+    "commonjs",
+    "nodejs",
+    "tree-shakeable",
+    "money library",
+    "currency math",
+    "split amount",
+    "financial calculations"
   ]
 }

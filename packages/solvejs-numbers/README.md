@@ -4,7 +4,7 @@
 [![node](https://img.shields.io/node/v/@jdsalasc/solvejs-numbers)](https://www.npmjs.com/package/@jdsalasc/solvejs-numbers)
 
 
-Zero-dependency number utilities for JavaScript and TypeScript.
+Zero-dependency number utilities for forms, dashboards, and commerce: strict numeric parsing, safe division, percentages, currency formatting, rounding, clamping, tax, and discount helpers. Predictable results at the edges.
 
 ## Utilities
 

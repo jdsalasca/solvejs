@@ -4,7 +4,7 @@
 [![node](https://img.shields.io/node/v/@jdsalasc/solvejs-constants)](https://www.npmjs.com/package/@jdsalasc/solvejs-constants)
 
 
-Zero-dependency constants and parsing helpers for JavaScript and TypeScript.
+Zero-dependency constants for time, file sizes, HTTP methods, HTTP statuses, and content types, plus a strict boolean parser. Stop retyping magic numbers and keep API code consistent.
 
 ## Utilities
 

@@ -3,7 +3,7 @@
 [![npm](https://img.shields.io/npm/v/@jdsalasc/solvejs-url)](https://www.npmjs.com/package/@jdsalasc/solvejs-url)
 [![node](https://img.shields.io/node/v/@jdsalasc/solvejs-url)](https://www.npmjs.com/package/@jdsalasc/solvejs-url)
 
-Zero-dependency URL utilities for building URLs, merging and parsing query strings, and replacing path parameters.
+Zero-dependency URL building and query-string utilities: deterministic query serialization, safe parsing, path parameters, and base-URL joining. Built on `URL` and `URLSearchParams`, with stable output for cache keys.
 
 ## Utilities
 

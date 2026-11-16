@@ -3,7 +3,7 @@
 [![npm](https://img.shields.io/npm/v/@jdsalasc/solvejs-http)](https://www.npmjs.com/package/@jdsalasc/solvejs-http)
 [![node](https://img.shields.io/node/v/@jdsalasc/solvejs-http)](https://www.npmjs.com/package/@jdsalasc/solvejs-http)
 
-Zero-dependency HTTP utilities for status classification, retryability, backoff, headers and content negotiation.
+Zero-dependency HTTP helpers for resilient clients: status text, retryable status and error classification, exponential backoff with jitter, header normalization, and content-type negotiation. Works with `fetch`, Axios, or any client that exposes a status code.
 
 ## Utilities
 

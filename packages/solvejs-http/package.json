@@ -1,6 +1,6 @@
 {
   "name": "@jdsalasc/solvejs-http",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "TypeScript HTTP utilities for status classification, retryability, header normalisation, content negotiation, and backoff delay calculation, with no dependencies.",
   "license": "MIT",
   "type": "module",
@@ -54,6 +54,14 @@
     "typescript",
     "javascript",
     "zero dependency",
-    "solvejs"
+    "solvejs",
+    "esm",
+    "commonjs",
+    "nodejs",
+    "tree-shakeable",
+    "exponential backoff",
+    "retryable status",
+    "content type",
+    "http headers"
   ]
 }

@@ -1,6 +1,6 @@
 {
   "name": "@jdsalasc/solvejs-errors",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "TypeScript application error utilities with stable machine-readable codes, HTTP status mapping, cause chaining, and safe-to-log formatting for API and service boundaries.",
   "license": "MIT",
   "type": "module",
@@ -53,6 +53,14 @@
     "typescript",
     "javascript",
     "zero dependency",
-    "solvejs"
+    "solvejs",
+    "esm",
+    "commonjs",
+    "nodejs",
+    "tree-shakeable",
+    "error handling",
+    "http error",
+    "problem details",
+    "error normalization"
   ]
 }

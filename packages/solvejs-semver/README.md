@@ -3,7 +3,7 @@
 [![npm](https://img.shields.io/npm/v/@jdsalasc/solvejs-semver)](https://www.npmjs.com/package/@jdsalasc/solvejs-semver)
 [![node](https://img.shields.io/node/v/@jdsalasc/solvejs-semver)](https://www.npmjs.com/package/@jdsalasc/solvejs-semver)
 
-Zero-dependency semantic version utilities for parsing, comparison, range satisfaction, and incrementing.
+Zero-dependency semantic version parsing and range matching: caret, tilde, wildcard, comparator, AND/OR ranges, prerelease precedence, and version bumps. A lighter runtime alternative to the `semver` package.
 
 ## Utilities
 

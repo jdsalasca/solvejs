@@ -1,130 +1,124 @@
 # SolveJS
 
-SolveJS is a zero-dependency utility ecosystem for JavaScript and TypeScript apps.
+**Zero-dependency TypeScript utilities for the problems every JavaScript app hits: dates, validation, money, caching, HTTP, JSON, URLs, pagination, semver, errors, environment config, and more.**
+
+SolveJS is a monorepo of 20 focused packages. Install the whole ecosystem with one import, or install only the module you need. No runtime dependencies, no peer dependencies, no native builds.
 
 [![CI](https://github.com/jdsalasca/solvejs/actions/workflows/ci.yml/badge.svg)](https://github.com/jdsalasca/solvejs/actions/workflows/ci.yml)
-[![Release](https://img.shields.io/github/v/release/jdsalasca/solvejs)](https://github.com/jdsalasca/solvejs/releases)
 [![npm](https://img.shields.io/npm/v/@jdsalasc/solvejs)](https://www.npmjs.com/package/@jdsalasc/solvejs)
-[![Community](https://img.shields.io/badge/community-monthly%20vote-blue)](https://github.com/jdsalasca/solvejs/issues)
+[![npm downloads](https://img.shields.io/npm/dm/@jdsalasc/solvejs)](https://www.npmjs.com/package/@jdsalasc/solvejs)
+[![license](https://img.shields.io/npm/l/@jdsalasc/solvejs)](LICENSE)
+[![dependencies](https://img.shields.io/badge/runtime%20dependencies-0-brightgreen)](package.json)
+[![TypeScript](https://img.shields.io/badge/TypeScript-ready-3178C6?logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
 
-## Promise
+## Why SolveJS
 
-Zero-dependency JS/TS utilities for real production pain points. Install one package or only the modules you need.
+- **Zero runtime dependencies.** Nothing extra to audit, patch, or ship to the browser.
+- **One job per package.** Small, predictable APIs with stable error codes.
+- **ESM + CJS + TypeScript declarations.** Import it from Node.js, a bundler, or a test runner.
+- **Built for production boundaries.** Structured validation, safe JSON, typed errors, retries with backoff.
+- **Measured, not claimed.** Every package has tests; CI enforces a per-package test floor derived from its export count, a quality lint baseline, and publishable tarballs.
 
-## Why Teams Adopt SolveJS
+## Find the package for your problem
 
-- Predictable APIs with no runtime dependencies.
-- ESM + CJS + TypeScript declarations across all packages.
-- Structured validator responses for better UX/API error mapping.
-- Problem-first cookbook docs with searchable recipes and integration guides.
+| I need to… | Package | Install |
+|---|---|---|
+| Parse, format, and do UTC-safe date math, business days, DST boundaries | `@jdsalasc/solvejs-date` | `npm i @jdsalasc/solvejs-date` |
+| Validate emails, phones, postal codes, UUIDs, IPv4, ISO dates, passwords, addresses | `@jdsalasc/solvejs-validators` | `npm i @jdsalasc/solvejs-validators` |
+| Do exact money math for invoices, payments, taxes, and splits | `@jdsalasc/solvejs-money` | `npm i @jdsalasc/solvejs-money` |
+| Cache API responses with TTL, LRU, async memoization, or stale-while-revalidate | `@jdsalasc/solvejs-cache` | `npm i @jdsalasc/solvejs-cache` |
+| Retry HTTP calls with exponential backoff and jitter, or negotiate content types | `@jdsalasc/solvejs-http` | `npm i @jdsalasc/solvejs-http` |
+| Normalize errors into typed codes, HTTP statuses, and safe JSON responses | `@jdsalasc/solvejs-errors` | `npm i @jdsalasc/solvejs-errors` |
+| Parse environment variables at startup and fail fast with clear messages | `@jdsalasc/solvejs-env` | `npm i @jdsalasc/solvejs-env` |
+| Validate API payloads and forms without a schema dependency | `@jdsalasc/solvejs-schema` | `npm i @jdsalasc/solvejs-schema` |
+| Parse, stringify, clone, compare, and merge JSON safely | `@jdsalasc/solvejs-json` | `npm i @jdsalasc/solvejs-json` |
+| Build URLs, join paths, and serialize query strings deterministically | `@jdsalasc/solvejs-url` | `npm i @jdsalasc/solvejs-url` |
+| Paginate API responses with pages, offsets, cursors, and envelopes | `@jdsalasc/solvejs-pagination` | `npm i @jdsalasc/solvejs-pagination` |
+| Parse and compare semantic versions, ranges, and prereleases | `@jdsalasc/solvejs-semver` | `npm i @jdsalasc/solvejs-semver` |
+| Sleep, timeout, retry, debounce, throttle, queue, or rate-limit async work | `@jdsalasc/solvejs-async` | `npm i @jdsalasc/solvejs-async` |
+| Group, count, dedupe, sort, chunk, or partition arrays | `@jdsalasc/solvejs-list` | `npm i @jdsalasc/solvejs-list` |
+| Pick, omit, get/set dotted paths, map values, or deep-merge objects | `@jdsalasc/solvejs-objects` | `npm i @jdsalasc/solvejs-objects` |
+| Slugify, truncate, mask, strip HTML, or change string case | `@jdsalasc/solvejs-string` | `npm i @jdsalasc/solvejs-string` |
+| Use common regex patterns for email, phone, URL, UUID, IPv4, and ISO dates | `@jdsalasc/solvejs-regex` | `npm i @jdsalasc/solvejs-regex` |
+| Parse numbers, compute percentages, format currency, or round safely | `@jdsalasc/solvejs-numbers` | `npm i @jdsalasc/solvejs-numbers` |
+| Use time, file-size, HTTP method, status, and content-type constants | `@jdsalasc/solvejs-constants` | `npm i @jdsalasc/solvejs-constants` |
+| Import any of the above from one entry point | `@jdsalasc/solvejs` | `npm i @jdsalasc/solvejs` |
 
 ## Install
 
 ```bash
+# The whole ecosystem, one import surface
 npm i @jdsalasc/solvejs
+
+# Or only the modules you need
+npm i @jdsalasc/solvejs-date @jdsalasc/solvejs-validators @jdsalasc/solvejs-money
 ```
 
-Install only specific modules:
-
-```bash
-npm i @jdsalasc/solvejs-date @jdsalasc/solvejs-validators @jdsalasc/solvejs-objects
-```
-
-## Packages
-
-- `@jdsalasc/solvejs-date`: `formatDate`, `parseDateStrict`, `addBusinessDays`, `nextBusinessDay`, `diffInDays`.
-- `@jdsalasc/solvejs-string`: `slugify`, `normalizeWhitespace`, `stripHtml`, `toTitleCase`, `truncate`.
-- `@jdsalasc/solvejs-list`: `uniqueBy`, `groupBy`, `countBy`, `pluck`, `partition`, `sortBy`.
-- `@jdsalasc/solvejs-regex`: `REGEX_PATTERNS`, `validateByName`, `escapeRegex`, `literalRegex`.
-- `@jdsalasc/solvejs-constants`: `TIME`, `FILE_SIZE_BYTES`, `HTTP_METHODS`, `HTTP_STATUS`, `CONTENT_TYPES`.
-- `@jdsalasc/solvejs-numbers`: `toNumber`, `safeDivide`, `percentChange`, `toPercent`, `toCurrency`.
-- `@jdsalasc/solvejs-validators`: `validateCellphoneNumber`, `validateDomain`, `translateValidationResult`, `validateUuidV4`.
-- `@jdsalasc/solvejs-objects`: `pick`, `omit`, `mapValues`, `get`, `set`, `deepMerge`.
-- `@jdsalasc/solvejs-async`: `sleep`, `timeout`, `timeoutFallback`, `retry`, `pMap`, `createTaskQueue`, `createRateLimiter`.
-- `@jdsalasc/solvejs-env`: `getEnvString`, `getEnvNumber`, `getEnvObject`, `getEnvUrl`, `getEnvDsn`, `validateRequiredEnv`.
-- `@jdsalasc/solvejs-schema`: `s.object`, `s.string`, `s.number`, `safeParse`, `toJsonSchema`.
-- `@jdsalasc/solvejs-url`: `buildUrl`, `withQuery`, `parseQuery`, `stringifyQuery`, `omitQuery`, `replacePathParam`, `getUrlParam`, `joinUrl`.
-- `@jdsalasc/solvejs-cache`: `stableKey`, `createTtlCache`, `createLruCache`, `memoizeAsync`, `createStaleWhileRevalidate`.
-- `@jdsalasc/solvejs-json`: `safeJsonParse`, `safeJsonStringify`, `stableStringify`, `deepClone`, `deepEqual`, `jsonMerge`.
-- `@jdsalasc/solvejs-pagination`: `pageToOffset`, `offsetToPage`, `pageCount`, `clampPage`, `paginate`, `withPagination`.
-- `@jdsalasc/solvejs-semver`: `parseVersion`, `compareVersions`, `satisfies`, `isValidRange`, `maxSatisfying`, `incrementVersion`.
-- `@jdsalasc/solvejs-errors`: `AppError`, `createError`, `normalizeError`, `errorToResponse`, `toResult`, `serializeError`.
-- `@jdsalasc/solvejs-money`: `fromDecimal`, `toDecimal`, `addMoney`, `percentageOf`, `applyPercentage`, `allocateAmount`, `formatMoney`.
-- `@jdsalasc/solvejs-http`: `getStatusText`, `isRetryableStatus`, `isRetryableError`, `calculateBackoffDelay`, `negotiateContentType`.
-
-## Quick Example
+## Quick start
 
 ```ts
-import { parseDateStrict, slugify, countBy, toNumber, validateUuidV4, deepMerge, retry, s, buildUrl, memoizeAsync } from "@jdsalasc/solvejs";
+import {
+  allocateAmount,
+  buildUrl,
+  fromDecimal,
+  parseDateStrict,
+  retry,
+  translateValidationResult,
+  validateEmail
+} from "@jdsalasc/solvejs";
 
-parseDateStrict("2026-02-07", "YYYY-MM-DD");
-slugify("Build Better JS Apps");
-countBy([{ team: "api" }, { team: "web" }, { team: "api" }], (x) => x.team);
-toNumber("1,200");
-validateUuidV4("550e8400-e29b-41d4-a716-446655440000");
-deepMerge({ app: { env: "dev" } }, { app: { version: 2 } });
-await retry(() => fetch("https://example.com/health"), { retries: 2, delayMs: 150 });
-s.object({ id: s.string(), age: s.number({ coerce: true }).int() }).safeParse({ id: "u1", age: "42" });
+parseDateStrict("2026-11-16", "YYYY-MM-DD");
+// Date 2026-11-16T00:00:00.000Z
+
+validateEmail("dev@example.com");
+// { ok: true, code: "VALID", message: "Email is valid." }
+
+translateValidationResult(validateEmail(""), { fieldLabel: "Email" });
+// { ok: false, code: "EMPTY", message: "Email is required." }
+
+fromDecimal("19.99");
+// 1999 (integer minor units)
+
+allocateAmount(1000, [1, 1, 1]);
+// [334, 333, 333] — sums back to 1000 exactly
+
 buildUrl("https://api.example.com", { path: "users", query: { page: 2 } });
-const loadUser = memoizeAsync(async (id) => fetch(`https://api.example.com/users/${id}`).then((r) => r.json()));
+// "https://api.example.com/users?page=2"
+
+await retry(() => fetch("https://api.example.com/health"), { retries: 2, delayMs: 150 });
 ```
 
-## Package Size and Test Coverage
+## Who it is for
 
-Measured, not estimated. Regenerate both with `npm run report:perf`; never edit them by hand.
+- **API and backend teams** that need consistent validation, error shapes, and retries without adding a framework.
+- **Frontend and form teams** that want stable validation codes and EN/ES/PT messages they can render directly.
+- **Fintech and commerce teams** that cannot afford floating-point money bugs.
+- **Library authors** who want small, typed building blocks with zero runtime dependencies.
 
-| Package | Version | Gzipped tarball | Unpacked | Lines covered |
-|---|---:|---:|---:|---:|
-| `@jdsalasc/solvejs` | 1.9.0 | 2.48 KB | 6.97 KB | 52.88% |
-| `@jdsalasc/solvejs-async` | 1.9.0 | 8.57 KB | 51.96 KB | 93.65% |
-| `@jdsalasc/solvejs-constants` | 1.9.0 | 3.33 KB | 12.06 KB | 100.00% |
-| `@jdsalasc/solvejs-date` | 1.9.0 | 6.77 KB | 45.08 KB | 95.05% |
-| `@jdsalasc/solvejs-env` | 1.9.0 | 5.61 KB | 42.77 KB | 90.70% |
-| `@jdsalasc/solvejs-list` | 1.9.0 | 4.70 KB | 26.32 KB | 98.93% |
-| `@jdsalasc/solvejs-numbers` | 1.9.0 | 6.67 KB | 45.00 KB | 100.00% |
-| `@jdsalasc/solvejs-objects` | 1.9.0 | 4.69 KB | 23.54 KB | 98.76% |
-| `@jdsalasc/solvejs-regex` | 1.9.0 | 3.09 KB | 11.87 KB | 100.00% |
-| `@jdsalasc/solvejs-schema` | 1.9.0 | 7.86 KB | 52.45 KB | 86.94% |
-| `@jdsalasc/solvejs-string` | 1.9.0 | 3.93 KB | 18.52 KB | 100.00% |
-| `@jdsalasc/solvejs-url` | 0.1.0 | 6.68 KB | 34.85 KB | 99.00% |
-| `@jdsalasc/solvejs-validators` | 1.9.0 | 10.71 KB | 82.55 KB | 98.37% |
+## Quality you can verify
 
-Coverage comes from the Node built-in test runner, so it adds no dependency. Full per-package
-line, branch and function figures live in `docs/guides/performance-and-size.md`.
+- **Tests:** every package has a suite on Node's built-in test runner. `npm run quality` runs build, tests, the test floor, meta wiring, CJS output, publish contents, the release matrix, README snippets, docs links, and the lint baseline.
+- **Coverage and size:** measured per package in [`docs/guides/performance-and-size.md`](docs/guides/performance-and-size.md).
+- **Package health:** current status, known limitations, and next improvements in [`docs/guides/package-health-report.md`](docs/guides/package-health-report.md).
+- **Publish safety:** every tarball is packed in dry-run mode before release, and the release matrix is derived from the workspaces.
 
-Every package must keep at least one test block per exported function. `npm run test:baseline`
-derives that floor from the export count, so CI fails if a function is added without a test.
+## Documentation and recipes
 
-## Development
+- Cookbook and searchable guides: <https://jdsalasca.github.io/solvejs/>
+- Date and timezone recipes: [`docs/problems/date-format.md`](docs/problems/date-format.md)
+- Form and API validation recipes: [`docs/problems/form-validators.md`](docs/problems/form-validators.md)
+- Async, retry, and rate limiting: [`docs/problems/async-control.md`](docs/problems/async-control.md)
+- Invoice and fintech workflow: [`docs/problems/invoice-fintech.md`](docs/problems/invoice-fintech.md)
+- Framework examples: [Next.js](examples/nextjs-route-handler), [Express](examples/express-middleware), [environment bootstrap](examples/env-bootstrap)
+- Comparisons: [SolveJS vs lodash](docs/guides/solvejs-vs-lodash.html), [SolveJS vs date-fns and validator](docs/guides/solvejs-vs-datefns-validator.html)
 
-```bash
-npm install
-npm run build
-npm test
-npm run benchmark
-```
+## Works with
 
-## Community
+Node.js 18+, modern browsers, and edge runtimes for the environment-agnostic packages. Every package ships ESM, CommonJS, and TypeScript declarations. Packages that read `process.env` document their Node.js requirement in their README.
 
-- Contribution guide: `CONTRIBUTING.md`
-- Code of conduct: `CODE_OF_CONDUCT.md`
-- Security policy: `SECURITY.md`
-- Community roadmap: `TODO.md`
-- Marketing and growth plan: `MARKETING_PLAN.md`
-- npm positioning guide: `NPM_POSITIONING.md`
-- Positioning execution checklist: `POSITIONING_CHECKLIST.md`
-- Community pain-point analysis: `COMMUNITY_PAIN_POINTS.md`
-- Monthly vote automation: `.github/workflows/community-vote.yml`
-- Monthly "You asked, we shipped" automation: `.github/workflows/community-shipped.yml`
-- PR template enforcement: `.github/workflows/pr-template-check.yml`
-- Community metrics automation: `.github/workflows/community-metrics.yml`
-- Community issue seeding automation: `.github/workflows/seed-community-issues.yml`
-- Docs cookbook: `https://jdsalasca.github.io/solvejs/?utm_source=github&utm_medium=readme&utm_campaign=community_growth`
-- Package inventory: `docs/guides/package-inventory.md`
-- Performance and size report: `docs/guides/performance-and-size.md`
-- Community metrics report: `docs/guides/community-metrics.md`
-- Community issue backlog: `docs/community/issue-backlog.md`
-- Framework examples: `examples/`
+## Contributing
+
+Contributions are welcome. Read [`CONTRIBUTING.md`](CONTRIBUTING.md), run `npm install && npm run quality`, and open a focused PR. Security reports: [`SECURITY.md`](SECURITY.md). Community roadmap and monthly vote: [GitHub Issues](https://github.com/jdsalasca/solvejs/issues).
 
 ## License
 

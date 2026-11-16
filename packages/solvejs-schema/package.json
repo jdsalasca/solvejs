@@ -1,6 +1,6 @@
 {
   "name": "@jdsalasc/solvejs-schema",
-  "version": "1.9.0",
+  "version": "1.10.0",
   "description": "Zero-dependency TypeScript schema validation for APIs, forms, config, AI tool inputs, safe parsing, and JSON Schema output.",
   "license": "MIT",
   "type": "module",
@@ -49,6 +49,15 @@
     "api validation",
     "form validation",
     "zero dependency",
-    "solvejs"
+    "solvejs",
+    "esm",
+    "commonjs",
+    "nodejs",
+    "typescript",
+    "javascript",
+    "tree-shakeable",
+    "zod alternative",
+    "schema validator",
+    "runtime validation"
   ]
 }

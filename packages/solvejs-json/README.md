@@ -3,7 +3,7 @@
 [![npm](https://img.shields.io/npm/v/@jdsalasc/solvejs-json)](https://www.npmjs.com/package/@jdsalasc/solvejs-json)
 [![node](https://img.shields.io/node/v/@jdsalasc/solvejs-json)](https://www.npmjs.com/package/@jdsalasc/solvejs-json)
 
-Zero-dependency JSON utilities for safe parsing, deterministic stringification, deep cloning, and key picking at API boundaries.
+Zero-dependency JSON utilities for API boundaries: safe parse and stringify, deterministic stringification, deep clone, structural equality, and prototype-safe merge. Never let a malformed payload take down a request handler.
 
 ## Utilities
 

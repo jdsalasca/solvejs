@@ -3,7 +3,7 @@
 [![npm](https://img.shields.io/npm/v/@jdsalasc/solvejs-errors)](https://www.npmjs.com/package/@jdsalasc/solvejs-errors)
 [![node](https://img.shields.io/node/v/@jdsalasc/solvejs-errors)](https://www.npmjs.com/package/@jdsalasc/solvejs-errors)
 
-Zero-dependency application errors with stable machine-readable codes, HTTP status mapping, cause chaining, and safe-to-log serialisation.
+Zero-dependency error handling for APIs: a typed `AppError`, stable codes mapped to HTTP statuses, normalization at the boundary, cause chaining, safe serialization, and result objects for handlers that avoid exceptions. Stop leaking stacks and inconsistent error shapes.
 
 ## Utilities
 

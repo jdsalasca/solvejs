@@ -3,7 +3,7 @@
 [![npm](https://img.shields.io/npm/v/@jdsalasc/solvejs-money)](https://www.npmjs.com/package/@jdsalasc/solvejs-money)
 [![node](https://img.shields.io/node/v/@jdsalasc/solvejs-money)](https://www.npmjs.com/package/@jdsalasc/solvejs-money)
 
-Zero-dependency money utilities that keep every amount in integer minor units, so arithmetic, percentages and splits are exact.
+Zero-dependency money math in integer minor units: exact addition, percentages, allocation without lost cents, and currency-aware formatting. No floating-point rounding surprises in invoices, payments, or tax calculations.
 
 ## Utilities
 

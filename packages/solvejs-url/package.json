@@ -1,6 +1,6 @@
 {
   "name": "@jdsalasc/solvejs-url",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "TypeScript URL utilities for building URLs, merging and parsing query strings, and replacing path parameters, with stable error codes and deterministic output.",
   "license": "MIT",
   "type": "module",
@@ -52,6 +52,16 @@
     "typescript url",
     "javascript url",
     "zero dependency",
-    "solvejs"
+    "solvejs",
+    "esm",
+    "commonjs",
+    "nodejs",
+    "typescript",
+    "javascript",
+    "tree-shakeable",
+    "query params",
+    "urlsearchparams",
+    "url join",
+    "query parser"
   ]
 }

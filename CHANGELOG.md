@@ -1,6 +1,12 @@
 # Changelog
 
-## Unreleased
+## 1.10.0 - 2026-11-16
+
+- Changed every `validate*` helper in `@jdsalasc/solvejs-validators` to return a structured `INVALID_TYPE` result when the value is not a string, instead of throwing a `TypeError`. A JavaScript consumer can now pass `undefined`, `null`, a number, an object, or an array and get the same `{ ok, code, message }` shape as any other validation failure; the `is*` wrappers return `false`. `translateValidationResult` now returns `INVALID_RESULT` for a malformed result and a generic message for an unknown code instead of throwing, and `INVALID_TYPE`/`INVALID_RESULT` carry EN/ES/PT messages. Migration impact: TypeScript callers are unaffected. A JavaScript caller that relied on catching `TypeError` must check `result.ok` instead.
+
+- Rewrote the root README around search intent: a problem-to-package finder covering all 20 packages, a complete catalog, quick-start output, platform notes, quality evidence, and links to the cookbook and comparison guides. Every package README gained a benefit-driven intro with the terms developers search for, and every `package.json` gained long-tail npm keywords such as `esm`, `commonjs`, `nodejs`, `tree-shakeable`, `business days`, `lru cache`, `retry with backoff`, and `zod alternative`. Migration impact: none, documentation and metadata only.
+
+- Released the eight newer packages at `0.2.0` so their README and keyword updates reach npm, and the eleven established leaves plus the meta package at `1.10.0`.
 
 - Adopted the external portable quality baseline as a repo-owned ESLint config (`eslint.config.mjs`), wired into `npm run quality` and CI with `--max-warnings 0`: complexity 8, 40 lines per function, nesting depth 3, 4 parameters, plus the correctness and security rules. The first run reported 77 problems (58 errors, 19 warnings) across 14 packages and the scripts; all were resolved by extracting validation, parsing, serialization, comparison, cache-entry and bucket-state helpers, splitting the report generators, deleting stale compiled artifacts from six `src` directories, and documenting the verified regex false positives with a reason. Behavior is unchanged and every package suite stayed green. Migration impact: none, refactor and tooling only.
 

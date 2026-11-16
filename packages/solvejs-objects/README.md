@@ -4,7 +4,7 @@
 [![node](https://img.shields.io/node/v/@jdsalasc/solvejs-objects)](https://www.npmjs.com/package/@jdsalasc/solvejs-objects)
 
 
-Zero-dependency object utilities for JavaScript and TypeScript.
+Zero-dependency object utilities: `pick`, `omit`, `get` and `set` at dotted paths, `mapValues`, and prototype-safe deep merge. Small, typed, and predictable at configuration and API boundaries.
 
 ## Utilities
 

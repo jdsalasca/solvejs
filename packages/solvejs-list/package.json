@@ -1,6 +1,6 @@
 {
   "name": "@jdsalasc/solvejs-list",
-  "version": "1.9.0",
+  "version": "1.10.0",
   "description": "Lodash-style TypeScript list utilities for grouping, counting, deduping, chunking, partitioning, sorting, and set operations with zero dependencies.",
   "license": "MIT",
   "type": "module",
@@ -52,6 +52,16 @@
     "intersection array",
     "sort by key",
     "zero dependency",
-    "solvejs"
+    "solvejs",
+    "esm",
+    "commonjs",
+    "nodejs",
+    "typescript",
+    "javascript",
+    "tree-shakeable",
+    "lodash alternative",
+    "array helpers",
+    "group by",
+    "sort by"
   ]
 }
