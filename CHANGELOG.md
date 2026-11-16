@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.12.3 - 2026-11-16
+
+- Package review fixes across the ecosystem. `@jdsalasc/solvejs-date@1.10.1` handles years 0-99 in the proleptic Gregorian calendar, formats four-digit years, and computes business-day offsets in O(1) while rejecting unsafe integer amounts. `@jdsalasc/solvejs-money@0.2.1` keeps factors written in exponent notation exact (`1e-7`). `@jdsalasc/solvejs-semver@0.2.1` makes `^0` cover all `0.x` releases. `@jdsalasc/solvejs-pagination@0.2.1` rejects `NaN` and fractional pages in `clampPage`/`withPagination`. Migration impact: none for valid inputs; malformed values now fail instead of producing broken output.
+
+- Hardened data and infrastructure utilities. `@jdsalasc/solvejs-url@0.2.1` stores a `__proto__` query key as an own property instead of touching the prototype. `@jdsalasc/solvejs-errors@0.2.1` makes details JSON-safe (cycles, bigint, Error values) and applies masks globally. `@jdsalasc/solvejs-http@0.2.1` parses quoted `Content-Type` parameters containing semicolons. `@jdsalasc/solvejs-string@1.10.1` removes all Unicode combining marks. `@jdsalasc/solvejs-cache@0.2.1` honors a per-entry TTL in the LRU cache. Migration impact: none for normal payloads; invalid or hostile input is handled more safely.
+
+- Fixed `@jdsalasc/solvejs-pdf@0.1.3` so a JPEG frame without scan data is rejected instead of embedded, and `@jdsalasc/solvejs-xlsx@0.2.3` so zero-valued fit-to-page attributes are written explicitly and `XlsxPageSetup` is exported from the entry point. Bumped the meta package to `1.12.3`. Migration impact: none.
+
 ## 1.12.2 - 2026-11-16
 
 - Upgraded `@jdsalasc/solvejs-xlsx@0.2.2` with print setup (`pageSetup`: orientation, paper size, fit-to-page) and global defined names, written and read back. Merge validation now bounds its work and uses an intersection sweep; shared formulas translate quoted sheet names and worksheet boundaries; duplicate rows, invalid page setup and invalid names fail with stable codes. Formatter coverage grew to zero padding, thousands scaling and elapsed-time tokens, and CSV formula protection now leaves numeric values untouched. Migration impact: none; additive API plus stricter malformed-input validation.

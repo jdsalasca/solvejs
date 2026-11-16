@@ -188,6 +188,25 @@ Competitor study:
 - PDF gaps ranked: PNG with transparency, page templates/watermarks, outlines/bookmarks and custom TTF fonts. Reading/editing existing PDFs stays out of scope.
 - Both package READMEs now include a capability matrix with the honest gaps and use-case guidance.
 
+## Round 10: Ecosystem review and correctness sweep - done
+
+Reviewed every leaf package manually after the third audit. Fixed the concrete defects found instead of adding features:
+
+- Date: proleptic Gregorian years 0-99, four-digit formatting, O(1) business-day arithmetic and safe-integer validation.
+- Money: exponent-notation factors (`1e-7`) keep their precision.
+- Semver: `^0` now spans all `0.x` releases.
+- Pagination: `clampPage`/`withPagination` reject `NaN` and fractional pages.
+- URL: `__proto__` remains an own query key without touching the prototype.
+- Errors: circular, bigint and Error details are serialized safely; masks apply to every match.
+- HTTP: quoted `Content-Type` parameters may contain semicolons.
+- String: all Unicode combining marks are removed during slug normalization.
+- Cache: the LRU cache honors a per-entry TTL.
+- PDF: a JPEG frame without scan data is rejected.
+- XLSX: zero fit-to-page values are explicit and `XlsxPageSetup` is part of the public API.
+- Tooling: `npm run test:uncovered` now covers every package by default, and Report Studio has a smoke test in `npm run quality`.
+
+Versions: date/string `1.10.1`, money/semver/pagination/url/errors/http/cache `0.2.1`, pdf `0.1.3`, xlsx `0.2.3`, meta `1.12.3`.
+
 ## Risks and Rollback
 
 - Publishing eight `0.1.0` packages for the first time is irreversible: npm does not allow

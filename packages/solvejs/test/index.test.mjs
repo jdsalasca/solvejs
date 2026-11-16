@@ -73,7 +73,12 @@ import {
   // xlsx
   XlsxError,
   readXlsx,
-  writeXlsx
+  writeXlsx,
+  // pdf
+  Pdf,
+  PdfPage,
+  Text,
+  renderPdf
 } from "../dist/esm/index.js";
 
 test("meta package re-exports symbols", async () => {
@@ -150,6 +155,26 @@ test("every leaf package is reachable through the meta package", async () => {
   // xlsx
   const workbook = await readXlsx(writeXlsx({ sheets: [{ name: "Sheet1", rows: [["ok", 1]] }] }));
   assert.deepEqual(workbook.sheets[0].rows[0], ["ok", 1]);
+});
+
+test("meta package re-exports the document APIs", async () => {
+  const bytes = writeXlsx({
+    definedNames: { Total: "Sheet1!$A$1" },
+    sheets: [
+      {
+        name: "Sheet1",
+        pageSetup: { orientation: "landscape", fitToWidth: 1 },
+        rows: [[1]]
+      }
+    ]
+  });
+  const workbook = await readXlsx(bytes);
+  assert.equal(workbook.sheets[0].pageSetup?.orientation, "landscape");
+  assert.deepEqual({ ...workbook.definedNames }, { Total: "Sheet1!$A$1" });
+
+  const pdf = renderPdf(Pdf({ children: PdfPage({ children: Text({ value: "ok" }) }) }));
+  assert.equal(pdf instanceof Uint8Array, true);
+  assert.deepEqual([...pdf.subarray(0, 5)], [0x25, 0x50, 0x44, 0x46, 0x2d]);
 });
 
 test("every error class is exported and keeps its identity", () => {

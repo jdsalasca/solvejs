@@ -6,33 +6,33 @@ This report lists each package, its practical utilities, current status, known i
 
 ## Test Trust
 
-22 packages, 527 test blocks. The minimum for each package is derived
+22 packages, 533 test blocks. The minimum for each package is derived
 from its exported function count by `npm run test:baseline`.
 
 | Package | Function exports | Test blocks | Line coverage |
 |---|---|---|---|
-| `@jdsalasc/solvejs` | 0 (re-exports) | 4 | 46.84% |
+| `@jdsalasc/solvejs` | 0 (re-exports) | 5 | 53.35% |
 | `@jdsalasc/solvejs-async` | 10 | 26 | 100.00% |
-| `@jdsalasc/solvejs-cache` | 5 | 31 | 100.00% |
+| `@jdsalasc/solvejs-cache` | 5 | 32 | 100.00% |
 | `@jdsalasc/solvejs-constants` | 1 | 9 | 100.00% |
-| `@jdsalasc/solvejs-date` | 18 | 31 | 100.00% |
+| `@jdsalasc/solvejs-date` | 18 | 32 | 100.00% |
 | `@jdsalasc/solvejs-env` | 10 | 27 | 100.00% |
-| `@jdsalasc/solvejs-errors` | 10 | 32 | 100.00% |
-| `@jdsalasc/solvejs-http` | 8 | 17 | 100.00% |
+| `@jdsalasc/solvejs-errors` | 10 | 33 | 100.00% |
+| `@jdsalasc/solvejs-http` | 8 | 17 | 97.68% |
 | `@jdsalasc/solvejs-json` | 9 | 26 | 100.00% |
 | `@jdsalasc/solvejs-list` | 12 | 13 | 100.00% |
 | `@jdsalasc/solvejs-money` | 10 | 19 | 100.00% |
 | `@jdsalasc/solvejs-numbers` | 16 | 18 | 100.00% |
 | `@jdsalasc/solvejs-objects` | 7 | 9 | 100.00% |
 | `@jdsalasc/solvejs-pagination` | 8 | 15 | 100.00% |
-| `@jdsalasc/solvejs-pdf` | 0 (re-exports) | 40 | 86.08% |
+| `@jdsalasc/solvejs-pdf` | 0 (re-exports) | 41 | 86.17% |
 | `@jdsalasc/solvejs-regex` | 5 | 15 | 100.00% |
 | `@jdsalasc/solvejs-schema` | 1 | 20 | 100.00% |
 | `@jdsalasc/solvejs-semver` | 9 | 34 | 100.00% |
 | `@jdsalasc/solvejs-string` | 9 | 10 | 100.00% |
 | `@jdsalasc/solvejs-url` | 8 | 20 | 100.00% |
 | `@jdsalasc/solvejs-validators` | 31 | 45 | 100.00% |
-| `@jdsalasc/solvejs-xlsx` | 0 (re-exports) | 66 | 91.90% |
+| `@jdsalasc/solvejs-xlsx` | 0 (re-exports) | 67 | 91.91% |
 
 ## Package Status
 
