@@ -224,6 +224,36 @@ export function asError(value: unknown, options: NormalizeOptions = {}): AppErro
   return normalizeError(value, options);
 }
 
+// eslint-disable-next-line complexity -- recursive sanitizer with explicit JSON edge cases
+function jsonSafe(value: unknown, ancestors: WeakSet<object> = new WeakSet()): unknown {
+  if (value === null) return null;
+  const type = typeof value;
+  if (type === "string" || type === "boolean") return value;
+  if (type === "number") return Number.isFinite(value) ? value : null;
+  if (typeof value === "bigint") return value.toString();
+  if (type === "undefined" || type === "function" || type === "symbol") return undefined;
+  if (value instanceof Date) return value.toISOString();
+  if (value instanceof Error) return { name: value.name, message: value.message };
+  if (type !== "object") return String(value);
+
+  const object = value as object;
+  if (ancestors.has(object)) return "[Circular]";
+  ancestors.add(object);
+  try {
+    if (Array.isArray(value)) return value.map((entry) => jsonSafe(entry, ancestors) ?? null);
+    const output: Record<string, unknown> = {};
+    for (const [key, entry] of Object.entries(value as Record<string, unknown>)) {
+      if (key === "__proto__" || key === "constructor" || key === "prototype") continue;
+      const safe = jsonSafe(entry, ancestors);
+      if (safe !== undefined) output[key] = safe;
+    }
+    return output;
+  } finally {
+    ancestors.delete(object);
+  }
+}
+
+/* eslint-disable complexity -- masking and optional cause handling */
 /**
  * Turns an error into a JSON-safe payload.
  *
@@ -244,7 +274,12 @@ export function serializeError(value: unknown, options: SerializeOptions = {}): 
   const error = normalizeError(value);
   const replacement = options.replacement ?? "[redacted]";
 
-  const applyMask = (text: string) => (options.mask ? text.replace(options.mask, replacement) : text);
+  const applyMask = (text: string) => {
+    if (!options.mask) return text;
+    const flags = options.mask.flags.includes("g") ? options.mask.flags : `${options.mask.flags}g`;
+    // eslint-disable-next-line security/detect-non-literal-regexp -- source and flags come from the caller's RegExp
+    return text.replace(new RegExp(options.mask.source, flags), replacement);
+  };
 
   const payload: SerializedError["error"] = {
     code: error.code,
@@ -252,8 +287,9 @@ export function serializeError(value: unknown, options: SerializeOptions = {}): 
     status: error.status
   };
 
-  if (Object.keys(error.details).length > 0) {
-    payload.details = error.details;
+  const details = jsonSafe(error.details) as Record<string, unknown>;
+  if (details && Object.keys(details).length > 0) {
+    payload.details = details;
   }
 
   if (options.includeCause && error.cause !== undefined) {
@@ -266,6 +302,7 @@ export function serializeError(value: unknown, options: SerializeOptions = {}): 
 
   return { error: payload };
 }
+/* eslint-enable complexity */
 
 /**
  * Builds an HTTP status, headers and body for an error.

@@ -5,7 +5,7 @@
  * @returns Normalized string without combining marks.
  */
 function normalize(value: string): string {
-  return value.normalize("NFKD").replace(/[\u0300-\u036f]/g, "");
+  return value.normalize("NFKD").replace(/\p{M}/gu, "");
 }
 
 /**

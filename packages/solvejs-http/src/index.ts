@@ -263,6 +263,38 @@ function parseContentParameters(rawParameters: readonly string[]): Record<string
   return parameters;
 }
 
+function splitHeaderParts(header: string): string[] {
+  const parts: string[] = [];
+  let current = "";
+  let quoted = false;
+  let escaped = false;
+  for (const character of header) {
+    if (escaped) {
+      current += character;
+      escaped = false;
+      continue;
+    }
+    if (character === "\\" && quoted) {
+      current += character;
+      escaped = true;
+      continue;
+    }
+    if (character === '"') {
+      quoted = !quoted;
+      current += character;
+      continue;
+    }
+    if (character === ";" && !quoted) {
+      parts.push(current);
+      current = "";
+      continue;
+    }
+    current += character;
+  }
+  parts.push(current);
+  return parts;
+}
+
 /**
  * Parses a `Content-Type` header.
  *
@@ -276,7 +308,7 @@ function parseContentParameters(rawParameters: readonly string[]): Record<string
 export function parseContentType(header: string): ParsedContentType | null {
   if (typeof header !== "string" || header.trim() === "") return null;
 
-  const [rawType, ...rawParameters] = header.split(";");
+  const [rawType, ...rawParameters] = splitHeaderParts(header);
   const [type, subtype, ...extra] = rawType.trim().toLowerCase().split("/");
   if (!type || !subtype || extra.length > 0) return null;
 

@@ -163,3 +163,7 @@ throw aggregateErrors(failures.map((code) => createError(code)), "Validation fai
 
 `toResult` does not avoid the cost either, because it still constructs an `AppError` on failure. It
 buys you the absence of a `try`/`catch`, not speed.
+
+## Review notes
+
+- `serializeError` makes `details` JSON-safe (cycles, bigint and Error values) and a mask replaces every match, not only the first.

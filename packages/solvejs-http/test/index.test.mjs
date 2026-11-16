@@ -159,6 +159,16 @@ test("parseContentType", () => {
     },
     "a quoted parameter value is unquoted"
   );
+  assert.deepEqual(
+    parseContentType('application/json; note="a;b"; charset=utf-8'),
+    {
+      type: "application/json",
+      subtype: "json",
+      charset: "utf-8",
+      parameters: { note: "a;b", charset: "utf-8" }
+    },
+    "a semicolon inside a quoted parameter does not split the header"
+  );
 
   assert.equal(parseContentType(""), null);
   assert.equal(parseContentType("nonsense"), null, "a media type needs a slash");

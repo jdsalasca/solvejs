@@ -110,3 +110,7 @@ two inputs, give `memoizeAsync` an explicit `key` function.
 Nothing runs in the background. An expired entry is removed when it is read, or when `keys` or `size`
 is called, so a cache left untouched keeps its expired entries in memory. Call `clear` on shutdown if
 that matters.
+
+## Review notes
+
+- `createLruCache().set(key, value, { ttlMs })` honors a per-entry TTL that overrides the cache default.

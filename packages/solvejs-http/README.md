@@ -115,3 +115,7 @@ code is better rendered by your own table than by a wrong phrase.
 
 `calculateBackoffDelay` is not deterministic when jitter is on, which is the point. Pass
 `jitter: false` in a test that needs a fixed delay.
+
+## Review notes
+
+- Quoted `Content-Type` parameters may contain semicolons without splitting the header.

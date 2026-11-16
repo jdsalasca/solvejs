@@ -162,3 +162,7 @@ replacePathParam("/users/:id", "name", "7", { required: true });      // UrlErro
 
 `stringifyQuery` sorts by key so the same object always produces the same string, which is what
 makes it usable as a cache key. Repeated values keep their order within a key.
+
+## Review notes
+
+- `parseQuery` keeps a `__proto__` key as an own property; it never mutates the object prototype.

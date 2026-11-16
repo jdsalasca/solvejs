@@ -68,3 +68,7 @@ const plain = normalizeWhitespace(stripHtml("<p>Hello   <b>world</b></p>"));
 const slug = slugify(plain); // "hello-world"
 truncate(plain, 5); // "Hello..."
 ```
+
+## Review notes
+
+- Slug normalization removes every Unicode combining mark, not only the basic Latin range.

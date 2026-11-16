@@ -26,6 +26,7 @@ test("toKebabCase", () => {
   assert.equal(toKebabCase("日本語"), "", "scripts with no ASCII letters reduce to an empty string");
   assert.equal(toKebabCase("👋 Hi"), "hi", "emoji are dropped");
   assert.equal(toKebabCase("a--b"), "a-b", "runs of separators collapse into one");
+  assert.equal(toKebabCase("a\u1AB0b"), "ab", "combining marks outside the basic Latin range are dropped");
 });
 
 test("toCamelCase", () => {

@@ -189,6 +189,16 @@ test("createLruCache expires by ttl as well as by size", () => {
   now += 1;
 });
 
+test("createLruCache honors a per-entry ttl", () => {
+  let now = 1000;
+  const cache = createLruCache({ maxSize: 10, ttlMs: 100, now: () => now });
+  cache.set("short", 1, { ttlMs: 10 });
+  cache.set("long", 2);
+  now += 10;
+  assert.equal(cache.get("short"), undefined, "the per-entry ttl wins over the cache default");
+  assert.equal(cache.get("long"), 2);
+});
+
 test("createLruCache validates maxSize", () => {
   assert.throws(() => createLruCache({ maxSize: 0, now: () => 0 }), /CacheError|maxSize/);
   assert.throws(() => createLruCache({ maxSize: -1, now: () => 0 }), /CacheError|maxSize/);

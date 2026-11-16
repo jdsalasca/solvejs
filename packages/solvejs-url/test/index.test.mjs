@@ -82,6 +82,8 @@ test("parseQuery", () => {
   assert.deepEqual(parseQuery("?a=%E2%9C%93"), { a: "\u2713" }, "percent-encoded UTF-8 decodes");
   assert.deepEqual(parseQuery("?a=%ZZ"), { a: "%ZZ" }, "malformed encoding does not throw");
   assert.deepEqual(parseQuery("?a=1&&b=2"), { a: "1", b: "2" }, "empty pairs are skipped");
+  assert.equal(Object.getPrototypeOf(parseQuery("?a=1")), Object.prototype, "the normal object prototype is preserved");
+  assert.equal(Object.prototype.hasOwnProperty.call(parseQuery("?__proto__=x"), "__proto__"), true);
 });
 
 test("withQuery", () => {

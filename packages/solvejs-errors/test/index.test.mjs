@@ -169,6 +169,16 @@ test("serializeError masks secrets when asked", () => {
   assert.equal(causeMasked.error.cause?.message.includes("hunter2"), false, "the cause is masked too");
 });
 
+test("serializeError makes circular and bigint details JSON-safe", () => {
+  const details = { id: 1n };
+  details.self = details;
+  const payload = serializeError(createError("INTERNAL", "outer", { details }));
+
+  assert.equal(payload.error.details.id, "1");
+  assert.equal(payload.error.details.self, "[Circular]");
+  assert.doesNotThrow(() => JSON.stringify(payload), "the serialized payload is always JSON-safe");
+});
+
 test("errorToResponse builds an HTTP body and status", () => {
   const response = errorToResponse(createError("NOT_FOUND", "No such user."));
 

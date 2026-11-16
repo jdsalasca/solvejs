@@ -249,6 +249,7 @@ function evictOldest<T>(entries: Map<string, CacheEntry<T>>, maxSize: number): v
   }
 }
 
+/* eslint-disable max-lines-per-function -- the cache methods share one closure */
 /**
  * Creates a cache that evicts the least recently used entry once `maxSize` is exceeded.
  *
@@ -279,11 +280,12 @@ export function createLruCache<T = unknown>(options: LruCacheOptions): TtlCache<
       if (dropExpiredEntry(entries, key, now)) return undefined;
       return touchEntry(entries, key)?.value;
     },
-    set(key, value) {
+    set(key, value, setOptions) {
       assertKey(key);
-      const ttlMs = options.ttlMs ?? Number.POSITIVE_INFINITY;
+      const ttlMs = setOptions?.ttlMs ?? options.ttlMs;
+      if (ttlMs !== undefined) assertPositiveNumber(ttlMs, "ttlMs");
       entries.delete(key);
-      entries.set(key, { value, expiresAt: now() + ttlMs });
+      entries.set(key, { value, expiresAt: now() + (ttlMs ?? Number.POSITIVE_INFINITY) });
       evictOldest(entries, options.maxSize);
     },
     has(key) {
@@ -309,10 +311,11 @@ export function createLruCache<T = unknown>(options: LruCacheOptions): TtlCache<
 
   return cache;
 }
+/* eslint-enable max-lines-per-function */
 
 /** Options for {@link memoizeAsync}. */
 export type MemoizeAsyncOptions = {
-  /** Entry lifetime in milliseconds. Omit or pass 0 to never expire. */
+  /** Entry lifetime in milliseconds. Omit to keep entries until cleared. */
   ttlMs?: number;
   /** Builds the cache key from the call arguments. Defaults to {@link stableKey} of the argument list. */
   key?: (...args: unknown[]) => string;

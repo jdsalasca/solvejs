@@ -98,14 +98,18 @@ export function parseQuery(search: string): Record<string, string | string[]> {
   const result: Record<string, string | string[]> = {};
 
   for (const [key, value] of params) {
-    const existing = result[key];
-    if (existing === undefined) {
-      result[key] = value;
-    } else if (Array.isArray(existing)) {
-      existing.push(value);
-    } else {
-      result[key] = [existing, value];
+    const ownsKey = Object.prototype.hasOwnProperty.call(result, key);
+    if (!ownsKey) {
+      Object.defineProperty(result, key, {
+        value,
+        enumerable: true,
+        configurable: true,
+        writable: true
+      });
+      continue;
     }
+    const existing = result[key];
+    result[key] = Array.isArray(existing) ? [...existing, value] : [existing, value];
   }
 
   return result;
