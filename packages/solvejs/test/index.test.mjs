@@ -69,7 +69,11 @@ import {
   // http
   HttpError,
   isRetryableStatus,
-  parseContentType
+  parseContentType,
+  // xlsx
+  XlsxError,
+  readXlsx,
+  writeXlsx
 } from "../dist/esm/index.js";
 
 test("meta package re-exports symbols", async () => {
@@ -92,7 +96,7 @@ test("meta package re-exports symbols", async () => {
   assert.deepEqual(await pMap([1, 2, 3], async (x) => x * 2, { concurrency: 2 }), [2, 4, 6]);
 });
 
-test("every leaf package is reachable through the meta package", () => {
+test("every leaf package is reachable through the meta package", async () => {
   // regex
   assert.equal(escapeRegex("a.b"), "a\\.b");
   assert.equal(validateByName("a@b.co", "email"), true);
@@ -142,6 +146,10 @@ test("every leaf package is reachable through the meta package", () => {
   // http
   assert.equal(isRetryableStatus(503), true);
   assert.equal(parseContentType("application/json").type, "application/json");
+
+  // xlsx
+  const workbook = await readXlsx(writeXlsx({ sheets: [{ name: "Sheet1", rows: [["ok", 1]] }] }));
+  assert.deepEqual(workbook.sheets[0].rows[0], ["ok", 1]);
 });
 
 test("every error class is exported and keeps its identity", () => {
@@ -155,7 +163,8 @@ test("every error class is exported and keeps its identity", () => {
     [new SemverError("SEMVER_INVALID_VERSION", "bad"), SemverError],
     [new AppError("NOT_FOUND", "gone"), AppError],
     [new MoneyError("MONEY_INVALID_AMOUNT", "bad"), MoneyError],
-    [new HttpError("HTTP_INVALID_LIST", "bad"), HttpError]
+    [new HttpError("HTTP_INVALID_LIST", "bad"), HttpError],
+    [new XlsxError("XLSX_INVALID_INPUT", "bad"), XlsxError]
   ];
 
   for (const [instance, Class] of cases) {

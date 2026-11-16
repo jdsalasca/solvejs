@@ -8,6 +8,8 @@
 
 - Released the eight newer packages at `0.2.0` so their README and keyword updates reach npm, and the eleven established leaves plus the meta package at `1.10.0`.
 
+- Added `@jdsalasc/solvejs-xlsx@0.1.0`, a zero-dependency XLSX writer and reader built from scratch: ZIP, CRC-32, XML, OOXML, shared strings, dates and basic styles. The writer emits inline strings (formula-injection safe) and can produce stored or DEFLATE-compressed archives; the reader supports stored and deflated entries through the platform `DecompressionStream`. Validated against LibreOffice in both directions. Migration impact: none, new package.
+
 - Adopted the external portable quality baseline as a repo-owned ESLint config (`eslint.config.mjs`), wired into `npm run quality` and CI with `--max-warnings 0`: complexity 8, 40 lines per function, nesting depth 3, 4 parameters, plus the correctness and security rules. The first run reported 77 problems (58 errors, 19 warnings) across 14 packages and the scripts; all were resolved by extracting validation, parsing, serialization, comparison, cache-entry and bucket-state helpers, splitting the report generators, deleting stale compiled artifacts from six `src` directories, and documenting the verified regex false positives with a reason. Behavior is unchanged and every package suite stayed green. Migration impact: none, refactor and tooling only.
 
 ## 1.9.0 - 2026-11-16

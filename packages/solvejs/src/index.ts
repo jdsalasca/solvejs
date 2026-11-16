@@ -17,3 +17,4 @@ export * from "@jdsalasc/solvejs-semver";
 export * from "@jdsalasc/solvejs-errors";
 export * from "@jdsalasc/solvejs-money";
 export * from "@jdsalasc/solvejs-http";
+export * from "@jdsalasc/solvejs-xlsx";

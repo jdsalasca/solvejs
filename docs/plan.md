@@ -85,6 +85,18 @@ All were resolved:
 Verification: `npm run lint:quality` exits 0 with no warnings; the external `teachers` audit exits 0
 with `sin hallazgos`; `npm run quality` stays green.
 
+## Round 5: XLSX reader and writer — first slice done
+
+Built `@jdsalasc/solvejs-xlsx@0.1.0` from scratch, with no runtime dependencies:
+
+- ZIP container writer (stored and DEFLATE through the platform `CompressionStream`) and reader (stored and DEFLATE through `DecompressionStream`), with CRC-32 verification and limits.
+- Safe XML parser for OOXML: elements, attributes, text, CDATA and comments; DTDs rejected; depth and node limits.
+- XLSX writer: multiple sheets, inline strings (formula-injection safe), numbers, booleans, dates in the 1900 system, bold header, frozen header row and column widths.
+- XLSX reader: shared strings, inline strings, numbers, booleans, dates via built-in and custom date formats, formula results and error cells.
+- 14 tests, including `writeXlsxCompressed` round-trips and a LibreOffice compatibility script that verifies both directions (generated file opens in LibreOffice; LibreOffice-generated deflated file reads back).
+
+Next in this line: PDF writer/reader, merged cells, richer styles, and formula writing as an explicit opt-in.
+
 ## Risks and Rollback
 
 - Publishing eight `0.1.0` packages for the first time is irreversible: npm does not allow

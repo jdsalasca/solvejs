@@ -42,6 +42,7 @@ SolveJS is a monorepo of 20 focused packages. Install the whole ecosystem with o
 | Use common regex patterns for email, phone, URL, UUID, IPv4, and ISO dates | `@jdsalasc/solvejs-regex` | `npm i @jdsalasc/solvejs-regex` |
 | Parse numbers, compute percentages, format currency, or round safely | `@jdsalasc/solvejs-numbers` | `npm i @jdsalasc/solvejs-numbers` |
 | Use time, file-size, HTTP method, status, and content-type constants | `@jdsalasc/solvejs-constants` | `npm i @jdsalasc/solvejs-constants` |
+| Export or read XLSX spreadsheets without SheetJS | `@jdsalasc/solvejs-xlsx` | `npm i @jdsalasc/solvejs-xlsx` |
 | Import any of the above from one entry point | `@jdsalasc/solvejs` | `npm i @jdsalasc/solvejs` |
 
 ## Install

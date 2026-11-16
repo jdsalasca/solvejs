@@ -4,9 +4,9 @@
 [![node](https://img.shields.io/node/v/@jdsalasc/solvejs)](https://www.npmjs.com/package/@jdsalasc/solvejs)
 
 
-One import surface for every SolveJS utility: dates, validation, money, caching, HTTP, JSON, URLs, pagination, semver, errors, environment config, and more. Install once and tree-shake what you use; zero runtime dependencies, ESM + CJS + TypeScript declarations.
+One import surface for every SolveJS utility: dates, validation, money, caching, HTTP, JSON, URLs, pagination, semver, errors, environment config, XLSX, and more. Install once and tree-shake what you use; zero runtime dependencies, ESM + CJS + TypeScript declarations.
 
-Includes date, string, list, regex, constants, numbers, validators, object, async, env, and schema utilities.
+Includes date, string, list, regex, constants, numbers, validators, object, async, env, schema, and XLSX utilities.
 
 ## When to use this package
 
@@ -27,7 +27,7 @@ npm i @jdsalasc/solvejs
 ## Quick example
 
 ```ts
-import { parseDateStrict, slugify, countBy, toNumber, deepMerge, retry, getEnvBoolean, s } from "@jdsalasc/solvejs";
+import { parseDateStrict, slugify, countBy, toNumber, deepMerge, retry, getEnvBoolean, s, readXlsx, writeXlsx } from "@jdsalasc/solvejs";
 
 parseDateStrict("2026-02-07", "YYYY-MM-DD");
 slugify("Build Better JS Apps");
@@ -37,6 +37,7 @@ deepMerge({ app: { env: "dev" } }, { app: { version: 2 } });
 await retry(() => fetch("https://example.com/health"), { retries: 2, delayMs: 150 });
 getEnvBoolean("ENABLE_CACHE", { ENABLE_CACHE: "true" });
 s.object({ id: s.string(), age: s.number({ coerce: true }) }).parse({ id: "u1", age: "42" });
+await readXlsx(writeXlsx({ sheets: [{ name: "Sheet1", rows: [["ok", 1]] }] }));
 ```
 
 Docs cookbook and guides: `https://jdsalasca.github.io/solvejs/`
