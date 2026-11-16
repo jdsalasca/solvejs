@@ -119,8 +119,9 @@ The app is plain HTML, CSS and JavaScript. It uses the PDF package for layout an
 
 ## Documentation and recipes
 
-- Cookbook and searchable guides: <https://jdsalasca.github.io/solvejs/>
-- Live Lab with editable PDF/XLSX examples: <https://jdsalasca.github.io/solvejs/live/>
+- Cookbook and searchable guides: <https://solvejs-documentation.eridu.top/>
+- Live Lab with editable PDF/XLSX examples: <https://solvejs-documentation.eridu.top/live/>
+- GitHub Pages mirror: <https://jdsalasca.github.io/solvejs/>
 - Date and timezone recipes: [`docs/problems/date-format.md`](docs/problems/date-format.md)
 - Form and API validation recipes: [`docs/problems/form-validators.md`](docs/problems/form-validators.md)
 - Async, retry, and rate limiting: [`docs/problems/async-control.md`](docs/problems/async-control.md)

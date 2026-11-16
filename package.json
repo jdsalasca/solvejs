@@ -23,6 +23,7 @@
     "test:baseline": "node scripts/check-test-baseline.mjs",
     "docs:check-links": "node scripts/check-doc-links.mjs",
     "docs:live:check": "node scripts/prepare-docs-vendor.mjs && node scripts/check-live-docs.mjs",
+    "docs:deploy:server": "powershell -ExecutionPolicy Bypass -File scripts/deploy-docs-server.ps1",
     "example:next": "node examples/nextjs-route-handler/index.mjs",
     "example:next:test": "node --test examples/nextjs-route-handler/test.mjs",
     "example:express": "node examples/express-middleware/index.mjs",

@@ -18,15 +18,22 @@ uploading `docs`, so the live page always reflects the current workspace code.
 
 ## Custom domain
 
-The GitHub Pages deployment currently lives at <https://jdsalasca.github.io/solvejs/>. To serve it at
-`solvejs-documentation.eridu.top`:
+The documentation is live at <https://solvejs-documentation.eridu.top> (and mirrored by GitHub Pages at
+<https://jdsalasca.github.io/solvejs/>). The custom domain is served by the `atopnuc` Cloudflare tunnel:
 
-1. In Cloudflare DNS, create `CNAME solvejs-documentation` → `jdsalasca.github.io`, proxy **DNS only**.
-2. In GitHub, open **Settings → Pages → Custom domain**, enter `solvejs-documentation.eridu.top` and save.
-3. Wait for the certificate, then enable **Enforce HTTPS**.
+- nginx container `solvejs-docs`, bound to `127.0.0.1:5180`
+- files at `/home/atopnuc/sitios/solvejs-docs/site`
+- ingress entry in `/home/atopnuc/.cloudflared/config.yml`
+- DNS CNAME created with `cloudflared tunnel route dns`
 
-Do not add a `CNAME` file or set the custom domain before the DNS record resolves; GitHub Pages will
-otherwise redirect the working `github.io` site to a host that does not exist.
+Deploy a new docs build with:
+
+```powershell
+npm run docs:deploy:server
+```
+
+The script builds `docs/vendor`, zips `docs`, copies it to the server, replaces the served folder and
+checks the public `/live/` URL.
 
 ## Recipe Pages
 
