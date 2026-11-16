@@ -12,6 +12,7 @@
     "build": "node scripts/run-workspaces.mjs build",
     "test": "node scripts/run-workspaces.mjs test",
     "lint": "npm run --workspaces lint",
+    "lint:quality": "eslint . --max-warnings 0",
     "benchmark": "npm run build && node benchmarks/index.mjs",
     "clean": "npm run --workspaces clean",
     "inventory": "node scripts/generate-package-inventory.mjs",
@@ -33,12 +34,17 @@
     "test:uncovered": "node scripts/find-uncovered.mjs",
     "check:meta": "node scripts/check-meta-wiring.mjs",
     "check:cjs": "node scripts/check-cjs-output.mjs",
-    "quality": "npm run build && npm test && npm run test:baseline && npm run check:meta && npm run check:cjs && npm run check:pack && npm run check:release && npm run check:snippets && npm run docs:check-links && npm run lint",
+    "quality": "npm run build && npm test && npm run test:baseline && npm run check:meta && npm run check:cjs && npm run check:pack && npm run check:release && npm run check:snippets && npm run docs:check-links && npm run lint:quality && npm run lint",
     "check:pack": "node scripts/check-pack-contents.mjs",
     "check:release": "node --test test/release-matrix.test.mjs",
     "check:snippets": "node scripts/check-snippets.mjs"
   },
   "devDependencies": {
-    "typescript": "^5.9.2"
+    "@eslint/js": "^10.0.1",
+    "eslint": "^10.15.0",
+    "eslint-plugin-security": "^4.2.1",
+    "globals": "^17.14.0",
+    "typescript": "^5.9.2",
+    "typescript-eslint": "^8.72.2"
   }
 }

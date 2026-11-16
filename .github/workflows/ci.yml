@@ -26,6 +26,9 @@ jobs:
       - name: Lint
         run: npm run lint
 
+      - name: Check quality baseline
+        run: npm run lint:quality
+
       - name: Enforce test baseline
         run: npm run test:baseline
 
