@@ -1,6 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import {
+  Bookmark,
   PdfColors,
   Link,
   PdfPage,
@@ -107,6 +108,50 @@ test("preserves existing percent escapes in link targets", () => {
   const text = latin1(bytes);
   assert.match(text, /\/URI \(https:\/\/example\.com\/a%20b\?q=x%2Fy\)/);
   assert.doesNotMatch(text, /%2520/);
+});
+
+test("builds nested bookmarks with page destinations", () => {
+  const element = Pdf({
+    children: [
+      PdfPage({
+        children: [
+          Bookmark({ title: "Introduction" }),
+          Text({ value: "Intro" }),
+          Bookmark({ title: "Details", level: 2 }),
+          Text({ value: "Details" })
+        ]
+      }),
+      PdfPage({
+        children: [Bookmark({ title: "Appendix" }), Text({ value: "Appendix" })]
+      })
+    ]
+  });
+  const document = buildPdfDocument(element);
+  assert.deepEqual(
+    document.outline?.map(({ title, level, page }) => ({ title, level, page })),
+    [
+      { title: "Introduction", level: 1, page: 0 },
+      { title: "Details", level: 2, page: 0 },
+      { title: "Appendix", level: 1, page: 1 }
+    ]
+  );
+
+  const text = latin1(renderPdf(element));
+  assert.match(text, /\/Outlines \d+ 0 R/);
+  assert.match(text, /\/Title \(Introduction\)/);
+  assert.match(text, /\/Title \(Details\)/);
+  assert.match(text, /\/Dest \[\d+ 0 R \/XYZ 0 /);
+});
+
+test("rejects bookmarks with invalid titles or levels", () => {
+  assert.throws(
+    () => buildPdfDocument(Pdf({ children: Bookmark({ title: "" }) })),
+    (error) => error.code === "PDF_INVALID_INPUT"
+  );
+  assert.throws(
+    () => buildPdfDocument(Pdf({ children: Bookmark({ title: "x", level: 9 }) })),
+    (error) => error.code === "PDF_INVALID_INPUT"
+  );
 });
 
 test("builds a document model with A4 dimensions", () => {

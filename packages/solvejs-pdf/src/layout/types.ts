@@ -46,6 +46,13 @@ export type PdfTableColumn = {
   align?: PdfAlign;
 };
 
+/** A navigable bookmark entry in the PDF outline. */
+export type BookmarkProps = {
+  title: string;
+  /** Nesting level from 1 to 6. Defaults to 1. */
+  level?: 1 | 2 | 3 | 4 | 5 | 6;
+};
+
 export type PdfCellValue = string | number | boolean | Date | null | undefined;
 
 export type PdfCell =

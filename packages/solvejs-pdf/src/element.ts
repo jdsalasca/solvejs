@@ -1,5 +1,6 @@
 import type { PdfColor } from "./shared.js";
 import type {
+  BookmarkProps,
   Fragment as FragmentType,
   PdfCell,
   PdfComponent,
@@ -12,7 +13,7 @@ import type {
 import type { PdfPageSize } from "./shared.js";
 
 export { Fragment } from "./layout/types.js";
-export type { PdfCell, PdfElement, PdfNode, PdfPageDecorator, PdfStyle, PdfTableColumn };
+export type { PdfCell, PdfElement, PdfNode, PdfPageDecorator, PdfStyle, PdfTableColumn, BookmarkProps };
 
 /** Margins around the printable area. */
 export type PdfMargin = number | { top?: number; right?: number; bottom?: number; left?: number };
@@ -115,6 +116,11 @@ export function Divider(props: DividerProps): PdfElement {
 /** Vertical blank space. */
 export function Spacer(props: SpacerProps): PdfElement {
   return create("spacer", props);
+}
+
+/** A navigable bookmark in the PDF outline. Place it where the destination should start. */
+export function Bookmark(props: BookmarkProps): PdfElement {
+  return create("bookmark", props);
 }
 
 /** Table with wrapping cells, zebra rows and page splitting. */

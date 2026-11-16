@@ -105,6 +105,7 @@ const bytes = renderPdf(
 | `Link` | `href` (`http`, `https`, `mailto`, `tel`) wrapping any children |
 | `Divider` | `color`, `width`, `marginTop`, `marginBottom` |
 | `Spacer` | `height`, `marginTop`, `marginBottom` |
+| `Bookmark` | `title`, `level` (1-6); writes a navigable PDF outline entry |
 
 Cells accept primitives or objects with per-cell overrides:
 
@@ -163,6 +164,32 @@ Units are PDF points (1/72 inch). Use `mm()`, `cm()`, `inches()` or `pt()` when 
 - `header` and `footer` can be a node or a function `({ page, total }) => node` and are drawn on every page. The layout measures every page, reserves the tallest header/footer across the document and repaginates to a fixed point; if it cannot stabilize, it fails with `PDF_LIMIT_EXCEEDED`.
 - `Row` children must be components; primitives are rejected instead of being silently dropped.
 - `width` percentages are resolved against the containing row or view exactly once.
+
+## Bookmarks
+
+Place a `Bookmark` where a section starts. The PDF outline is nested by `level`, so readers such as Preview, Acrobat, Chrome and Firefox show a navigable table of contents.
+
+```tsx
+import { Bookmark, Heading, Pdf, PdfPage, Text } from "@jdsalasc/solvejs-pdf";
+
+const report = Pdf({
+  title: "Annual report",
+  children: PdfPage({
+    children: [
+      Bookmark({ title: "Executive summary", level: 1 }),
+      Heading({ level: 1, children: "Executive summary" }),
+      Text({ children: "..." }),
+      Bookmark({ title: "Revenue", level: 2 }),
+      Heading({ level: 2, children: "Revenue" }),
+      Text({ children: "..." }),
+      Bookmark({ title: "Appendix", level: 1 }),
+      Heading({ level: 1, children: "Appendix" })
+    ]
+  })
+});
+```
+
+Bookmarks are zero-height layout markers: they do not add spacing, and their destination is the page and vertical position where they appear. `buildPdfDocument` also returns `outline` with the resolved `{ title, level, page, y }` entries.
 
 ## Viewer
 
@@ -286,9 +313,9 @@ export const InvoiceViewer = dynamic(
 | `mountPdfViewer(options, target?)` | Mounts a viewer and returns `{ element, ready, destroy }`. |
 | `definePdfViewer(tag?)` | Registers `<solvejs-pdf-viewer>`. |
 | `PdfError` | Stable codes: `PDF_INVALID_INPUT`, `PDF_LIMIT_EXCEEDED`, `PDF_UNSUPPORTED`. |
-| `PDF_LIMITS` | Pages, blocks, text, image bytes (per image and aggregate), table rows and table cells. |
+| `PDF_LIMITS` | Pages, blocks, text, image bytes (per image and aggregate), table rows, table cells and bookmark limits. |
 
-`PDF_LIMITS` is intentionally conservative for untrusted input: 500 pages, 20,000 layout nodes, 200,000 characters per text block, 20 MB per image, 64 MB of image bytes per document, 20,000 table rows and 200,000 table cells.
+`PDF_LIMITS` is intentionally conservative for untrusted input: 500 pages, 20,000 layout nodes, 200,000 characters per text block, 20 MB per image, 64 MB of image bytes per document, 20,000 table rows, 200,000 table cells and 1,000 bookmarks.
 
 ## What is supported
 
@@ -297,6 +324,7 @@ export const InvoiceViewer = dynamic(
 - Text wrapping, alignment, line height, colors, backgrounds, borders, rounded corners, padding and margins.
 - Nested `View` and `Row` layouts with numeric or percentage widths.
 - Automatic pagination, forced pages, split text/views, split tables with repeated headers, repeated headers/footers with page numbers.
+- Nested PDF bookmarks/outlines with page destinations.
 - JPEG images embedded with `DCTDecode`: 8-bit grayscale or RGB, baseline and extended sequential frames, with validated segment lengths, marker order, scan data and EOI.
 - Optional Flate compression through the platform `CompressionStream`.
 
@@ -397,7 +425,7 @@ This is the gap list from the November 2026 audit. pdf-lib is the broadest low-l
 | PNG with transparency | Not yet | Yes | Yes | Yes | Yes |
 | Custom TTF/Unicode fonts | Not yet | Yes | Yes | Yes | Yes |
 | Read/edit existing PDFs | No | Yes | No | No | No |
-| Forms, outlines, encryption | No | Yes | Outlines | No | Outlines |
+| Forms, outlines, encryption | Bookmarks | Yes | Outlines | No | Outlines |
 | Zero-dependency viewer with download/open | **Yes** | No | No | No | No |
 | Bundle size for a small invoice | Small | Medium | Medium | Medium | Large |
 
@@ -409,13 +437,14 @@ Pick pdf-lib to edit or merge existing documents, PDFKit for streaming Node pipe
 - Custom TTF/OTF font embedding and Unicode outside WinAnsi.
 - PNG, WebP, GIF or SVG images.
 - CMYK or 12-bit JPEG images, and progressive/arithmetic JPEG frames; these are rejected instead of producing incorrect colors or broken scans.
-- Charts, forms, annotations other than links, outlines, encryption or digital signatures.
+- Charts, forms, annotations other than links, encryption or digital signatures.
 
 ## Limits and fidelity
 
 - Standard Type 1 fonts only; unsupported Unicode characters become `?` and repeated whitespace is collapsed during wrapping. Supply text your chosen font can represent.
 - Tables cannot split a single row taller than the page; keep individual rows within the printable height.
 - Table cells are limited to 200,000 characters each, and a document to 200,000 table cells.
+- Bookmarks are limited to 1,000 entries and 300 characters per title; nesting is capped at level 6.
 - Images are JPEG only and use `DCTDecode`. Each `Image` renders one image; there are no floating or inline image flows.
 - `Row` children must be components that produce one layout block; wrap multiple blocks in a `View`. Primitives and multi-block children fail with `PDF_INVALID_INPUT`.
 - Header/footer heights are measured across every page; page-specific decorators that grow without bound fail instead of overlapping the body.

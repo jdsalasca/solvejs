@@ -8,7 +8,8 @@ export const PDF_LIMITS = {
   maxImageBytes: 20 * 1024 * 1024,
   maxTotalImageBytes: 64 * 1024 * 1024,
   maxTableRows: 20_000,
-  maxTableCells: 200_000
+  maxTableCells: 200_000,
+  maxOutlineItems: 1_000
 } as const;
 
 /** Named PdfColors accepted anywhere a color is expected. */

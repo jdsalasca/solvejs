@@ -37,6 +37,14 @@ export type PdfLineOp = {
   dash?: readonly number[];
 };
 
+/** One navigable bookmark, resolved to a page and a top-left y position. */
+export type PdfOutlineItem = {
+  title: string;
+  level: number;
+  page: number;
+  y: number;
+};
+
 /** JPEG image placed in a rectangle. */
 export type PdfImageOp = {
   kind: "image";
@@ -80,4 +88,5 @@ export type PdfMetadata = {
 export type PdfDocumentModel = {
   pages: PdfPageModel[];
   metadata: PdfMetadata;
+  outline?: PdfOutlineItem[];
 };

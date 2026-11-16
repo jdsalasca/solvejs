@@ -2,8 +2,9 @@ import { failPdf } from "../errors.js";
 import { PDF_LIMITS, normalizeColor, nonNegative, positive, resolvePageSize, type PdfAlign, type PdfFontFamily } from "../shared.js";
 import { layoutText, resolveFontKey } from "../pdf/fonts.js";
 import { decodeImageSource, parseJpeg, type PdfImage } from "../pdf/images.js";
-import type { PdfMetadata, PdfPageModel } from "../pdf/model.js";
+import type { PdfMetadata, PdfOutlineItem, PdfPageModel } from "../pdf/model.js";
 import {
+  bookmarkBlock,
   breakBlock,
   boxBlock,
   dividerBlock,
@@ -12,6 +13,7 @@ import {
   spacerBlock,
   tableBlock,
   textBlock,
+  type BookmarkBlock,
   type Block,
   type TableCellLayout,
   type TableRowLayout
@@ -494,6 +496,22 @@ function layoutSpacer(node: PdfElement, available: number): Block[] {
   ];
 }
 
+// eslint-disable-next-line complexity -- title/level validation
+function layoutBookmark(node: PdfElement): Block[] {
+  const title = node.props.title;
+  if (typeof title !== "string" || title.trim().length === 0) {
+    failPdf("PDF_INVALID_INPUT", "Bookmark requires a non-empty title.");
+  }
+  if (title.length > 300) {
+    failPdf("PDF_LIMIT_EXCEEDED", "Bookmark title exceeds the configured limit.", { length: title.length });
+  }
+  const level = node.props.level ?? 1;
+  if (typeof level !== "number" || !Number.isInteger(level) || level < 1 || level > 6) {
+    failPdf("PDF_INVALID_INPUT", "Bookmark level must be an integer from 1 to 6.", { level });
+  }
+  return [bookmarkBlock(title.trim(), level)];
+}
+
 function linkBlock(block: Block, href: string): Block {
   const wrapped: Block = {
     height: block.height,
@@ -553,6 +571,7 @@ const NODE_HANDLERS: Record<string, NodeHandler> = {
   image: layoutImage,
   divider: (node, available) => layoutDivider(node, available),
   spacer: (node, available) => layoutSpacer(node, available),
+  bookmark: (node) => layoutBookmark(node),
   link: layoutLink,
   page: layoutPage
 };
@@ -659,7 +678,8 @@ function pageHasContent(page: PdfPageModel, layout: PageLayout): boolean {
   return page.ops.length > (layout.background ? 1 : 0);
 }
 
-function paginate(blocks: Block[], layout: PageLayout): PdfPageModel[] {
+// eslint-disable-next-line complexity -- page breaks and bookmark markers share one loop
+function paginate(blocks: Block[], layout: PageLayout, outline: PdfOutlineItem[]): PdfPageModel[] {
   const pages = [newPage(layout)];
   const state: PageState = { pages, current: pages[0], y: layout.contentTop, layout, queue: [...blocks] };
   while (state.queue.length > 0) {
@@ -668,6 +688,19 @@ function paginate(blocks: Block[], layout: PageLayout): PdfPageModel[] {
     if (block.kind === "break") {
       if (pageHasContent(state.current, layout) || state.y > layout.contentTop) nextPage(state);
       else state.y = layout.contentTop;
+      continue;
+    }
+    if (block.kind === "bookmark") {
+      const bookmark = block as BookmarkBlock;
+      outline.push({
+        title: bookmark.title,
+        level: bookmark.level,
+        page: state.pages.length - 1,
+        y: state.y
+      });
+      if (outline.length > PDF_LIMITS.maxOutlineItems) {
+        failPdf("PDF_LIMIT_EXCEEDED", "Document has too many bookmarks.", { bookmarks: outline.length });
+      }
       continue;
     }
     if (block.height <= 0) continue;
@@ -774,14 +807,18 @@ function decorate(
 
 /** Lays out a declarative PDF component tree into pages. */
 // eslint-disable-next-line complexity -- pagination and decorator convergence state machine
-function buildDocument(element: PdfElement): { document: { pages: PdfPageModel[]; metadata: PdfMetadata }; layout: PageLayout } {
+function buildDocument(element: PdfElement): {
+  document: { pages: PdfPageModel[]; metadata: PdfMetadata; outline?: PdfOutlineItem[] };
+  layout: PageLayout;
+} {
   const root = resolveElement(element);
   if (root.type !== "pdf") failPdf("PDF_INVALID_INPUT", "Expected a Pdf root element.");
   const context: LayoutContext = { imageCache: new Map(), blocks: 0, cells: 0, imageBytes: 0, depth: 0 };
   let layout = pageLayoutOf(root.props, context);
   if (layout.contentBottom <= layout.contentTop) failPdf("PDF_INVALID_INPUT", "Margins and header/footer leave no body height.");
   const blocks = layoutNodes(childrenOf(root), layout.contentWidth, context);
-  let pages = paginate(blocks, layout);
+  let outline: PdfOutlineItem[] = [];
+  let pages = paginate(blocks, layout, outline);
   let measured = measureDecoratorHeights(root.props, context, layout.contentWidth, pages.length);
   for (let pass = 0; pass < 4; pass += 1) {
     if (measured.header <= layout.headerReserved && measured.footer <= layout.footerReserved) break;
@@ -789,17 +826,29 @@ function buildDocument(element: PdfElement): { document: { pages: PdfPageModel[]
     if (layout.contentBottom <= layout.contentTop) {
       failPdf("PDF_INVALID_INPUT", "Margins and header/footer leave no body height.");
     }
-    pages = paginate(blocks, layout);
+    outline = [];
+    pages = paginate(blocks, layout, outline);
     measured = measureDecoratorHeights(root.props, context, layout.contentWidth, pages.length);
   }
   if (measured.header > layout.headerReserved || measured.footer > layout.footerReserved) {
     failPdf("PDF_LIMIT_EXCEEDED", "Header and footer heights did not stabilize.", { pages: pages.length });
   }
   decorate(pages, root.props, layout, context);
-  return { document: { pages, metadata: metadataOf(root.props) }, layout };
+  return {
+    document: {
+      pages,
+      metadata: metadataOf(root.props),
+      ...(outline.length > 0 ? { outline } : {})
+    },
+    layout
+  };
 }
 
 /** Builds a serializable document model from a declarative tree. */
-export function buildPdfDocument(element: PdfElement): { pages: PdfPageModel[]; metadata: PdfMetadata } {
+export function buildPdfDocument(element: PdfElement): {
+  pages: PdfPageModel[];
+  metadata: PdfMetadata;
+  outline?: PdfOutlineItem[];
+} {
   return buildDocument(element).document;
 }

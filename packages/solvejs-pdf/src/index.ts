@@ -1,5 +1,6 @@
 export { PdfError, type PdfErrorCode } from "./errors.js";
 export {
+  Bookmark,
   Divider,
   Fragment,
   Heading,
@@ -14,6 +15,7 @@ export {
   Text,
   View,
   createElement,
+  type BookmarkProps,
   type DividerProps,
   type HeadingProps,
   type ImageProps,
@@ -55,6 +57,7 @@ export type {
   PdfLink,
   PdfMetadata,
   PdfOp,
+  PdfOutlineItem,
   PdfPageModel
 } from "./pdf/model.js";
 

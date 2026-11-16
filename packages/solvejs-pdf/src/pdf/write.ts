@@ -2,7 +2,7 @@ import { failPdf } from "../errors.js";
 import { PDF_LIMITS, colorComponents, num } from "../shared.js";
 import { baseFontName, encodeWinAnsi, type PdfFontKey } from "./fonts.js";
 import type { PdfImage } from "./images.js";
-import type { PdfDocumentModel, PdfLink, PdfOp, PdfPageModel } from "./model.js";
+import type { PdfDocumentModel, PdfLink, PdfOp, PdfOutlineItem, PdfPageModel } from "./model.js";
 
 const HEADER = "%PDF-1.7\n";
 
@@ -259,6 +259,82 @@ function buildPageObject(
   );
 }
 
+type OutlineNode = { item: PdfOutlineItem; children: OutlineNode[]; id: number };
+type OutlinePlan = { rootId: number; objects: Map<number, Uint8Array>; nextId: number };
+
+function countOutlineNodes(nodes: readonly OutlineNode[]): number {
+  return nodes.reduce((total, node) => total + 1 + countOutlineNodes(node.children), 0);
+}
+
+// eslint-disable-next-line max-lines-per-function -- tree construction and object serialization
+function buildOutlinePlan(
+  items: readonly PdfOutlineItem[] | undefined,
+  startId: number,
+  pages: readonly PdfPageModel[],
+  pageIds: ReadonlyArray<{ page: number }>
+): OutlinePlan | undefined {
+  if (!items || items.length === 0) return undefined;
+
+  const roots: OutlineNode[] = [];
+  const stack: OutlineNode[] = [];
+  for (const item of items) {
+    const node: OutlineNode = { item, children: [], id: 0 };
+    while (stack.length > 0 && stack[stack.length - 1].item.level >= item.level) stack.pop();
+    if (stack.length > 0) stack[stack.length - 1].children.push(node);
+    else roots.push(node);
+    stack.push(node);
+  }
+  if (roots.length === 0) return undefined;
+
+  let nextId = startId;
+  const flat: OutlineNode[] = [];
+  const assign = (nodes: readonly OutlineNode[]): void => {
+    for (const node of nodes) {
+      node.id = nextId++;
+      flat.push(node);
+      assign(node.children);
+    }
+  };
+  assign(roots);
+  const rootId = nextId++;
+  const objects = new Map<number, Uint8Array>();
+
+  objects.set(
+    rootId,
+    textBytes(
+      `<< /Type /Outlines /First ${roots[0].id} 0 R /Last ${roots[roots.length - 1].id} 0 R /Count ${flat.length} >>`
+    )
+  );
+
+  const emit = (node: OutlineNode, parentId: number, previous?: number, next?: number): void => {
+    const page = pages[node.item.page];
+    const top = page.height - Math.max(0, Math.min(page.height, node.item.y));
+    const children = node.children;
+    const nested =
+      children.length > 0
+        ? ` /First ${children[0].id} 0 R /Last ${children[children.length - 1].id} 0 R /Count ${countOutlineNodes(
+            children
+          )}`
+        : "";
+    const prev = previous ? ` /Prev ${previous} 0 R` : "";
+    const nextRef = next ? ` /Next ${next} 0 R` : "";
+    objects.set(
+      node.id,
+      textBytes(
+        `<< /Title (${escapeLiteral(node.item.title)}) /Parent ${parentId} 0 R /Dest [${
+          pageIds[node.item.page].page
+        } 0 R /XYZ 0 ${num(top)} null]${nested}${prev}${nextRef} >>`
+      )
+    );
+    children.forEach((child, index) => {
+      emit(child, node.id, children[index - 1]?.id, children[index + 1]?.id);
+    });
+  };
+
+  roots.forEach((root, index) => emit(root, rootId, roots[index - 1]?.id, roots[index + 1]?.id));
+  return { rootId, objects, nextId };
+}
+
 function buildObjects(
   model: PdfDocumentModel,
   contents: Uint8Array[],
@@ -271,9 +347,18 @@ function buildObjects(
   [...resources.imageIds.keys()].forEach((image, index) => imageNames.set(image, `Im${index + 1}`));
 
   const objects = new Map<number, Uint8Array>();
-  objects.set(1, textBytes("<< /Type /Catalog /Pages 2 0 R >>"));
+  const outline = buildOutlinePlan(model.outline, resources.nextId, model.pages, resources.pageIds);
+  objects.set(
+    1,
+    textBytes(
+      `<< /Type /Catalog /Pages 2 0 R${outline ? ` /Outlines ${outline.rootId} 0 R` : ""} >>`
+    )
+  );
   objects.set(2, textBytes(`<< /Type /Pages /Kids [${resources.pageIds.map((entry) => `${entry.page} 0 R`).join(" ")}] /Count ${model.pages.length} >>`));
   objects.set(3, infoObject(model.metadata));
+  if (outline) {
+    for (const [id, object] of outline.objects) objects.set(id, object);
+  }
 
   for (const [font, id] of resources.fontIds) objects.set(id, fontObject(font));
   for (const [image, id] of resources.imageIds) objects.set(id, imageObject(image));
@@ -288,7 +373,7 @@ function buildObjects(
     });
   });
 
-  return { objects, size: resources.nextId };
+  return { objects, size: outline?.nextId ?? resources.nextId };
 }
 
 function writeXref(builder: ByteBuilder, offsets: readonly number[], size: number): void {
@@ -340,6 +425,31 @@ function validatePage(page: PdfPageModel, index: number): void {
   page.links.forEach(validateLink);
 }
 
+// eslint-disable-next-line complexity -- every outline field is validated before serialization
+function validateOutline(model: PdfDocumentModel): void {
+  if (!model.outline) return;
+  if (!Array.isArray(model.outline)) {
+    failPdf("PDF_INVALID_INPUT", "Expected outline to be an array.");
+  }
+  if (model.outline.length > PDF_LIMITS.maxOutlineItems) {
+    failPdf("PDF_LIMIT_EXCEEDED", "Document has too many bookmarks.", { bookmarks: model.outline.length });
+  }
+  for (const item of model.outline) {
+    if (typeof item.title !== "string" || item.title.trim().length === 0 || item.title.length > 300) {
+      failPdf("PDF_INVALID_INPUT", "Bookmark title must be non-empty and at most 300 characters.");
+    }
+    if (!Number.isInteger(item.page) || item.page < 0 || item.page >= model.pages.length) {
+      failPdf("PDF_INVALID_INPUT", "Bookmark page is out of range.", { page: item.page });
+    }
+    if (!Number.isFinite(item.y) || item.y < 0 || item.y > model.pages[item.page].height) {
+      failPdf("PDF_INVALID_INPUT", "Bookmark y position is out of range.", { y: item.y });
+    }
+    if (!Number.isInteger(item.level) || item.level < 1 || item.level > 6) {
+      failPdf("PDF_INVALID_INPUT", "Bookmark level must be an integer from 1 to 6.", { level: item.level });
+    }
+  }
+}
+
 /** Validates the document model invariants that serialization relies on. */
 export function validatePdfModel(model: PdfDocumentModel): void {
   if (!model || !Array.isArray(model.pages) || model.pages.length === 0) {
@@ -349,6 +459,7 @@ export function validatePdfModel(model: PdfDocumentModel): void {
     failPdf("PDF_LIMIT_EXCEEDED", "Document has too many pages.", { pages: model.pages.length });
   }
   model.pages.forEach(validatePage);
+  validateOutline(model);
 }
 
 /** Serializes a laid-out document into an uncompressed PDF. */

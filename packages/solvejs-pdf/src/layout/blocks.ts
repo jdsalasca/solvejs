@@ -443,3 +443,10 @@ export function dividerBlock(color: string, width: number, marginTop: number, ma
 export function breakBlock(): SimpleBlock {
   return { kind: "break", height: 0, marginTop: 0, marginBottom: 0, draw: () => undefined };
 }
+
+export type BookmarkBlock = Block & { kind: "bookmark"; title: string; level: number };
+
+/** Zero-height navigation marker consumed by pagination. */
+export function bookmarkBlock(title: string, level: number): BookmarkBlock {
+  return { kind: "bookmark", title, level, height: 0, marginTop: 0, marginBottom: 0, draw: () => undefined };
+}
