@@ -50,7 +50,7 @@ const itemsHost = $("#live-items");
 const status = $("#live-status");
 const viewer = document.createElement("solvejs-pdf-viewer");
 viewer.setAttribute("filename", "solvejs-live-invoice.pdf");
-viewer.setAttribute("height", "430");
+viewer.setAttribute("height", "560");
 viewer.setAttribute("theme", "light");
 $("#live-viewer").append(viewer);
 definePdfViewer();

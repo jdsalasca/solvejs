@@ -22,63 +22,144 @@
     }
   </script>
 </head>
-<body>
-  <main class="page">
-    <section class="hero live-hero">
-      <p class="live-eyebrow">LIVE DOCUMENTATION</p>
-      <h1>SolveJS Live Lab</h1>
-      <p>Edit one invoice and watch the PDF and XLSX render from the same data. Every example runs the workspace build in your browser.</p>
-      <p class="live-links"><a href="../index.html">← Cookbook</a><a href="https://github.com/jdsalasca/solvejs" target="_blank" rel="noreferrer">GitHub</a></p>
+<body class="lab-body">
+  <header class="topnav">
+    <a class="brand" href="../index.html">
+      <span class="brand-mark">S</span>
+      <span>SolveJS <em>Live Lab</em></span>
+    </a>
+    <nav class="topnav-links" aria-label="SolveJS links">
+      <a href="../index.html">Cookbook</a>
+      <a href="https://www.npmjs.com/package/@jdsalasc/solvejs" target="_blank" rel="noreferrer">npm</a>
+      <a href="https://github.com/jdsalasca/solvejs" target="_blank" rel="noreferrer">GitHub</a>
+    </nav>
+  </header>
+
+  <main class="page lab-page">
+    <section class="hero lab-hero">
+      <div class="lab-hero-copy">
+        <p class="eyebrow">LIVE DOCUMENTATION · ZERO DEPENDENCIES</p>
+        <h1>Documents that <span>feel alive.</span></h1>
+        <p class="lead">Edit one invoice and watch a real PDF and XLSX render in the browser. The same build powers the packages you install.</p>
+        <div class="hero-actions">
+          <a class="hero-button" href="#workspace">Open workspace</a>
+          <a class="hero-link" href="https://github.com/jdsalasca/solvejs/tree/main/packages" target="_blank" rel="noreferrer">Browse source →</a>
+        </div>
+        <div class="hero-stats">
+          <div><strong>22</strong><span>packages</span></div>
+          <div><strong>0</strong><span>runtime deps</span></div>
+          <div><strong>2</strong><span>document engines</span></div>
+        </div>
+      </div>
+      <div class="hero-art" aria-hidden="true">
+        <div class="code-card">
+          <div class="code-card-bar"><span></span><span></span><span></span></div>
+          <pre><code><span class="code-key">const</span> report = Pdf({
+  title: <span class="code-str">"Invoice 1042"</span>,
+  children: [
+    <span class="code-fn">Bookmark</span>({ title: <span class="code-str">"Items"</span> }),
+    <span class="code-fn">Table</span>({ rows }),
+    <span class="code-fn">Text</span>({ value: <span class="code-str">"Total $6,091"</span> })
+  ]
+});
+
+<span class="code-key">writeXlsx</span>({ dataValidations });</code></pre>
+        </div>
+        <div class="glow glow-one"></div>
+        <div class="glow glow-two"></div>
+      </div>
     </section>
 
-    <section class="live-grid">
-      <article class="panel live-panel">
-        <h2>Invoice data</h2>
-        <div class="live-fields">
-          <label>Customer<input id="live-customer" value="Ada Lovelace" /></label>
-          <label>Company<input id="live-company" value="Analytical Engines Ltd." /></label>
-          <label>Invoice<input id="live-number" value="1042" /></label>
-          <label>Tax %<input id="live-tax" type="number" min="0" max="40" step="0.5" value="8" /></label>
-        </div>
-        <div class="live-items-head"><span>Description</span><span>Qty</span><span>Unit</span><span></span></div>
-        <div id="live-items"></div>
-        <button id="live-add" class="live-button ghost" type="button">+ Add item</button>
-        <p id="live-status" class="live-status" role="status" aria-live="polite"></p>
-      </article>
+    <section id="workspace" class="lab-workspace">
+      <div class="lab-column">
+        <article class="panel live-panel editor-panel">
+          <div class="panel-kicker">01 · INPUT</div>
+          <div class="panel-title-row">
+            <div>
+              <h2>Invoice data</h2>
+              <p class="live-caption">Every field is live. Changes flow into both documents.</p>
+            </div>
+            <span id="live-status" class="status-pill" role="status" aria-live="polite">Rendering…</span>
+          </div>
 
-      <article class="panel live-panel">
-        <h2>PDF preview</h2>
-        <p class="live-caption">Rendered with <code>@jdsalasc/solvejs-pdf</code>, including bookmarks and page numbers.</p>
-        <div id="live-viewer"></div>
-      </article>
+          <div class="live-fields">
+            <label>Customer<input id="live-customer" value="Ada Lovelace" /></label>
+            <label>Company<input id="live-company" value="Analytical Engines Ltd." /></label>
+            <label>Invoice<input id="live-number" value="1042" /></label>
+            <label>Tax %<input id="live-tax" type="number" min="0" max="40" step="0.5" value="8" /></label>
+          </div>
 
-      <article class="panel live-panel">
+          <div class="items-block">
+            <div class="live-items-head"><span>Description</span><span>Qty</span><span>Unit</span><span></span></div>
+            <div id="live-items"></div>
+          </div>
+          <button id="live-add" class="live-button ghost" type="button">+ Add line item</button>
+        </article>
+
+        <article class="panel note-panel">
+          <div class="panel-kicker">UNDER THE HOOD</div>
+          <h3>One dataset. Two document engines.</h3>
+          <ul class="feature-list">
+            <li><span>01</span> PDF bookmarks and page numbers are written as native PDF objects.</li>
+            <li><span>02</span> XLSX formulas keep cached values, defined names and live validation.</li>
+            <li><span>03</span> Both files come from the same package build you install from npm.</li>
+          </ul>
+          <div class="package-row">
+            <code>solvejs-pdf</code>
+            <code>solvejs-xlsx</code>
+            <code>zero deps</code>
+          </div>
+        </article>
+      </div>
+
+      <div class="lab-column preview-column">
+        <article class="panel live-panel preview-panel">
+          <div class="panel-kicker">02 · OUTPUT</div>
+          <div class="panel-title-row">
+            <div>
+              <h2>PDF preview</h2>
+              <p class="live-caption">Bookmarks, pagination and page numbers included.</p>
+            </div>
+            <span class="mini-pill">@jdsalasc/solvejs-pdf</span>
+          </div>
+          <div id="live-viewer"></div>
+        </article>
+      </div>
+    </section>
+
+    <section class="lab-tools">
+      <article class="panel tool-panel">
+        <div class="panel-kicker">03 · SPREADSHEET</div>
         <h2>XLSX output</h2>
-        <p class="live-caption">The workbook carries formulas with cached values, defined names, page setup and quantity validation.</p>
+        <p class="live-caption">Formulas with cached values, defined names, print setup and quantity validation.</p>
         <dl class="live-facts">
           <div><dt>Total</dt><dd id="live-total">$0.00</dd></div>
           <div><dt>Rows</dt><dd id="live-rows">0</dd></div>
-          <div><dt>Validation</dt><dd>Qty 1–999</dd></div>
+          <div><dt>Validation</dt><dd>1–999</dd></div>
         </dl>
-        <button id="live-download-xlsx" class="live-button" type="button">Download XLSX</button>
-        <button id="live-download-pdf" class="live-button ghost" type="button">Download PDF</button>
+        <div class="tool-actions">
+          <button id="live-download-xlsx" class="live-button" type="button">Download XLSX</button>
+          <button id="live-download-pdf" class="live-button ghost" type="button">Download PDF</button>
+        </div>
       </article>
 
-      <article class="panel live-panel">
-        <h2>Validate input</h2>
+      <article class="panel tool-panel">
+        <div class="panel-kicker">04 · VALIDATORS</div>
+        <h2>Structured input</h2>
         <label>Email, phone, UUID or username<input id="live-validate-input" value="dev@example.com" /></label>
         <div class="live-actions">
-          <button data-validate="email" class="live-button small" type="button">Email</button>
-          <button data-validate="phone" class="live-button small" type="button">Phone</button>
-          <button data-validate="uuid" class="live-button small" type="button">UUID v4</button>
-          <button data-validate="username" class="live-button small" type="button">Username</button>
+          <button data-validate="email" class="chip" type="button">Email</button>
+          <button data-validate="phone" class="chip" type="button">Phone</button>
+          <button data-validate="uuid" class="chip" type="button">UUID v4</button>
+          <button data-validate="username" class="chip" type="button">Username</button>
         </div>
         <pre id="live-validate-output" class="live-output">Run a validator to see the structured result.</pre>
       </article>
 
-      <article class="panel live-panel">
+      <article class="panel tool-panel">
+        <div class="panel-kicker">05 · TIME &amp; MONEY</div>
         <h2>Date &amp; money</h2>
-        <div class="live-fields">
+        <div class="live-fields compact">
           <label>Date<input id="live-date" type="date" value="2026-11-16" /></label>
           <label>Add days<input id="live-days" type="number" value="30" /></label>
           <label>Amount<input id="live-amount" value="19.99" /></label>
@@ -86,18 +167,22 @@
         <pre id="live-date-output" class="live-output">Choose a date and an offset.</pre>
       </article>
 
-      <article class="panel live-panel">
-        <h2>JSON &amp; URL</h2>
+      <article class="panel tool-panel">
+        <div class="panel-kicker">06 · JSON &amp; URL</div>
+        <h2>Query strings</h2>
         <label>Query string<input id="live-query" value="?page=2&q=pdf+reports&tag=docs" /></label>
         <div class="live-actions">
-          <button id="live-run-query" class="live-button small" type="button">Parse + build URL</button>
-          <button id="live-run-json" class="live-button ghost small" type="button">Stable JSON</button>
+          <button id="live-run-query" class="chip" type="button">Parse + build URL</button>
+          <button id="live-run-json" class="chip" type="button">Stable JSON</button>
         </div>
         <pre id="live-query-output" class="live-output">?page=2&amp;q=pdf+reports&amp;tag=docs</pre>
       </article>
     </section>
 
-    <p class="footer">The Live Lab is also an integration test: it imports the same ESM files the packages publish.</p>
+    <footer class="lab-footer">
+      <span>SolveJS Live Lab</span>
+      <span>Runs the workspace build · no CDN, no tracking, no runtime dependencies</span>
+    </footer>
   </main>
   <script type="module" src="./live.js"></script>
 </body>
