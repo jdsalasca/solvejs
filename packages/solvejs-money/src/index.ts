@@ -105,22 +105,6 @@ function round(value: number, mode: RoundingMode): number {
   }
 }
 
-/**
- * Converts a decimal amount into integer minor units.
- *
- * Parsing the decimal as a string keeps the conversion exact: `"2.675"` becomes `268` minor units
- * for a two-digit currency rather than inheriting the float `2.674999...`.
- *
- * @param value - Decimal amount as a string, or a number you already trust.
- * @param options - Conversion options.
- * @param options.fractionDigits - Digits the currency supports. Defaults to 2.
- * @returns Amount in minor units.
- * @throws {MoneyError} `MONEY_INVALID_DECIMAL` or `MONEY_INVALID_FRACTION_DIGITS`.
- *
- * @example
- * fromDecimal("19.99"); // 1999
- * fromDecimal("0.07");  // 7
- */
 type DecimalParts = { sign: string; whole: string; fraction: string };
 
 function parseDecimal(raw: string, value: unknown): DecimalParts {
@@ -154,6 +138,22 @@ function scaleDecimal(whole: string, fraction: string, fractionDigits: number, v
   return scaled;
 }
 
+/**
+ * Converts a decimal amount into integer minor units.
+ *
+ * Parsing the decimal as a string keeps the conversion exact: `"2.675"` becomes `268` minor units
+ * for a two-digit currency rather than inheriting the float `2.674999...`.
+ *
+ * @param value - Decimal amount as a string, or a number you already trust.
+ * @param options - Conversion options.
+ * @param options.fractionDigits - Digits the currency supports. Defaults to 2.
+ * @returns Amount in minor units.
+ * @throws {MoneyError} `MONEY_INVALID_DECIMAL` or `MONEY_INVALID_FRACTION_DIGITS`.
+ *
+ * @example
+ * fromDecimal("19.99"); // 1999
+ * fromDecimal("0.07");  // 7
+ */
 export function fromDecimal(value: string | number, options: FromDecimalOptions = {}): number {
   const fractionDigits = options.fractionDigits ?? 2;
   assertFractionDigits(fractionDigits);
@@ -316,20 +316,6 @@ export function applyPercentage(minorUnits: number, percent: number, options: Mu
   return addMoney(minorUnits, percentageOf(minorUnits, percent, options));
 }
 
-/**
- * Splits an amount across weights without losing or inventing a single minor unit.
- *
- * Uses the largest-remainder method, so the parts always sum back to the total exactly. Each extra
- * minor unit goes to the earliest parts, which keeps the result deterministic.
- *
- * @param total - Amount in minor units.
- * @param weights - Non-negative whole-number weights, one per part.
- * @returns One amount per weight, summing exactly to `total`.
- * @throws {MoneyError} `MONEY_INVALID_MINOR_UNITS` or `MONEY_INVALID_WEIGHTS`.
- *
- * @example
- * allocateAmount(1000, [1, 1, 1]); // [334, 333, 333]
- */
 function assertWeights(weights: readonly number[]): void {
   if (!Array.isArray(weights) || weights.length === 0) {
     fail("MONEY_INVALID_WEIGHTS", "Expected a non-empty array of weights.", { received: weights });
@@ -364,6 +350,20 @@ function planShares(weights: readonly number[], magnitude: number, weightSum: nu
   return { floors, order };
 }
 
+/**
+ * Splits an amount across weights without losing or inventing a single minor unit.
+ *
+ * Uses the largest-remainder method, so the parts always sum back to the total exactly. Each extra
+ * minor unit goes to the earliest parts, which keeps the result deterministic.
+ *
+ * @param total - Amount in minor units.
+ * @param weights - Non-negative whole-number weights, one per part.
+ * @returns One amount per weight, summing exactly to `total`.
+ * @throws {MoneyError} `MONEY_INVALID_MINOR_UNITS` or `MONEY_INVALID_WEIGHTS`.
+ *
+ * @example
+ * allocateAmount(1000, [1, 1, 1]); // [334, 333, 333]
+ */
 export function allocateAmount(total: number, weights: readonly number[]): number[] {
   assertMinorUnits(total, "total");
   assertWeights(weights);

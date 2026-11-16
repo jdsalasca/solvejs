@@ -52,15 +52,6 @@ function assertAbsoluteUrl(value: string, field: string): URL {
   return parsed;
 }
 
-/**
- * Serialises a query object into a query string with alphabetically sorted keys.
- *
- * Sorting makes the output deterministic, which is what makes it safe to use as
- * a cache key or to compare two URLs for equality.
- *
- * @param query - Values to serialise.
- * @returns Query string without a leading `?`, or an empty string.
- */
 function appendQueryValue(params: URLSearchParams, key: string, value: unknown): void {
   if (value === null || value === undefined) return;
 
@@ -74,6 +65,15 @@ function appendQueryValue(params: URLSearchParams, key: string, value: unknown):
   params.append(key, String(value));
 }
 
+/**
+ * Serialises a query object into a query string with alphabetically sorted keys.
+ *
+ * Sorting makes the output deterministic, which is what makes it safe to use as
+ * a cache key or to compare two URLs for equality.
+ *
+ * @param query - Values to serialise.
+ * @returns Query string without a leading `?`, or an empty string.
+ */
 export function stringifyQuery(query: QueryInput): string {
   const params = new URLSearchParams();
 

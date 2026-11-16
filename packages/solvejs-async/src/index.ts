@@ -75,14 +75,6 @@ export type RetryOptions = {
   shouldRetry?: (error: unknown, failedAttempts: number) => boolean;
 };
 
-/**
- * Retries an operation with optional delay and backoff strategy.
- *
- * @param operation - Function that may fail and should be retried.
- * @param options - Retry behavior configuration.
- * @returns Successful operation result.
- * @throws Error from final failed attempt.
- */
 function assertRetrySettings(retries: number, delayMs: number, backoffFactor: number): void {
   if (!Number.isInteger(retries) || retries < 0) {
     throw new TypeError("Expected retries to be a non-negative integer.");
@@ -107,6 +99,14 @@ function resolveRetryOptions(options: RetryOptions): {
   return { retries, delayMs, backoffFactor, shouldRetry };
 }
 
+/**
+ * Retries an operation with optional delay and backoff strategy.
+ *
+ * @param operation - Function that may fail and should be retried.
+ * @param options - Retry behavior configuration.
+ * @returns Successful operation result.
+ * @throws Error from final failed attempt.
+ */
 export async function retry<T>(operation: () => Promise<T> | T, options: RetryOptions = {}): Promise<T> {
   const { retries, delayMs, backoffFactor, shouldRetry } = resolveRetryOptions(options);
 
@@ -375,16 +375,6 @@ export type TokenBucketLimiterOptions = {
   initialTokens?: number;
 };
 
-/**
- * Creates a token-bucket limiter for bursty traffic with smooth refill.
- *
- * @param options - Token bucket options.
- * @param options.capacity - Maximum bucket size.
- * @param options.refillTokens - Tokens added each refill interval.
- * @param options.refillIntervalMs - Refill interval in milliseconds.
- * @param options.initialTokens - Initial token count. Defaults to `capacity`.
- * @returns Function that schedules work when enough tokens are available.
- */
 type TokenBucketConfig = {
   capacity: number;
   refillTokens: number;
@@ -498,6 +488,16 @@ function enqueueBucketTask<T>(bucket: TokenBucket, task: () => Promise<T> | T, t
   });
 }
 
+/**
+ * Creates a token-bucket limiter for bursty traffic with smooth refill.
+ *
+ * @param options - Token bucket options.
+ * @param options.capacity - Maximum bucket size.
+ * @param options.refillTokens - Tokens added each refill interval.
+ * @param options.refillIntervalMs - Refill interval in milliseconds.
+ * @param options.initialTokens - Initial token count. Defaults to `capacity`.
+ * @returns Function that schedules work when enough tokens are available.
+ */
 export function createTokenBucketLimiter(
   options: TokenBucketLimiterOptions
 ): <T>(task: () => Promise<T> | T, tokenCost?: number) => Promise<T> {

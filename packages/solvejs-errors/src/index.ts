@@ -175,19 +175,6 @@ export function getErrorCode(value: unknown): ErrorCode {
   return isAppError(value) ? value.code : "INTERNAL";
 }
 
-/**
- * Normalises any thrown value into an {@link AppError}.
- *
- * An AppError passes through untouched, so wrapping twice is safe. Anything else becomes `INTERNAL`
- * with the original value kept as the cause.
- *
- * @param value - The thrown value.
- * @param options - Optional code override and extra fields.
- * @returns An AppError.
- *
- * @example
- * catch (error) { throw normalizeError(error, { code: "SERVICE_UNAVAILABLE" }); }
- */
 function messageOf(value: unknown): string {
   if (value instanceof Error) return value.message;
   return typeof value === "string" ? value : "An unexpected error occurred.";
@@ -206,6 +193,19 @@ function resolveErrorDetails(existing: AppError | undefined, value: unknown, opt
   };
 }
 
+/**
+ * Normalises any thrown value into an {@link AppError}.
+ *
+ * An AppError passes through untouched, so wrapping twice is safe. Anything else becomes `INTERNAL`
+ * with the original value kept as the cause.
+ *
+ * @param value - The thrown value.
+ * @param options - Optional code override and extra fields.
+ * @returns An AppError.
+ *
+ * @example
+ * catch (error) { throw normalizeError(error, { code: "SERVICE_UNAVAILABLE" }); }
+ */
 export function normalizeError(value: unknown, options: NormalizeOptions = {}): AppError {
   const existing = isAppError(value) ? value : undefined;
   if (existing && options.code === undefined) return existing;

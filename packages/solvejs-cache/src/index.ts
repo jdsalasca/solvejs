@@ -55,17 +55,6 @@ function defaultNow(): number {
   return Date.now();
 }
 
-/**
- * Serialises a value into a deterministic string suitable for use as a cache key.
- *
- * Object keys are sorted at every depth, so two structurally equal values always
- * produce the same string regardless of insertion order. Array order is preserved
- * because it is meaningful.
- *
- * @param value - Value to serialise. Must not contain cycles.
- * @returns Deterministic string key.
- * @throws {CacheError} `CACHE_INVALID_OPTION` if the value contains a cycle.
- */
 type KeyPrimitive = { handled: true; text: string } | { handled: false };
 
 const JSON_KEY_TYPES = new Set(["boolean", "string"]);
@@ -107,6 +96,17 @@ function serialiseKeyObject(input: object, walk: (value: unknown) => string): st
   return `{${entries.map(([key, entryValue]) => `${JSON.stringify(key)}:${walk(entryValue)}`).join(",")}}`;
 }
 
+/**
+ * Serialises a value into a deterministic string suitable for use as a cache key.
+ *
+ * Object keys are sorted at every depth, so two structurally equal values always
+ * produce the same string regardless of insertion order. Array order is preserved
+ * because it is meaningful.
+ *
+ * @param value - Value to serialise. Must not contain cycles.
+ * @returns Deterministic string key.
+ * @throws {CacheError} `CACHE_INVALID_OPTION` if the value contains a cycle.
+ */
 export function stableKey(value: unknown): string {
   const seen = new WeakSet<object>();
 
@@ -146,6 +146,18 @@ export interface TtlCache<T = unknown> {
   size(): number;
 }
 
+type CacheEntry<T> = { value: T; expiresAt: number };
+
+function readTtlEntry<T>(entries: Map<string, CacheEntry<T>>, key: string, now: () => number): CacheEntry<T> | undefined {
+  const entry = entries.get(key);
+  if (!entry) return undefined;
+  if (entry.expiresAt <= now()) {
+    entries.delete(key);
+    return undefined;
+  }
+  return entry;
+}
+
 /**
  * Creates a time-to-live cache backed by a Map.
  *
@@ -163,18 +175,6 @@ export interface TtlCache<T = unknown> {
  * cache.set("token", "abc");
  * cache.get("token"); // "abc"
  */
-type CacheEntry<T> = { value: T; expiresAt: number };
-
-function readTtlEntry<T>(entries: Map<string, CacheEntry<T>>, key: string, now: () => number): CacheEntry<T> | undefined {
-  const entry = entries.get(key);
-  if (!entry) return undefined;
-  if (entry.expiresAt <= now()) {
-    entries.delete(key);
-    return undefined;
-  }
-  return entry;
-}
-
 export function createTtlCache<T = unknown>(options: TtlCacheOptions): TtlCache<T> {
   assertPositiveNumber(options?.ttlMs, "ttlMs");
   const now = options.now ?? defaultNow;
@@ -223,23 +223,6 @@ export type LruCacheOptions = {
   now?: () => number;
 };
 
-/**
- * Creates a cache that evicts the least recently used entry once `maxSize` is exceeded.
- *
- * Reading an entry marks it as recently used, so a hot key survives eviction.
- *
- * @param options - Cache options.
- * @param options.maxSize - Maximum live entries.
- * @param options.ttlMs - Optional per-entry lifetime.
- * @param options.now - Clock source, injectable for tests.
- * @returns The cache.
- * @throws {CacheError} `CACHE_INVALID_OPTION` if `maxSize` or `ttlMs` is invalid.
- *
- * @example
- * const cache = createLruCache<number>({ maxSize: 100 });
- * cache.set("a", 1);
- * cache.get("a");
- */
 function dropExpiredEntry<T>(entries: Map<string, CacheEntry<T>>, key: string, now: () => number): boolean {
   const entry = entries.get(key);
   if (entry && entry.expiresAt <= now()) {
@@ -266,6 +249,23 @@ function evictOldest<T>(entries: Map<string, CacheEntry<T>>, maxSize: number): v
   }
 }
 
+/**
+ * Creates a cache that evicts the least recently used entry once `maxSize` is exceeded.
+ *
+ * Reading an entry marks it as recently used, so a hot key survives eviction.
+ *
+ * @param options - Cache options.
+ * @param options.maxSize - Maximum live entries.
+ * @param options.ttlMs - Optional per-entry lifetime.
+ * @param options.now - Clock source, injectable for tests.
+ * @returns The cache.
+ * @throws {CacheError} `CACHE_INVALID_OPTION` if `maxSize` or `ttlMs` is invalid.
+ *
+ * @example
+ * const cache = createLruCache<number>({ maxSize: 100 });
+ * cache.set("a", 1);
+ * cache.get("a");
+ */
 export function createLruCache<T = unknown>(options: LruCacheOptions): TtlCache<T> {
   assertPositiveInteger(options?.maxSize, "maxSize");
   if (options.ttlMs !== undefined) assertPositiveNumber(options.ttlMs, "ttlMs");
@@ -327,6 +327,13 @@ export type MemoizedAsync<TArgs extends unknown[], TResult> = ((...args: TArgs) 
   readonly size: number;
 };
 
+function assertMemoizeOptions(options: MemoizeAsyncOptions): void {
+  if (options.ttlMs !== undefined) assertPositiveNumber(options.ttlMs, "ttlMs");
+  if (options.key !== undefined && typeof options.key !== "function") {
+    fail("CACHE_INVALID_OPTION", "Expected key to be a function.", { received: typeof options.key });
+  }
+}
+
 /**
  * Memoizes an async function, sharing one in-flight promise per key.
  *
@@ -345,13 +352,6 @@ export type MemoizedAsync<TArgs extends unknown[], TResult> = ((...args: TArgs) 
  * await loadUser("u1"); // one request
  * await loadUser("u1"); // served from memory
  */
-function assertMemoizeOptions(options: MemoizeAsyncOptions): void {
-  if (options.ttlMs !== undefined) assertPositiveNumber(options.ttlMs, "ttlMs");
-  if (options.key !== undefined && typeof options.key !== "function") {
-    fail("CACHE_INVALID_OPTION", "Expected key to be a function.", { received: typeof options.key });
-  }
-}
-
 export function memoizeAsync<TArgs extends unknown[], TResult>(
   factory: (...args: TArgs) => Promise<TResult> | TResult,
   options: MemoizeAsyncOptions = {}
@@ -409,6 +409,17 @@ export type StaleWhileRevalidateOptions = {
 /** A stale-while-revalidate reader. */
 export type StaleWhileRevalidate<T> = () => Promise<T>;
 
+function assertStaleWhileRevalidateOptions(options: StaleWhileRevalidateOptions): void {
+  assertPositiveNumber(options?.freshMs, "freshMs");
+  assertPositiveNumber(options?.staleMs, "staleMs");
+  if (options.staleMs < options.freshMs) {
+    fail("CACHE_INVALID_OPTION", "Expected staleMs to be greater than or equal to freshMs.", {
+      freshMs: options.freshMs,
+      staleMs: options.staleMs
+    });
+  }
+}
+
 /**
  * Wraps a loader so a stale value can be served while a refresh runs in the background.
  *
@@ -429,17 +440,6 @@ export type StaleWhileRevalidate<T> = () => Promise<T>;
  * await read(); // first call loads
  * await read(); // fresh, no reload
  */
-function assertStaleWhileRevalidateOptions(options: StaleWhileRevalidateOptions): void {
-  assertPositiveNumber(options?.freshMs, "freshMs");
-  assertPositiveNumber(options?.staleMs, "staleMs");
-  if (options.staleMs < options.freshMs) {
-    fail("CACHE_INVALID_OPTION", "Expected staleMs to be greater than or equal to freshMs.", {
-      freshMs: options.freshMs,
-      staleMs: options.staleMs
-    });
-  }
-}
-
 export function createStaleWhileRevalidate<T>(
   loader: () => Promise<T>,
   options: StaleWhileRevalidateOptions

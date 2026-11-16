@@ -56,6 +56,9 @@ jobs:
       - name: Check README snippets parse
         run: npm run check:snippets
 
+      - name: Check JSDoc attachment
+        run: npm run check:jsdoc
+
       - name: Generate inventory report
         run: npm run inventory
 

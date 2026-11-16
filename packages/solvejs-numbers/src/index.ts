@@ -311,14 +311,6 @@ export function toPercent(
   }).format(ratio);
 }
 
-/**
- * Parses numeric text coming from forms or CSV-like inputs.
- *
- * @param value - Raw numeric-like input.
- * @param options - Parsing options.
- * @param options.allowThousandsSeparator - Whether commas are accepted as thousands separators.
- * @returns Parsed finite number, or `null` when parsing fails.
- */
 function hasValidGrouping(value: string): boolean {
   // eslint-disable-next-line security/detect-unsafe-regex -- anchored, comma-delimited, no nested wildcard
   return /^[+-]?(?:\d{1,3}(?:,\d{3})+)(?:\.\d+)?$/.test(value);
@@ -340,6 +332,14 @@ function normalizeNumberText(value: string, options: NumberTextOptions): string 
   return allowThousandsSeparator ? normalized.replace(/,/g, "") : normalized;
 }
 
+/**
+ * Parses numeric text coming from forms or CSV-like inputs.
+ *
+ * @param value - Raw numeric-like input.
+ * @param options - Parsing options.
+ * @param options.allowThousandsSeparator - Whether commas are accepted as thousands separators.
+ * @returns Parsed finite number, or `null` when parsing fails.
+ */
 export function toNumber(value: string, options: NumberTextOptions = {}): number | null {
   const candidate = normalizeNumberText(value, options);
   if (candidate === null || !isPlainNumber(candidate)) return null;

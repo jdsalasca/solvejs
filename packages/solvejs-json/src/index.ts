@@ -66,19 +66,6 @@ export function safeJsonParse<T = unknown>(
   }
 }
 
-/**
- * Stringifies a value without throwing.
- *
- * Behaviour matches `JSON.stringify`: a value that has no JSON representation comes back as
- * `undefined` rather than as an error, and a function or `undefined` property inside an object is
- * dropped. Only a circular structure is reported as a failure.
- *
- * @param value - Value to serialise.
- * @param options - Stringify options.
- * @param options.fallback - When given, the return value is the string or this fallback.
- * @returns A result object, or the string / fallback when `fallback` is supplied.
- * @throws {JsonError} Never directly; a cycle is reported through the result object.
- */
 type StringifyResult = { ok: true; value: string | undefined } | { ok: false; error: JsonError };
 
 function stringifyResult(value: unknown): StringifyResult {
@@ -93,6 +80,19 @@ function stringifyResult(value: unknown): StringifyResult {
   }
 }
 
+/**
+ * Stringifies a value without throwing.
+ *
+ * Behaviour matches `JSON.stringify`: a value that has no JSON representation comes back as
+ * `undefined` rather than as an error, and a function or `undefined` property inside an object is
+ * dropped. Only a circular structure is reported as a failure.
+ *
+ * @param value - Value to serialise.
+ * @param options - Stringify options.
+ * @param options.fallback - When given, the return value is the string or this fallback.
+ * @returns A result object, or the string / fallback when `fallback` is supplied.
+ * @throws {JsonError} Never directly; a cycle is reported through the result object.
+ */
 export function safeJsonStringify(
   value: unknown,
   options: SafeStringifyOptions = {}
@@ -299,6 +299,15 @@ export function deepEqual(left: unknown, right: unknown): boolean {
   }
 }
 
+function isPlainObject(value: unknown): value is Record<string, unknown> {
+  return value !== null && typeof value === "object" && !Array.isArray(value);
+}
+
+function mergeEntry(existing: unknown, value: unknown): unknown {
+  if (isPlainObject(existing) && isPlainObject(value)) return jsonMerge(existing, value);
+  return value;
+}
+
 /**
  * Deeply merges JSON objects, with later sources winning.
  *
@@ -309,15 +318,6 @@ export function deepEqual(left: unknown, right: unknown): boolean {
  * @param sources - Objects merged over the base, left to right.
  * @returns A new merged object.
  */
-function isPlainObject(value: unknown): value is Record<string, unknown> {
-  return value !== null && typeof value === "object" && !Array.isArray(value);
-}
-
-function mergeEntry(existing: unknown, value: unknown): unknown {
-  if (isPlainObject(existing) && isPlainObject(value)) return jsonMerge(existing, value);
-  return value;
-}
-
 export function jsonMerge<T extends Record<string, unknown>>(
   target: T,
   ...sources: ReadonlyArray<Record<string, unknown>>

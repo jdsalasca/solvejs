@@ -130,6 +130,10 @@ export function isRetryableStatus(status: number): boolean {
   return isStatus(status) && RETRYABLE_STATUSES.has(status);
 }
 
+function isFetchConnectionFailure(value: unknown, message: unknown): boolean {
+  return value instanceof TypeError && typeof message === "string" && /fetch failed/i.test(message);
+}
+
 /**
  * Classifies a thrown value as a transport failure worth retrying.
  *
@@ -143,10 +147,6 @@ export function isRetryableStatus(status: number): boolean {
  * @example
  * if (isRetryableError(error) && attempt < 3) retry();
  */
-function isFetchConnectionFailure(value: unknown, message: unknown): boolean {
-  return value instanceof TypeError && typeof message === "string" && /fetch failed/i.test(message);
-}
-
 export function isRetryableError(value: unknown): boolean {
   if (value === null || typeof value !== "object") return false;
 
@@ -160,24 +160,6 @@ export function isRetryableError(value: unknown): boolean {
   return isFetchConnectionFailure(value, candidate.message);
 }
 
-/**
- * Calculates an exponential backoff delay, optionally jittered.
- *
- * With `jitter` on, the delay lands uniformly in the half-to-full band of the nominal value, which
- * spreads a thundering herd without ever exceeding the nominal delay.
- *
- * @param attempt - Zero-based attempt index.
- * @param options - Backoff options.
- * @param options.baseMs - Delay for the first retry.
- * @param options.factor - Growth per attempt, greater than 1.
- * @param options.maxMs - Upper bound, greater than `baseMs`.
- * @param options.jitter - Randomise the delay. Defaults to `true`.
- * @returns The delay in whole milliseconds.
- * @throws {HttpError} `HTTP_INVALID_ATTEMPT` or `HTTP_INVALID_OPTION`.
- *
- * @example
- * await sleep(calculateBackoffDelay(attempt, { baseMs: 100, factor: 2, maxMs: 30_000 }));
- */
 function assertFiniteOptions(values: Record<string, number>): void {
   for (const [name, value] of Object.entries(values)) {
     if (typeof value !== "number" || !Number.isFinite(value)) {
@@ -218,6 +200,24 @@ function validateBackoff(options: BackoffOptions): {
   return { baseMs, factor, maxMs, jitter };
 }
 
+/**
+ * Calculates an exponential backoff delay, optionally jittered.
+ *
+ * With `jitter` on, the delay lands uniformly in the half-to-full band of the nominal value, which
+ * spreads a thundering herd without ever exceeding the nominal delay.
+ *
+ * @param attempt - Zero-based attempt index.
+ * @param options - Backoff options.
+ * @param options.baseMs - Delay for the first retry.
+ * @param options.factor - Growth per attempt, greater than 1.
+ * @param options.maxMs - Upper bound, greater than `baseMs`.
+ * @param options.jitter - Randomise the delay. Defaults to `true`.
+ * @returns The delay in whole milliseconds.
+ * @throws {HttpError} `HTTP_INVALID_ATTEMPT` or `HTTP_INVALID_OPTION`.
+ *
+ * @example
+ * await sleep(calculateBackoffDelay(attempt, { baseMs: 100, factor: 2, maxMs: 30_000 }));
+ */
 export function calculateBackoffDelay(attempt: number, options: BackoffOptions): number {
   if (!Number.isInteger(attempt) || attempt < 0) {
     fail("HTTP_INVALID_ATTEMPT", "Expected attempt to be a non-negative integer.", { received: attempt });
@@ -251,16 +251,6 @@ export type ParsedContentType = {
   parameters: Record<string, string>;
 };
 
-/**
- * Parses a `Content-Type` header.
- *
- * @param header - Header value.
- * @returns The parsed media type, or `null` when the value is not a media type.
- *
- * @example
- * parseContentType("application/json; charset=utf-8");
- * // { type: "application/json", subtype: "json", charset: "utf-8", parameters: { charset: "utf-8" } }
- */
 function parseContentParameters(rawParameters: readonly string[]): Record<string, string> {
   const parameters: Record<string, string> = {};
   for (const parameter of rawParameters) {
@@ -273,6 +263,16 @@ function parseContentParameters(rawParameters: readonly string[]): Record<string
   return parameters;
 }
 
+/**
+ * Parses a `Content-Type` header.
+ *
+ * @param header - Header value.
+ * @returns The parsed media type, or `null` when the value is not a media type.
+ *
+ * @example
+ * parseContentType("application/json; charset=utf-8");
+ * // { type: "application/json", subtype: "json", charset: "utf-8", parameters: { charset: "utf-8" } }
+ */
 export function parseContentType(header: string): ParsedContentType | null {
   if (typeof header !== "string" || header.trim() === "") return null;
 
