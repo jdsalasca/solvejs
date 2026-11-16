@@ -38,8 +38,14 @@ export type Version = {
 /** Which part of a version to bump. */
 export type ReleaseType = "major" | "minor" | "patch";
 
+// eslint-disable-next-line security/detect-unsafe-regex -- anchored, no nested quantifier
 const VERSION = /^v?(\d+)\.(\d+)\.(\d+)(?:-([0-9A-Za-z.-]+))?(?:\+([0-9A-Za-z.-]+))?$/;
 const IDENTIFIER = /^[0-9A-Za-z-]+$/;
+
+function isValidIdentifier(identifier: string | number): boolean {
+  if (typeof identifier === "string") return IDENTIFIER.test(identifier);
+  return Number.isSafeInteger(identifier);
+}
 
 function splitIdentifiers(raw: string): Array<string | number> {
   return raw.split(".").map((part) => (/^\d+$/.test(part) ? Number(part) : part));
@@ -73,8 +79,7 @@ export function parseVersion(value: string): Version | null {
   };
 
   for (const identifier of [...parsed.prerelease, ...parsed.build]) {
-    if (typeof identifier === "string" && !IDENTIFIER.test(identifier)) return null;
-    if (typeof identifier === "number" && !Number.isSafeInteger(identifier)) return null;
+    if (!isValidIdentifier(identifier)) return null;
   }
 
   return parsed;
@@ -90,6 +95,32 @@ function requireVersion(value: string): Version {
   return parsed;
 }
 
+function compareIdentifier(a: string | number, b: string | number): number {
+  if (a === b) return 0;
+
+  const aNumeric = typeof a === "number";
+  const bNumeric = typeof b === "number";
+  if (aNumeric && bNumeric) return (a as number) < (b as number) ? -1 : 1;
+  // Numeric identifiers always have lower precedence than alphanumeric ones.
+  if (aNumeric) return -1;
+  if (bNumeric) return 1;
+
+  return (a as string) < (b as string) ? -1 : 1;
+}
+
+function comparePrereleaseAt(
+  left: Array<string | number>,
+  right: Array<string | number>,
+  index: number
+): number | undefined {
+  const a = left[index];
+  const b = right[index];
+  if (a === undefined) return -1;
+  if (b === undefined) return 1;
+  if (a === b) return undefined;
+  return compareIdentifier(a, b);
+}
+
 function comparePrerelease(left: Array<string | number>, right: Array<string | number>): number {
   // A version without a prerelease outranks one with it.
   if (left.length === 0 && right.length === 0) return 0;
@@ -98,20 +129,8 @@ function comparePrerelease(left: Array<string | number>, right: Array<string | n
 
   const length = Math.max(left.length, right.length);
   for (let index = 0; index < length; index += 1) {
-    const a = left[index];
-    const b = right[index];
-    if (a === undefined) return -1;
-    if (b === undefined) return 1;
-    if (a === b) continue;
-
-    const aNumeric = typeof a === "number";
-    const bNumeric = typeof b === "number";
-    if (aNumeric && bNumeric) return (a as number) < (b as number) ? -1 : 1;
-    // Numeric identifiers always have lower precedence than alphanumeric ones.
-    if (aNumeric) return -1;
-    if (bNumeric) return 1;
-
-    return (a as string) < (b as string) ? -1 : 1;
+    const result = comparePrereleaseAt(left, right, index);
+    if (result !== undefined) return result;
   }
 
   return 0;
@@ -220,6 +239,111 @@ function tildeRange(base: string): string {
   return `>=${lower}${suffix} <${version.major + 1}.0.0-0`;
 }
 
+type RangeOperator = "<" | "<=" | ">" | ">=" | "=";
+type Wildcard = "none" | "minor" | "major";
+
+const ANY_OPERANDS = new Set(["*", "x", "X"]);
+
+function parseComparator(raw: string): { operator: RangeOperator; operand: string } {
+  const operatorMatch = raw.match(/^(>=|<=|>|<|=)\s*(.+)$/);
+  return {
+    operator: (operatorMatch?.[1] ?? "=") as RangeOperator,
+    operand: (operatorMatch?.[2] ?? raw).trim()
+  };
+}
+
+function versionAt(major: number, minor: number, patch: number): Version {
+  return { major, minor, patch, prerelease: [], build: [] };
+}
+
+function wildcardBounds(bound: Version, wildcard: Wildcard): { lower: Version; upper: Version } {
+  const isMajor = wildcard === "major";
+  return {
+    lower: versionAt(bound.major, isMajor ? 0 : bound.minor, 0),
+    upper: isMajor ? versionAt(bound.major + 1, 0, 0) : versionAt(bound.major, bound.minor + 1, 0)
+  };
+}
+
+function matchesWildcardOperator(
+  parsed: Version,
+  operator: RangeOperator,
+  bound: Version,
+  wildcard: Wildcard
+): boolean {
+  if (operator === "=") {
+    return wildcard === "major"
+      ? parsed.major === bound.major
+      : parsed.major === bound.major && parsed.minor === bound.minor;
+  }
+
+  const { lower, upper } = wildcardBounds(bound, wildcard);
+  if (operator === ">") return compareToBound(parsed, ">=", upper);
+  if (operator === "<=") return compareToBound(parsed, "<", upper);
+  return compareToBound(parsed, operator, lower);
+}
+
+function matchesCaret(parsed: Version, base: string): boolean {
+  const bounds = expandRange(caretRange(base));
+  return bounds.every((bound) => compareToBound(parsed, bound.operator, bound.version));
+}
+
+function matchesTilde(parsed: Version, base: string): boolean {
+  const bounds = expandRange(tildeRange(base));
+  return bounds.every((bound) => compareToBound(parsed, bound.operator, bound.version));
+}
+
+function matchesComparator(parsed: Version, raw: string): boolean {
+  const { operator, operand } = parseComparator(raw);
+
+  if (ANY_OPERANDS.has(operand)) return true;
+
+  if (operand.startsWith("^")) {
+    return matchesCaret(parsed, operand.slice(1));
+  }
+  if (operand.startsWith("~")) {
+    return matchesTilde(parsed, operand.slice(1));
+  }
+
+  const { version: bound, wildcard } = boundOf(operand, "SEMVER_INVALID_RANGE");
+
+  // A wildcard operand names a whole interval rather than a single version: "2" and "2.x" cover
+  // every 2.y.z, "1.2" and "1.2.x" cover every 1.2.z. An operator other than equality tests
+  // the interval, so "<2.x" keeps everything below 2.0.0 and "<=2.x" also keeps 2.99.99.
+  if (wildcard !== "none") {
+    return matchesWildcardOperator(parsed, operator, bound, wildcard);
+  }
+
+  if (operator === "=") {
+    return compareToBound(parsed, ">=", bound) && compareToBound(parsed, "<=", bound);
+  }
+  return compareToBound(parsed, operator, bound);
+}
+
+function namesSamePrereleaseTuple(parsed: Version, raw: string): boolean {
+  const operand = raw.replace(/^(>=|<=|>|<|\^|~)\s*/, "").trim();
+  if (operand === "" || ANY_OPERANDS.has(operand)) return false;
+
+  const { version: bound } = boundOf(operand, "SEMVER_INVALID_RANGE");
+  return (
+    bound.prerelease.length > 0 &&
+    bound.major === parsed.major &&
+    bound.minor === parsed.minor &&
+    bound.patch === parsed.patch
+  );
+}
+
+function matchesAlternative(parsed: Version, alternative: string): boolean {
+  const comparators = alternative.split(/\s+/).filter(Boolean);
+  if (!comparators.every((raw) => matchesComparator(parsed, raw))) return false;
+
+  // A prerelease only qualifies when some comparator in the same alternative names a prerelease
+  // of the identical major, minor and patch tuple. That is what keeps 1.0.1-beta out of
+  // ^1.0.0-alpha even though it is numerically above the lower bound. Every operand was already
+  // read successfully by the match above, so none of these can throw.
+  if (parsed.prerelease.length === 0) return true;
+  return comparators.some((raw) => namesSamePrereleaseTuple(parsed, raw));
+}
+
 /**
  * Checks whether a version is inside a range.
  *
@@ -250,76 +374,7 @@ export function satisfies(version: string, range: string): boolean {
     fail("SEMVER_INVALID_RANGE", `Expected a valid range, received ${JSON.stringify(range)}.`, { received: range });
   }
 
-  return alternatives.some((alternative) => {
-    const comparators = alternative.split(/\s+/).filter(Boolean);
-
-    const matches = comparators.every((raw) => {
-      const operatorMatch = raw.match(/^(>=|<=|>|<|=)\s*(.+)$/);
-      const operator = (operatorMatch?.[1] ?? "=") as "<" | "<=" | ">" | ">=" | "=";
-      const operand = (operatorMatch?.[2] ?? raw).trim();
-
-      if (operand === "*" || operand === "x" || operand === "X") return true;
-
-      if (operand.startsWith("^")) {
-        const bounds = expandRange(caretRange(operand.slice(1)));
-        return bounds.every((bound) => compareToBound(parsed, bound.operator, bound.version));
-      }
-      if (operand.startsWith("~")) {
-        const bounds = expandRange(tildeRange(operand.slice(1)));
-        return bounds.every((bound) => compareToBound(parsed, bound.operator, bound.version));
-      }
-
-      const { version: bound, wildcard } = boundOf(operand, "SEMVER_INVALID_RANGE");
-
-      // A wildcard operand names a whole interval rather than a single version: "2" and "2.x" cover
-      // every 2.y.z, "1.2" and "1.2.x" cover every 1.2.z. An operator other than equality tests
-      // the interval, so "<2.x" keeps everything below 2.0.0 and "<=2.x" also keeps 2.99.99.
-      if (wildcard !== "none") {
-        if (operator === "=") {
-          return wildcard === "major"
-            ? parsed.major === bound.major
-            : parsed.major === bound.major && parsed.minor === bound.minor;
-        }
-
-        const lower: Version = wildcard === "major"
-          ? { major: bound.major, minor: 0, patch: 0, prerelease: [], build: [] }
-          : { major: bound.major, minor: bound.minor, patch: 0, prerelease: [], build: [] };
-        const upper: Version = wildcard === "major"
-          ? { major: bound.major + 1, minor: 0, patch: 0, prerelease: [], build: [] }
-          : { major: bound.major, minor: bound.minor + 1, patch: 0, prerelease: [], build: [] };
-
-        if (operator === ">") return compareToBound(parsed, ">=", upper);
-        if (operator === "<=") return compareToBound(parsed, "<", upper);
-        return compareToBound(parsed, operator, lower);
-      }
-
-      if (operator === "=") {
-        return compareToBound(parsed, ">=", bound) && compareToBound(parsed, "<=", bound);
-      }
-      return compareToBound(parsed, operator, bound);
-    });
-
-    if (!matches) return false;
-
-    // A prerelease only qualifies when some comparator in the same alternative names a prerelease
-    // of the identical major, minor and patch tuple. That is what keeps 1.0.1-beta out of
-    // ^1.0.0-alpha even though it is numerically above the lower bound. Every operand was already
-    // read successfully by the match above, so none of these can throw.
-    if (parsed.prerelease.length === 0) return true;
-
-    return comparators.some((raw) => {
-      const operand = raw.replace(/^(>=|<=|>|<|\^|~)\s*/, "").trim();
-      if (operand === "" || operand === "*" || operand === "x" || operand === "X") return false;
-
-      const { version: bound } = boundOf(operand, "SEMVER_INVALID_RANGE");
-      return (
-        bound.prerelease.length > 0 &&
-        bound.major === parsed.major &&
-        bound.minor === parsed.minor &&
-        bound.patch === parsed.patch
-      );
-    });
-  });
+  return alternatives.some((alternative) => matchesAlternative(parsed, alternative));
 }
 
 function expandRange(expanded: string): Array<{ operator: "<" | "<=" | ">" | ">="; version: Version }> {
@@ -330,6 +385,20 @@ function expandRange(expanded: string): Array<{ operator: "<" | "<=" | ">" | ">=
       version: requireVersion(match[2])
     };
   });
+}
+
+function isValidComparator(raw: string): boolean {
+  const cleaned = raw.replace(/^(>=|<=|>|<|\^|~)\s*/, "").trim();
+  // "*" is a complete range; a bare operator with nothing after it is not.
+  if (ANY_OPERANDS.has(cleaned)) return true;
+  if (cleaned === "") return false;
+  // boundOf throws on anything it cannot read.
+  boundOf(cleaned, "SEMVER_INVALID_RANGE");
+  return true;
+}
+
+function isValidAlternative(alternative: string): boolean {
+  return alternative.trim().split(/\s+/).filter(Boolean).every((raw) => isValidComparator(raw));
 }
 
 /**
@@ -344,18 +413,7 @@ export function isValidRange(range: string): boolean {
   try {
     const alternatives = range.split("||");
     if (alternatives.some((part) => part.trim().length === 0)) return false;
-
-    for (const alternative of alternatives) {
-      for (const raw of alternative.trim().split(/\s+/).filter(Boolean)) {
-        const cleaned = raw.replace(/^(>=|<=|>|<|\^|~)\s*/, "").trim();
-        // "*" is a complete range; a bare operator with nothing after it is not.
-        if (cleaned === "*" || cleaned === "x" || cleaned === "X") continue;
-        if (cleaned === "") return false;
-        // boundOf throws on anything it cannot read.
-        boundOf(cleaned, "SEMVER_INVALID_RANGE");
-      }
-    }
-    return true;
+    return alternatives.every((alternative) => isValidAlternative(alternative));
   } catch {
     return false;
   }
