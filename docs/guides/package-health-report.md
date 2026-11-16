@@ -6,12 +6,12 @@ This report lists each package, its practical utilities, current status, known i
 
 ## Test Trust
 
-20 packages, 421 test blocks. The minimum for each package is derived
+21 packages, 455 test blocks. The minimum for each package is derived
 from its exported function count by `npm run test:baseline`.
 
 | Package | Function exports | Test blocks | Line coverage |
 |---|---|---|---|
-| `@jdsalasc/solvejs` | 0 (re-exports) | 4 | 56.06% |
+| `@jdsalasc/solvejs` | 0 (re-exports) | 4 | 57.49% |
 | `@jdsalasc/solvejs-async` | 10 | 26 | 100.00% |
 | `@jdsalasc/solvejs-cache` | 5 | 31 | 100.00% |
 | `@jdsalasc/solvejs-constants` | 1 | 9 | 100.00% |
@@ -31,6 +31,7 @@ from its exported function count by `npm run test:baseline`.
 | `@jdsalasc/solvejs-string` | 9 | 10 | 100.00% |
 | `@jdsalasc/solvejs-url` | 8 | 20 | 100.00% |
 | `@jdsalasc/solvejs-validators` | 31 | 45 | 100.00% |
+| `@jdsalasc/solvejs-xlsx` | 0 (re-exports) | 34 | 90.95% |
 
 ## Package Status
 

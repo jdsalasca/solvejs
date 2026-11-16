@@ -43,11 +43,13 @@ export const XLSX_LIMITS = {
   maxXmlLength: 64 * 1024 * 1024,
   maxRows: 100_000,
   maxColumns: 10_000,
+  maxCells: 1_000_000,
   maxSheets: 100
 } as const;
 
 const INVALID_SHEET_CHARS = /[\\/?*[\]:]/;
-const EXCEL_EPOCH = Date.UTC(1899, 11, 30);
+const EXCEL_EPOCH_1900 = Date.UTC(1899, 11, 30);
+const EXCEL_EPOCH_1904 = Date.UTC(1904, 0, 1);
 
 /** Converts a one-based column index into Excel letters (1 -> A, 27 -> AA). */
 export function columnLetters(column: number): string {
@@ -72,7 +74,15 @@ export function assertPositiveInteger(value: unknown, label: string): asserts va
   }
 }
 
-export function assertSheetName(name: string, existing: ReadonlySet<string>): void {
+function hasControlCharacters(value: string): boolean {
+  for (const character of value) {
+    const code = character.codePointAt(0) ?? 0;
+    if (code < 0x20) return true;
+  }
+  return false;
+}
+
+function assertSheetNameSyntax(name: string): void {
   if (typeof name !== "string" || name.trim().length === 0) {
     failXlsx("XLSX_INVALID_INPUT", "Expected every sheet to have a non-empty name.", { name });
   }
@@ -82,6 +92,23 @@ export function assertSheetName(name: string, existing: ReadonlySet<string>): vo
   if (INVALID_SHEET_CHARS.test(name)) {
     failXlsx("XLSX_INVALID_INPUT", "Sheet names cannot contain \\ / ? * [ ] or :.", { name });
   }
+  if (hasControlCharacters(name)) {
+    failXlsx("XLSX_INVALID_INPUT", "Sheet names cannot contain control characters.", { name });
+  }
+}
+
+function assertSheetNameReserved(name: string): void {
+  if (name.startsWith("'") || name.endsWith("'")) {
+    failXlsx("XLSX_INVALID_INPUT", "Sheet names cannot start or end with an apostrophe.", { name });
+  }
+  if (name.toLowerCase() === "history") {
+    failXlsx("XLSX_INVALID_INPUT", "The sheet name History is reserved by Excel.", { name });
+  }
+}
+
+export function assertSheetName(name: string, existing: ReadonlySet<string>): void {
+  assertSheetNameSyntax(name);
+  assertSheetNameReserved(name);
   if (existing.has(name.toLowerCase())) {
     failXlsx("XLSX_INVALID_INPUT", "Sheet names must be unique (case-insensitive).", { name });
   }
@@ -93,15 +120,20 @@ export function excelSerial(date: Date): number {
   if (!Number.isFinite(time)) {
     failXlsx("XLSX_INVALID_INPUT", "Expected a valid Date instance.", { received: String(date) });
   }
-  return (time - EXCEL_EPOCH) / 86_400_000;
+  const days = (time - EXCEL_EPOCH_1900) / 86_400_000;
+  // Excel's fake 1900-02-29 means dates before 1900-03-01 are one serial lower.
+  return days < 61 ? days - 1 : days;
 }
 
-/** Converts an Excel serial number into a UTC Date. */
-export function dateFromExcelSerial(serial: number): Date {
+/** Converts an Excel serial number into a UTC Date. Serial 60 is Excel's fake 1900-02-29. */
+export function dateFromExcelSerial(serial: number, date1904 = false): Date {
   if (!Number.isFinite(serial)) {
     failXlsx("XLSX_INVALID_INPUT", "Expected a finite Excel serial number.", { received: serial });
   }
-  return new Date(EXCEL_EPOCH + serial * 86_400_000);
+  if (date1904) return new Date(EXCEL_EPOCH_1904 + serial * 86_400_000);
+  if (serial < 60) return new Date(Date.UTC(1899, 11, 31) + serial * 86_400_000);
+  if (serial === 60) return new Date(Date.UTC(1900, 1, 28));
+  return new Date(EXCEL_EPOCH_1900 + serial * 86_400_000);
 }
 
 /** Removes characters XML 1.0 cannot represent. */

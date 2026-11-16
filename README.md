@@ -42,7 +42,7 @@ SolveJS is a monorepo of 20 focused packages. Install the whole ecosystem with o
 | Use common regex patterns for email, phone, URL, UUID, IPv4, and ISO dates | `@jdsalasc/solvejs-regex` | `npm i @jdsalasc/solvejs-regex` |
 | Parse numbers, compute percentages, format currency, or round safely | `@jdsalasc/solvejs-numbers` | `npm i @jdsalasc/solvejs-numbers` |
 | Use time, file-size, HTTP method, status, and content-type constants | `@jdsalasc/solvejs-constants` | `npm i @jdsalasc/solvejs-constants` |
-| Export or read XLSX spreadsheets without SheetJS | `@jdsalasc/solvejs-xlsx` | `npm i @jdsalasc/solvejs-xlsx` |
+| Export or read XLSX spreadsheets with JSX components and rich styling | `@jdsalasc/solvejs-xlsx` | `npm i @jdsalasc/solvejs-xlsx` |
 | Import any of the above from one entry point | `@jdsalasc/solvejs` | `npm i @jdsalasc/solvejs` |
 
 ## Install
@@ -115,7 +115,7 @@ await retry(() => fetch("https://api.example.com/health"), { retries: 2, delayMs
 
 ## Works with
 
-Node.js 18+, modern browsers, and edge runtimes for the environment-agnostic packages. Every package ships ESM, CommonJS, and TypeScript declarations. Packages that read `process.env` document their Node.js requirement in their README.
+Node.js 18+, modern browsers, and edge runtimes for the environment-agnostic packages. Every package ships ESM, CommonJS, and TypeScript declarations. `@jdsalasc/solvejs-xlsx` currently requires Node.js 20.12+ for the platform deflate-raw streams. Packages that read `process.env` document their Node.js requirement in their README.
 
 ## Contributing
 

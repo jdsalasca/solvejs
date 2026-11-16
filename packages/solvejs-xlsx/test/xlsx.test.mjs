@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { readXlsx, writeXlsx, writeXlsxCompressed, XlsxError } from "../dist/esm/index.js";
+import { readXlsx, writeWorkbook, writeXlsx, writeXlsxCompressed, XlsxError } from "../dist/esm/index.js";
 import { writeZip } from "../dist/esm/zip/write.js";
 
 const encoder = new TextEncoder();
@@ -32,6 +32,26 @@ function sharedStringsFixture() {
     entry("xl/workbook.xml", workbook),
     entry("xl/_rels/workbook.xml.rels", workbookRels),
     entry("xl/sharedStrings.xml", sharedStrings),
+    entry("xl/styles.xml", styles),
+    entry("xl/worksheets/sheet1.xml", sheet)
+  ]);
+}
+
+function minimalFixture(workbookPr, styles, sheetRows) {
+  const contentTypes =
+    '<?xml version="1.0" encoding="UTF-8"?><Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/><Override PartName="/xl/worksheets/sheet1.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/><Override PartName="/xl/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.styles+xml"/></Types>';
+  const rootRels =
+    '<?xml version="1.0" encoding="UTF-8"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="xl/workbook.xml"/></Relationships>';
+  const workbook = `<?xml version="1.0" encoding="UTF-8"?><workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships">${workbookPr}<sheets><sheet name="Data" sheetId="1" r:id="rId1"/></sheets></workbook>`;
+  const workbookRels =
+    '<?xml version="1.0" encoding="UTF-8"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet1.xml"/><Relationship Id="rId2" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles" Target="styles.xml"/></Relationships>';
+  const sheet = `<?xml version="1.0" encoding="UTF-8"?><worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"><sheetData>${sheetRows}</sheetData></worksheet>`;
+
+  return writeZip([
+    entry("[Content_Types].xml", contentTypes),
+    entry("_rels/.rels", rootRels),
+    entry("xl/workbook.xml", workbook),
+    entry("xl/_rels/workbook.xml.rels", workbookRels),
     entry("xl/styles.xml", styles),
     entry("xl/worksheets/sheet1.xml", sheet)
   ]);
@@ -111,6 +131,9 @@ test("rejects invalid workbooks with stable codes", () => {
     { sheets: [] },
     { sheets: [{ name: "A", rows: [] }, { name: "a", rows: [] }] },
     { sheets: [{ name: "bad/name", rows: [] }] },
+    { sheets: [{ name: "History", rows: [] }] },
+    { sheets: [{ name: "'quoted", rows: [] }] },
+    { sheets: [{ name: "bad\u0001name", rows: [] }] },
     { sheets: [{ name: "A", rows: [[Number.NaN]] }] }
   ];
 
@@ -120,6 +143,43 @@ test("rejects invalid workbooks with stable codes", () => {
       (error) => error instanceof XlsxError && error.code === "XLSX_INVALID_INPUT"
     );
   }
+});
+
+test("honours the 1904 date system", async () => {
+  const styles =
+    '<?xml version="1.0" encoding="UTF-8"?><styleSheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"><cellXfs count="1"><xf numFmtId="14"/></cellXfs></styleSheet>';
+  const sheet = '<row r="1"><c r="A1" s="0"><v>1</v></c></row>';
+  const workbook = await readXlsx(minimalFixture('<workbookPr date1904="1"/>', styles, sheet));
+  assert.ok(workbook.sheets[0].rows[0][0] instanceof Date);
+  assert.equal(workbook.sheets[0].rows[0][0].toISOString(), "1904-01-02T00:00:00.000Z");
+});
+
+test("rejects overlapping model merges and out-of-bounds freeze", () => {
+  assert.throws(
+    () =>
+      writeWorkbook({
+        sheets: [
+          {
+            name: "Grid",
+            rows: [{ cells: [{ value: "wide", colSpan: 2 }, { value: "clash" }] }]
+          }
+        ]
+      }),
+    (error) => error instanceof XlsxError && error.code === "XLSX_INVALID_INPUT"
+  );
+
+  assert.throws(
+    () => writeWorkbook({ sheets: [{ name: "Grid", rows: [], freeze: { rows: 100001 } }] }),
+    (error) => error instanceof XlsxError && error.code === "XLSX_LIMIT_EXCEEDED"
+  );
+});
+
+test("does not treat [Red]0 as a date format", async () => {
+  const styles =
+    '<?xml version="1.0" encoding="UTF-8"?><styleSheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"><numFmts count="1"><numFmt numFmtId="164" formatCode="[Red]0"/></numFmts><cellXfs count="1"><xf numFmtId="164"/></cellXfs></styleSheet>';
+  const sheet = '<row r="1"><c r="A1" s="0"><v>42</v></c></row>';
+  const workbook = await readXlsx(minimalFixture("", styles, sheet));
+  assert.equal(workbook.sheets[0].rows[0][0], 42);
 });
 
 test("rejects malformed ZIP input", async () => {

@@ -24,6 +24,7 @@ Generated on 2026-11-16.
 | @jdsalasc/solvejs-string | 1.10.0 | 9 | 0 | 0 | 10 |
 | @jdsalasc/solvejs-url | 0.2.0 | 8 | 0 | 3 | 20 |
 | @jdsalasc/solvejs-validators | 1.10.0 | 31 | 0 | 7 | 45 |
+| @jdsalasc/solvejs-xlsx | 0.1.0 | 0 | 0 | 0 | 34 |
 
 ## Notes
 

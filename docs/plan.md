@@ -85,17 +85,19 @@ All were resolved:
 Verification: `npm run lint:quality` exits 0 with no warnings; the external `teachers` audit exits 0
 with `sin hallazgos`; `npm run quality` stays green.
 
-## Round 5: XLSX reader and writer — first slice done
+## Round 5: XLSX reader and writer — done
 
 Built `@jdsalasc/solvejs-xlsx@0.1.0` from scratch, with no runtime dependencies:
 
-- ZIP container writer (stored and DEFLATE through the platform `CompressionStream`) and reader (stored and DEFLATE through `DecompressionStream`), with CRC-32 verification and limits.
-- Safe XML parser for OOXML: elements, attributes, text, CDATA and comments; DTDs rejected; depth and node limits.
-- XLSX writer: multiple sheets, inline strings (formula-injection safe), numbers, booleans, dates in the 1900 system, bold header, frozen header row and column widths.
-- XLSX reader: shared strings, inline strings, numbers, booleans, dates via built-in and custom date formats, formula results and error cells.
-- 14 tests, including `writeXlsxCompressed` round-trips and a LibreOffice compatibility script that verifies both directions (generated file opens in LibreOffice; LibreOffice-generated deflated file reads back).
+- ZIP container writer (stored and DEFLATE through the platform `CompressionStream`) and reader (stored and DEFLATE through `DecompressionStream`), with CRC-32 verification, streaming budgets, local/central header consistency and explicit ZIP64 rejection.
+- Safe XML parser for OOXML: elements, attributes, ordered text/CDATA, comments and namespaces; DTDs, unknown entities, duplicate attributes and multiple roots rejected; depth and node limits.
+- XLSX writer: multiple sheets, inline strings (formula-injection safe), numbers, booleans, dates in the 1900 system, rich styles (fonts, fills, borders, alignment, wrap, number formats, merged cells, column widths, row heights, frozen panes, auto-filter, tab color) and workbook title/creator.
+- XLSX reader: shared strings, inline strings, numbers, booleans, 1900/1904 dates via built-in and custom date formats, formula results and error cells; OOXML parts resolved through relationships with external-target rejection and a cell-materialisation budget.
+- Declarative API: `Xlsx`, `Sheet`, `Column`, `Row`, `Cell`, a custom JSX runtime (`jsxImportSource`) and the same components callable as factories without JSX.
+- 34 tests, including JSX rendering, style XML assertions, fragments, styled blank cells, coordinate and merge-overlap rejection, TypeScript compilation of `react-jsx` and `react-jsxdev` fixtures, direct-cell placement, date boundaries, ZIP corruption/ZIP64 rejection, XML strictness, compressed round-trips and a LibreOffice compatibility script that verifies both directions. A styled invoice was converted to PDF/PNG for visual review.
+- Measured 10,000 rows × 8 columns on Node 24 / Windows: stored write ~78 ms (3.43 MB), compressed write ~125 ms (415 KB), compressed read ~181 ms.
 
-Next in this line: PDF writer/reader, merged cells, richer styles, and formula writing as an explicit opt-in.
+Next in this line: PDF writer/reader, formula writing as an explicit opt-in, and richer style metadata on read.
 
 ## Risks and Rollback
 

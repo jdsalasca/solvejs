@@ -8,6 +8,7 @@ export type ZipEntry = {
 };
 
 type PreparedEntry = {
+  name: string;
   nameBytes: Uint8Array;
   data: Uint8Array;
   compressed: Uint8Array;
@@ -154,12 +155,29 @@ function writeEocd(writer: ByteWriter, count: number, centralSize: number, centr
   writer.u16(0);
 }
 
+function assertBounds(entries: readonly PreparedEntry[]): void {
+  for (const entry of entries) {
+    if (entry.nameBytes.length > 0xffff) {
+      failXlsx("XLSX_LIMIT_EXCEEDED", "ZIP entry name is too long.", { name: entry.name });
+    }
+    if (entry.data.length > 0xffffffff || entry.compressed.length > 0xffffffff) {
+      failXlsx("XLSX_LIMIT_EXCEEDED", "ZIP entry is too large; ZIP64 is not supported.", { name: entry.name });
+    }
+  }
+}
+
 function assemble(entries: PreparedEntry[]): Uint8Array {
   if (entries.length > 0xffff) {
     failXlsx("XLSX_LIMIT_EXCEEDED", "ZIP supports at most 65535 entries.");
   }
+  assertBounds(entries);
 
-  const writer = new ByteWriter(totalSize(entries));
+  const size = totalSize(entries);
+  if (size > 0xffffffff) {
+    failXlsx("XLSX_LIMIT_EXCEEDED", "ZIP archive is too large; ZIP64 is not supported.");
+  }
+
+  const writer = new ByteWriter(size);
   for (const entry of entries) {
     entry.offset = writer.offset;
     writeLocalHeader(writer, entry);

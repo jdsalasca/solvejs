@@ -23,3 +23,15 @@ test("rejects DTD declarations and malformed documents", () => {
   assert.throws(() => parseXml("<root>"), /unclosed/);
   assert.throws(() => parseXml("<root></other>"), /does not match/);
 });
+
+test("rejects unknown entities, duplicate attributes and multiple roots", () => {
+  assert.throws(() => parseXml("<root>&unknown;</root>"), /Unknown XML entity/);
+  assert.throws(() => parseXml("<root a=\"1\" a=\"2\"/>"), /attributes must be unique/);
+  assert.throws(() => parseXml("<a/><b/>"), /exactly one root/);
+  assert.throws(() => parseXml("<root>&#x110000;</root>"), /out of range/);
+});
+
+test("preserves mixed text and child order", () => {
+  const root = parseXml("<root>before<child>middle</child>after</root>");
+  assert.equal(textContent(firstChild(root, "root")), "beforemiddleafter");
+});

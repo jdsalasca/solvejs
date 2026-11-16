@@ -20,17 +20,19 @@ let checked = 0;
 for (const path of packages) {
   const readme = readFileSync(join(path, "README.md"), "utf8");
   const displayPath = `${path.replace(/\\/g, "/")}/README.md`;
-  const fences = [...readme.matchAll(/```(?:ts|typescript)[^\n]*\n([\s\S]*?)```/g)];
+  const fences = [...readme.matchAll(/```(tsx|typescript|ts)[^\n]*\n([\s\S]*?)```/g)];
 
   for (const [index, fence] of fences.entries()) {
     checked += 1;
-    const source = fence[1];
+    const language = fence[1];
+    const source = fence[2];
+    const extension = language === "tsx" ? "tsx" : "ts";
     const file = ts.createSourceFile(
-      `${displayPath}#snippet-${index + 1}.ts`,
+      `${displayPath}#snippet-${index + 1}.${extension}`,
       source,
       ts.ScriptTarget.ESNext,
       true,
-      ts.ScriptKind.TS
+      language === "tsx" ? ts.ScriptKind.TSX : ts.ScriptKind.TS
     );
 
     for (const diagnostic of file.parseDiagnostics ?? []) {

@@ -10,8 +10,9 @@ import { childrenNamed, firstChild, parseXml, textContent, type XmlNode } from "
 import { readZip } from "../zip/read.js";
 
 type WorkbookSheet = { name: string; relationshipId: string };
-type CellContext = { shared: readonly string[]; dateStyles: ReadonlySet<number> };
-type ParsedCell = { column: number; value: XlsxCellValue };
+type Relationship = { target: string; type: string };
+type CellContext = { shared: readonly string[]; dateStyles: ReadonlySet<number>; date1904: boolean };
+type ParsedCell = { row: number; column: number; value: XlsxCellValue };
 
 const BUILTIN_DATE_IDS = new Set([14, 15, 16, 17, 18, 19, 20, 21, 22, 45, 46, 47]);
 
@@ -25,8 +26,8 @@ function requiredFile(files: ReadonlyMap<string, Uint8Array>, name: string): Uin
   return data;
 }
 
-function resolveTarget(target: string): string {
-  const path = target.startsWith("/") ? target.slice(1) : `xl/${target}`;
+function resolveTarget(target: string, baseDir: string): string {
+  const path = target.startsWith("/") ? target.slice(1) : baseDir ? `${baseDir}/${target}` : target;
   const parts: string[] = [];
   for (const part of path.split("/")) {
     if (part === "" || part === ".") continue;
@@ -40,7 +41,25 @@ function resolveTarget(target: string): string {
   return parts.join("/");
 }
 
-function parseWorkbook(xml: string): WorkbookSheet[] {
+function dirName(path: string): string {
+  const parts = path.split("/");
+  parts.pop();
+  return parts.join("/");
+}
+
+function baseName(path: string): string {
+  return path.split("/").pop() ?? path;
+}
+
+function joinPath(base: string, name: string): string {
+  return base ? `${base}/${name}` : name;
+}
+
+function findRelationship(relationships: ReadonlyMap<string, Relationship>, suffix: string): Relationship | undefined {
+  return [...relationships.values()].find((relationship) => relationship.type.endsWith(`/${suffix}`));
+}
+
+function parseWorkbook(xml: string): { sheets: WorkbookSheet[]; date1904: boolean } {
   const root = parseXml(xml);
   const workbook = firstChild(root, "workbook") ?? root;
   const sheetsNode = firstChild(workbook, "sheets");
@@ -57,17 +76,32 @@ function parseWorkbook(xml: string): WorkbookSheet[] {
   if (sheets.length > XLSX_LIMITS.maxSheets) {
     failXlsx("XLSX_LIMIT_EXCEEDED", "Workbook has too many sheets.", { sheets: sheets.length });
   }
-  return sheets;
+  const workbookPr = firstChild(workbook, "workbookPr");
+  const date1904 = workbookPr?.attributes.date1904 === "1" || workbookPr?.attributes.date1904 === "true";
+  return { sheets, date1904 };
 }
 
-function parseRels(xml: string): Map<string, string> {
+function relationshipOf(node: XmlNode): { id: string; relationship: Relationship } {
+  const id = node.attributes.Id;
+  const target = node.attributes.Target;
+  const type = node.attributes.Type;
+  const mode = node.attributes.TargetMode ?? "Internal";
+  if (!id || !target || !type) {
+    failXlsx("XLSX_INVALID_XML", "Relationship is missing Id, Target or Type.");
+  }
+  if (mode === "External") failXlsx("XLSX_UNSUPPORTED", "External relationships are not supported.", { id });
+  return { id, relationship: { target, type } };
+}
+
+function parseRels(xml: string): Map<string, Relationship> {
   const root = parseXml(xml);
   const rels = firstChild(root, "Relationships") ?? root;
-  const map = new Map<string, string>();
+  const map = new Map<string, Relationship>();
+
   for (const relation of childrenNamed(rels, "Relationship")) {
-    const id = relation.attributes.Id;
-    const target = relation.attributes.Target;
-    if (id && target) map.set(id, target);
+    const { id, relationship } = relationshipOf(relation);
+    if (map.has(id)) failXlsx("XLSX_INVALID_XML", "Relationship Id is duplicated.", { id });
+    map.set(id, relationship);
   }
   return map;
 }
@@ -89,7 +123,9 @@ function parseSharedStrings(xml: string): string[] {
 function isDateFormat(formatId: number, custom: ReadonlyMap<number, string>): boolean {
   if (BUILTIN_DATE_IDS.has(formatId)) return true;
   const code = custom.get(formatId);
-  return code ? /[ymdhs]/i.test(code.replace(/"[^"]*"/g, "")) : false;
+  if (!code) return false;
+  const cleaned = code.replace(/"[^"]*"/g, "").replace(/\\./g, "").replace(/\[[^\]]*\]/g, "");
+  return /[ymdhs]/i.test(cleaned);
 }
 
 function parseStyles(xml: string): Set<number> {
@@ -142,14 +178,6 @@ function inlineText(node: XmlNode): string {
   return inline ? textContent(inline) : "";
 }
 
-function numericValue(text: string, node: XmlNode, context: CellContext): XlsxCellValue {
-  if (text.length === 0) return null;
-  const value = Number(text);
-  if (!Number.isFinite(value)) failXlsx("XLSX_INVALID_XML", "Numeric cell is not finite.", { text });
-  const style = Number(node.attributes.s ?? "0");
-  return context.dateStyles.has(style) ? dateFromExcelSerial(value) : value;
-}
-
 function sharedValue(text: string, shared: readonly string[]): string {
   const index = Number(text);
   if (!Number.isInteger(index) || index < 0 || index >= shared.length) {
@@ -164,6 +192,14 @@ function dateValue(text: string): Date {
   return date;
 }
 
+function numericValue(text: string, node: XmlNode, context: CellContext): XlsxCellValue {
+  if (text.length === 0) return null;
+  const value = Number(text);
+  if (!Number.isFinite(value)) failXlsx("XLSX_INVALID_XML", "Numeric cell is not finite.", { text });
+  const style = Number(node.attributes.s ?? "0");
+  return context.dateStyles.has(style) ? dateFromExcelSerial(value, context.date1904) : value;
+}
+
 function cellValue(type: string, node: XmlNode, context: CellContext): XlsxCellValue {
   const text = rawText(node);
 
@@ -175,11 +211,14 @@ function cellValue(type: string, node: XmlNode, context: CellContext): XlsxCellV
   return numericValue(text, node, context);
 }
 
-function parseCell(node: XmlNode, context: CellContext): ParsedCell | null {
+function parseCell(node: XmlNode, context: CellContext, rowNumber: number): ParsedCell | null {
   const reference = node.attributes.r;
   if (!reference) return null;
-  const { column } = parseCellRef(reference);
-  return { column, value: cellValue(node.attributes.t ?? "n", node, context) };
+  const { row, column } = parseCellRef(reference);
+  if (row !== rowNumber) {
+    failXlsx("XLSX_INVALID_XML", "Cell reference disagrees with its row.", { reference, row: rowNumber });
+  }
+  return { row, column, value: cellValue(node.attributes.t ?? "n", node, context) };
 }
 
 function parseRow(node: XmlNode, context: CellContext): { row: number; cells: XlsxCellValue[] } {
@@ -190,7 +229,7 @@ function parseRow(node: XmlNode, context: CellContext): { row: number; cells: Xl
 
   const cells: XlsxCellValue[] = [];
   for (const child of childrenNamed(node, "c")) {
-    const parsed = parseCell(child, context);
+    const parsed = parseCell(child, context, rowNumber);
     if (!parsed) continue;
     while (cells.length < parsed.column) cells.push(null);
     cells[parsed.column - 1] = parsed.value;
@@ -198,15 +237,26 @@ function parseRow(node: XmlNode, context: CellContext): { row: number; cells: Xl
   return { row: rowNumber, cells };
 }
 
-function parseSheet(xml: string, shared: readonly string[], dateStyles: ReadonlySet<number>): XlsxCellValue[][] {
+function parseSheet(
+  xml: string,
+  shared: readonly string[],
+  dateStyles: ReadonlySet<number>,
+  date1904: boolean
+): XlsxCellValue[][] {
   const root = parseXml(xml);
   const worksheet = firstChild(root, "worksheet") ?? root;
   const sheetData = firstChild(worksheet, "sheetData");
   if (!sheetData) return [];
 
   const rows: XlsxCellValue[][] = [];
+  const budget = { remaining: XLSX_LIMITS.maxCells };
+
   for (const rowNode of childrenNamed(sheetData, "row")) {
-    const parsed = parseRow(rowNode, { shared, dateStyles });
+    const parsed = parseRow(rowNode, { shared, dateStyles, date1904 });
+    budget.remaining -= Math.max(0, parsed.row - rows.length - 1) + parsed.cells.length;
+    if (budget.remaining < 0) {
+      failXlsx("XLSX_LIMIT_EXCEEDED", "Sheet materialises too many cells.", { row: parsed.row });
+    }
     while (rows.length < parsed.row) rows.push([]);
     rows[parsed.row - 1] = parsed.cells;
   }
@@ -216,20 +266,39 @@ function parseSheet(xml: string, shared: readonly string[], dateStyles: Readonly
 /** Reads an XLSX file into a plain workbook structure. Dates are returned as UTC `Date` values. */
 export async function readXlsx(bytes: Uint8Array): Promise<XlsxWorkbookData> {
   const files = await readZip(bytes);
-  const sheets = parseWorkbook(decode(requiredFile(files, "xl/workbook.xml")));
-  const relationships = parseRels(decode(requiredFile(files, "xl/_rels/workbook.xml.rels")));
-  const shared = files.has("xl/sharedStrings.xml")
-    ? parseSharedStrings(decode(requiredFile(files, "xl/sharedStrings.xml")))
-    : [];
-  const dateStyles = files.has("xl/styles.xml") ? parseStyles(decode(requiredFile(files, "xl/styles.xml"))) : new Set<number>();
+  requiredFile(files, "[Content_Types].xml");
 
-  const data: XlsxSheetData[] = sheets.map((sheet) => {
-    const target = relationships.get(sheet.relationshipId);
-    if (!target) {
+  const rootRels = parseRels(decode(requiredFile(files, "_rels/.rels")));
+  const office = findRelationship(rootRels, "officeDocument");
+  if (!office) failXlsx("XLSX_INVALID_XML", "Package is missing its officeDocument relationship.");
+
+  const workbookPath = resolveTarget(office.target, "");
+  const workbook = parseWorkbook(decode(requiredFile(files, workbookPath)));
+  const workbookDir = dirName(workbookPath);
+  const relsPath = workbookDir
+    ? `${workbookDir}/_rels/${baseName(workbookPath)}.rels`
+    : `_rels/${baseName(workbookPath)}.rels`;
+  const rels = parseRels(decode(requiredFile(files, relsPath)));
+
+  const sharedRel = findRelationship(rels, "sharedStrings");
+  const stylesRel = findRelationship(rels, "styles");
+  const sharedPath = sharedRel
+    ? resolveTarget(sharedRel.target, workbookDir)
+    : joinPath(workbookDir, "sharedStrings.xml");
+  const stylesPath = stylesRel ? resolveTarget(stylesRel.target, workbookDir) : joinPath(workbookDir, "styles.xml");
+  const shared = files.has(sharedPath) ? parseSharedStrings(decode(requiredFile(files, sharedPath))) : [];
+  const dateStyles = files.has(stylesPath) ? parseStyles(decode(requiredFile(files, stylesPath))) : new Set<number>();
+
+  const data: XlsxSheetData[] = workbook.sheets.map((sheet) => {
+    const relationship = rels.get(sheet.relationshipId);
+    if (!relationship) {
       failXlsx("XLSX_INVALID_XML", "Worksheet relationship is missing.", { sheet: sheet.name, id: sheet.relationshipId });
     }
-    const xml = decode(requiredFile(files, resolveTarget(target)));
-    return { name: sheet.name, rows: parseSheet(xml, shared, dateStyles) };
+    if (!relationship.type.endsWith("/worksheet")) {
+      failXlsx("XLSX_INVALID_XML", "Sheet relationship does not point to a worksheet.", { sheet: sheet.name });
+    }
+    const xml = decode(requiredFile(files, resolveTarget(relationship.target, workbookDir)));
+    return { name: sheet.name, rows: parseSheet(xml, shared, dateStyles, workbook.date1904) };
   });
 
   return { sheets: data };

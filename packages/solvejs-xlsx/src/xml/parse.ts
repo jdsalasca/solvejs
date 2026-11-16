@@ -7,6 +7,7 @@ export type XmlNode = {
   name: string;
   attributes: Record<string, string>;
   children: XmlNode[];
+  content: Array<string | XmlNode>;
   text: string;
 };
 
@@ -14,7 +15,7 @@ const MAX_DEPTH = 256;
 const MAX_NODES = 1_000_000;
 
 function createNode(name: string): XmlNode {
-  return { name, attributes: {}, children: [], text: "" };
+  return { name, attributes: {}, children: [], content: [], text: "" };
 }
 
 function failXml(message: string, details: Record<string, unknown> = {}): never {
@@ -71,6 +72,9 @@ function parseStartTag(source: string, index: number): { node: XmlNode; selfClos
     if (source[cursor] !== "=") failXml("Expected '=' after an XML attribute name.", { index: cursor });
     cursor = skipSpace(source, cursor + 1);
     const value = readQuoted(source, cursor);
+    if (Object.prototype.hasOwnProperty.call(node.attributes, attribute.name)) {
+      failXml("XML attributes must be unique.", { attribute: attribute.name });
+    }
     node.attributes[attribute.name] = value.value;
     cursor = value.index;
   }
@@ -83,7 +87,9 @@ function handleStartTag(source: string, index: number, stack: XmlNode[], counter
   if (stack.length >= MAX_DEPTH) failXml("XML nesting is too deep.", { depth: stack.length });
   counter.nodes += 1;
   if (counter.nodes > MAX_NODES) failXlsx("XLSX_LIMIT_EXCEEDED", "XML has too many nodes.");
-  stack[stack.length - 1].children.push(parsed.node);
+  const parent = stack[stack.length - 1];
+  parent.children.push(parsed.node);
+  parent.content.push(parsed.node);
   if (!parsed.selfClosing) stack.push(parsed.node);
   return parsed.index;
 }
@@ -108,14 +114,18 @@ function skipPast(source: string, index: number, marker: string): number {
 function handleCdata(source: string, index: number, current: XmlNode): number {
   const end = source.indexOf("]]>", index + 9);
   if (end === -1) failXml("Unterminated CDATA section.", { index });
-  current.text += source.slice(index + 9, end);
+  const text = source.slice(index + 9, end);
+  current.text += text;
+  current.content.push(text);
   return end + 3;
 }
 
 function handleText(source: string, index: number, current: XmlNode): number {
   const next = source.indexOf("<", index);
   const end = next === -1 ? source.length : next;
-  current.text += unescapeXml(source.slice(index, end));
+  const text = unescapeXml(source.slice(index, end));
+  current.text += text;
+  if (text.length > 0) current.content.push(text);
   return end;
 }
 
@@ -145,6 +155,7 @@ export function parseXml(source: string): XmlNode {
   }
 
   if (stack.length !== 1) failXml("XML has unclosed elements.", { open: stack.length - 1 });
+  if (root.children.length !== 1) failXml("XML must have exactly one root element.", { roots: root.children.length });
   return root;
 }
 
@@ -158,7 +169,9 @@ export function firstChild(node: XmlNode, name: string): XmlNode | undefined {
   return node.children.find((child) => localName(child.name) === name);
 }
 
-/** Returns the concatenated text of a node and its descendants. */
+/** Returns the concatenated text of a node and its descendants, preserving order. */
 export function textContent(node: XmlNode): string {
-  return node.text + node.children.map(textContent).join("");
+  return node.content
+    .map((part) => (typeof part === "string" ? part : textContent(part)))
+    .join("");
 }
