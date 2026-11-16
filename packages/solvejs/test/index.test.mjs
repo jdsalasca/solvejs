@@ -75,6 +75,7 @@ import {
   readXlsx,
   writeXlsx,
   // pdf
+  Bookmark,
   Pdf,
   PdfPage,
   Text,
@@ -172,9 +173,12 @@ test("meta package re-exports the document APIs", async () => {
   assert.equal(workbook.sheets[0].pageSetup?.orientation, "landscape");
   assert.deepEqual({ ...workbook.definedNames }, { Total: "Sheet1!$A$1" });
 
-  const pdf = renderPdf(Pdf({ children: PdfPage({ children: Text({ value: "ok" }) }) }));
+  const pdf = renderPdf(
+    Pdf({ children: PdfPage({ children: [Bookmark({ title: "Start" }), Text({ value: "ok" })] }) })
+  );
   assert.equal(pdf instanceof Uint8Array, true);
   assert.deepEqual([...pdf.subarray(0, 5)], [0x25, 0x50, 0x44, 0x46, 0x2d]);
+  assert.match(new TextDecoder("windows-1252").decode(pdf), /\/Outlines/);
 });
 
 test("every error class is exported and keeps its identity", () => {

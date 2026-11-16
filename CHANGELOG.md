@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.12.4 - 2026-11-16
+
+- Added data validation to `@jdsalasc/solvejs-xlsx@0.2.4`: inline dropdown lists, formula-backed lists, whole/decimal/date/time/text-length bounds, custom rules, prompts and error messages. The writer emits `<dataValidations>` and the reader returns `sheet.dataValidations`, so validation survives a round trip. The component API now exposes `pageSetup` and `dataValidations` on `<Sheet>`. Migration impact: none; additive API.
+
+- Added nested PDF bookmarks to `@jdsalasc/solvejs-pdf@0.1.4`. A zero-height `<Bookmark title="..." level={1-6} />` records the page and vertical destination during pagination; the serializer writes a proper `/Outlines` tree with parent, sibling and child links. `buildPdfDocument` returns the resolved `outline` array. Migration impact: none; additive API.
+
+- Bumped the meta package to `1.12.4` to pin and re-export the new document versions. Migration impact: none.
+
 ## 1.12.3 - 2026-11-16
 
 - Package review fixes across the ecosystem. `@jdsalasc/solvejs-date@1.10.1` handles years 0-99 in the proleptic Gregorian calendar, formats four-digit years, and computes business-day offsets in O(1) while rejecting unsafe integer amounts. `@jdsalasc/solvejs-money@0.2.1` keeps factors written in exponent notation exact (`1e-7`). `@jdsalasc/solvejs-semver@0.2.1` makes `^0` cover all `0.x` releases. `@jdsalasc/solvejs-pagination@0.2.1` rejects `NaN` and fractional pages in `clampPage`/`withPagination`. Migration impact: none for valid inputs; malformed values now fail instead of producing broken output.

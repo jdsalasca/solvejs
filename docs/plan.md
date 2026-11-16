@@ -188,6 +188,15 @@ Competitor study:
 - PDF gaps ranked: PNG with transparency, page templates/watermarks, outlines/bookmarks and custom TTF fonts. Reading/editing existing PDFs stays out of scope.
 - Both package READMEs now include a capability matrix with the honest gaps and use-case guidance.
 
+## Round 11: Modern document features - done
+
+Added the two features that most often force teams to reach for a heavier library:
+
+- XLSX data validation (`0.2.4`): `dataValidations` on the data-first API and `<Sheet>`; inline lists, formula lists, whole/decimal/date/time/text-length/custom rules, operators, blank handling, dropdown visibility, prompts, error titles/messages and error styles. Reader returns the same rules, including inline lists parsed back into `values`. Limits: 1,000 rules per sheet, one rectangular range per rule, 255-character inline lists.
+- PDF bookmarks (`0.1.4`): zero-height `Bookmark` markers resolved during pagination and serialized as a nested `/Outlines` tree with `/First`, `/Last`, `/Count`, `/Prev` and `/Next`. `buildPdfDocument` exposes the resolved outline. Limits: 1,000 entries, level 1-6, 300-character titles.
+
+Verified with unit tests, a LibreOffice open/render of the validated workbook, qpdf syntax validation of the bookmarked PDF, and `qpdf --json-key=outlines` showing the nested tree.
+
 ## Round 10: Ecosystem review and correctness sweep - done
 
 Reviewed every leaf package manually after the third audit. Fixed the concrete defects found instead of adding features:

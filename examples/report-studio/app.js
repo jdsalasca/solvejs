@@ -1,5 +1,6 @@
 /* eslint-disable max-lines-per-function -- the demo keeps its PDF layout readable in one place */
 import {
+  Bookmark,
   Divider,
   Link,
   Pdf,
@@ -104,6 +105,7 @@ function pdfDocument() {
       }),
     children: PdfPage({
       children: [
+        Bookmark({ title: "Invoice", level: 1 }),
         View({
           background: PdfColors.DarkBlue,
           padding: 26,
@@ -152,6 +154,7 @@ function pdfDocument() {
           ]
         }),
         Spacer({ height: 22 }),
+        Bookmark({ title: "Line items", level: 2 }),
         Table({
           columns: [
             { key: "description", header: "Description", width: 260 },
@@ -190,6 +193,7 @@ function pdfDocument() {
           ]
         }),
         Spacer({ height: 22 }),
+        Bookmark({ title: "Payment details", level: 2 }),
         View({
           background: PdfColors.SoftGray,
           padding: 14,
@@ -244,6 +248,18 @@ function workbookBytes() {
         autoFilter: `A6:D${lastItemRow}`,
         tabColor: XlsxColors.DarkBlue,
         pageSetup: { orientation: "portrait", paperSize: 9, fitToWidth: 1, fitToHeight: 1 },
+        dataValidations: [
+          {
+            range: `B7:B${Math.max(lastItemRow, 7)}`,
+            type: "whole",
+            operator: "between",
+            formula1: "1",
+            formula2: "999",
+            showErrorMessage: true,
+            errorTitle: "Quantity",
+            error: "Enter a whole number between 1 and 999."
+          }
+        ],
         columns: [
           { width: 34 },
           { width: 8, style: { align: "center" } },

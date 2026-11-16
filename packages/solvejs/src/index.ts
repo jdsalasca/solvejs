@@ -19,6 +19,7 @@ export * from "@jdsalasc/solvejs-money";
 export * from "@jdsalasc/solvejs-http";
 export * from "@jdsalasc/solvejs-xlsx";
 export {
+  Bookmark,
   Pdf,
   PdfPage,
   View,
@@ -44,6 +45,7 @@ export {
   createElement as createPdfElement,
   Fragment as PdfFragment,
   Row as PdfRow,
+  type BookmarkProps,
   type DividerProps,
   type HeadingProps,
   type ImageProps,
@@ -72,6 +74,7 @@ export {
   type PdfLink,
   type PdfMetadata,
   type PdfOp,
+  type PdfOutlineItem,
   type PdfPageModel,
   type PdfErrorCode
 } from "@jdsalasc/solvejs-pdf";

@@ -22,8 +22,9 @@ Open <http://localhost:4174>. The server is a single zero-dependency Node file t
 
 1. Edit the invoice number, customer, company, tax rate or line items. The PDF preview updates after every change.
 2. Click **Download XLSX** and open the file in Excel or LibreOffice. The amount cells use `B7*C7`-style formulas with cached results, so the sheet is useful before a recalculation.
-3. Check **Page Layout** in the spreadsheet: A4, fit to one page, frozen header rows and `InvoiceTotal` as a defined name.
-4. Click **Download** in the PDF viewer to save the same data as a PDF.
+3. Check **Page Layout** in the spreadsheet: A4, fit to one page, frozen header rows and `InvoiceTotal` as a defined name. Column B has a whole-number validation rule for quantities.
+4. Open the PDF outline/bookmarks panel in the viewer to jump to **Invoice**, **Line items** or **Payment details**.
+5. Click **Download** in the PDF viewer to save the same data as a PDF.
 
 ## Files
 
