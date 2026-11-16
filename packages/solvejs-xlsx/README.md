@@ -3,7 +3,7 @@
 [![npm](https://img.shields.io/npm/v/@jdsalasc/solvejs-xlsx)](https://www.npmjs.com/package/@jdsalasc/solvejs-xlsx)
 [![node](https://img.shields.io/node/v/@jdsalasc/solvejs-xlsx)](https://www.npmjs.com/package/@jdsalasc/solvejs-xlsx)
 
-Zero-dependency modern XLSX reader and writer built from scratch in TypeScript: ZIP, CRC-32, XML, OOXML, shared strings, dates, formulas, hyperlinks, PNG/JPEG images, styles, merged cells, CSV and a declarative component API. No SheetJS, no ExcelJS, no unzip library, no React.
+Zero-dependency modern XLSX reader and writer built from scratch in TypeScript: ZIP, CRC-32, XML, OOXML, shared strings, dates, formulas, hyperlinks, PNG/JPEG images, styles, merged cells, print setup, defined names, CSV and a declarative component API. No SheetJS, no ExcelJS, no unzip library, no React.
 
 ## When to use this package
 
@@ -69,6 +69,44 @@ const bytes = writeXlsx({
 ```
 
 `writeXlsx` does not evaluate formulas. It writes the formula and the `value` as Excel's cached result so the file opens with a useful number before Excel recalculates. Formula-looking strings stay inline text and are never treated as formulas.
+
+### Print setup and defined names
+
+Reports usually need more than cells: the page has to print the same way the screen previews it, and formulas should read like the business domain instead of raw coordinates.
+
+```ts
+import { writeXlsx } from "@jdsalasc/solvejs-xlsx";
+
+const bytes = writeXlsx({
+  definedNames: {
+    InvoiceTotal: "Invoice!$D$13",
+    TaxRate: "Settings!$B$2"
+  },
+  sheets: [
+    {
+      name: "Invoice",
+      pageSetup: {
+        orientation: "landscape",
+        paperSize: 9, // A4
+        fitToWidth: 1,
+        fitToHeight: 1
+      },
+      columns: [{ width: 34 }, { width: 10 }, { width: 14 }, { width: 14 }],
+      rows: [
+        ["Description", "Qty", "Unit", "Amount"],
+        ["Design", 1, 2400, { value: 2400, formula: "B2*C2" }],
+        [{ value: 2400, formula: "SUM(D2:D2)" }]
+      ]
+    },
+    {
+      name: "Settings",
+      rows: [["Tax rate", 0.08]]
+    }
+  ]
+});
+```
+
+`pageSetup` supports `orientation`, `paperSize` (OOXML paper code, `9` is A4), `fitToWidth` and `fitToHeight`. The writer adds `<pageMargins>` defaults and the `fitToPage` flag that Excel and LibreOffice need. `definedNames` writes global workbook names and the reader returns them in `workbook.definedNames`. Sheet-scoped names from imported files are skipped instead of being flattened into the wrong scope.
 
 ### CSV and TSV
 
@@ -233,12 +271,13 @@ Each sheet keeps `rows` as primitive values and adds optional metadata when pres
 | `rowHeights` | Custom row heights keyed by row number |
 | `freeze` | Frozen rows and columns |
 | `autoFilter` | Auto-filter reference |
+| `pageSetup` | Orientation, paper size and fit-to-page values from `<pageSetup>` |
 | `links` | `A1` to external URL |
 | `formulas` | `A1` to formula text (without `=`) |
 | `styles` | `A1` to font, fill, border, alignment and number format |
 | `images` | Anchor, size, format and bytes for PNG/JPEG media |
 
-Dates are returned as UTC `Date` objects. The reader supports shared strings, inline strings, numbers, booleans, formula results, error cells, the 1900 and 1904 date systems, custom number formats, hyperlinks, images and workbook parts resolved through their OOXML relationships. Use `sheets` to parse only the worksheets you need from a large file.
+Dates are returned as UTC `Date` objects. The reader supports shared strings, inline strings, numbers, booleans, formula results, error cells, the 1900 and 1904 date systems, custom number formats, hyperlinks, images, print setup, global defined names and workbook parts resolved through their OOXML relationships. Use `sheets` to parse only the worksheets you need from a large file. It reduces worksheet decoding, not archive decompression: the ZIP is expanded before sheets are selected, so keep an upload-size limit around the reader.
 
 ## Formatting
 
@@ -269,20 +308,21 @@ The formatter covers common number, currency, percentage, scientific, date and t
 | `isCellObject(value)` | Detects `{ value, formula, href }` cells. |
 | `Colors`, `XlsxCellStyle`, `XlsxBorder`, ... | Styling types and palette. |
 | `XlsxError` | Stable codes: `XLSX_INVALID_INPUT`, `XLSX_INVALID_ZIP`, `XLSX_INVALID_XML`, `XLSX_UNSUPPORTED`, `XLSX_LIMIT_EXCEEDED`. |
-| `XLSX_LIMITS` | Entries, bytes, rows, columns, cells and sheets limits. |
+| `XLSX_LIMITS` | Entries, bytes, rows, columns, cells, sheets, merges and defined-name limits. |
 
 ## What is supported
 
-- Multiple sheets, column widths/styles, row heights/styles, frozen panes, auto-filter, tab color.
+- Multiple sheets, column widths/styles, row heights/styles, frozen panes, auto-filter, tab color, page setup and fit-to-page printing.
 - Strings (UTF-8), numbers, booleans and dates.
 - Bold, italic, underline, strike, font name/size/color, solid fills, borders per side, horizontal/vertical alignment and wrap.
 - Number formats, including custom formats.
+- Global defined names on write and read.
 - Merged cells on write (`colSpan`/`rowSpan`), validated against overlaps and worksheet bounds; merged ranges read back.
 - Styled blank cells, column default styles and row default styles.
 - Formulas with cached values, including shared formulas with relative references; hyperlinks with worksheet relationships.
-- PNG and JPEG images embedded through DrawingML and read back with anchor, size and bytes, including two-cell anchor markers.
+- PNG and JPEG images embedded through DrawingML and read back with anchor, size and bytes, including two-cell anchor markers and their offsets.
 - CSV/TSV import/export and JSON row mapping with leading-zero and formula-injection safety.
-- Shared strings and inline strings on read; formulas, links, styles, widths, heights, freeze and row styles metadata.
+- Shared strings and inline strings on read; formulas, links, styles, widths, heights, freeze, print setup and row styles metadata.
 - DEFLATE-compressed ZIP entries through the standard streams.
 - Workbook title and creator in `docProps/core.xml`.
 - XML 1.0 escaping, control-character sanitization and a null-prototype XML attribute map.
@@ -293,6 +333,7 @@ The formatter covers common number, currency, percentage, scientific, date and t
 - Formula evaluation. The writer stores formula text and a cached result; the package never calculates expressions.
 - Charts, pivot tables, comments, data validation, conditional formatting, macros or VBA.
 - External workbook links, shapes, 3D images or SVG/WebP/GIF images. Images are limited to PNG and JPEG.
+- Sheet-scoped defined names on read; only global names are returned.
 - XLS, XLSB, ODS and DBF containers. This package is XLSX-first.
 - Encrypted workbooks.
 - ZIP64 archives (more than 65535 entries or 4 GiB).
@@ -308,8 +349,108 @@ The formatter covers common number, currency, percentage, scientific, date and t
 - The reader resolves workbook, styles, shared strings and worksheets through OOXML relationships and rejects external targets except worksheet hyperlinks. Imported hyperlinks must use the hyperlink relationship type and a safe `http(s)`, `mailto` or `tel` scheme; `javascript:`/`data:` targets are dropped.
 - Strings are written as inline strings (`t="inlineStr"`), so a value such as `=SUM(A1:A2)` is data, not a formula.
 - Hyperlinks must be `http(s)`, `mailto`, `tel` or internal `#` targets; `javascript:` and `data:` are rejected.
-- CSV export prefixes formula-looking strings with an apostrophe by default, including cell objects and values with leading whitespace; `sheetToJson` creates null-prototype records.
+- CSV export prefixes formula-looking strings with an apostrophe by default, including cell objects and values with leading whitespace; numeric values keep their type, so `-5` stays `-5` while the string `"-5"` is protected. `sheetToJson` creates null-prototype records.
+- Merge validation caps the total inspected area and the number of merged ranges, and detects intersections with a sweep instead of comparing every pair.
 - The writer never emits macros or external links.
+
+## Real-world recipes
+
+### API export: send a workbook from a Node route
+
+```ts
+import { writeXlsxCompressed } from "@jdsalasc/solvejs-xlsx";
+
+export async function GET() {
+  const bytes = await writeXlsxCompressed({
+    title: "Q4 revenue",
+    creator: "Finance API",
+    sheets: [
+      {
+        name: "Revenue",
+        freeze: { rows: 1 },
+        autoFilter: true,
+        columns: [
+          { header: "Account", width: 28 },
+          { header: "Amount", width: 16, style: { numberFormat: "#,##0.00" } }
+        ],
+        rows: [
+          ["Subscriptions", 128400],
+          ["Services", 46200],
+          ["Total", { value: 174600, formula: "SUM(B2:B3)" }]
+        ]
+      }
+    ]
+  });
+
+  return new Response(bytes, {
+    headers: {
+      "content-type": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+      "content-disposition": 'attachment; filename="revenue.xlsx"'
+    }
+  });
+}
+```
+
+`writeXlsxCompressed` is asynchronous because it uses the platform compression stream. The stored `writeXlsx` is synchronous and useful for small files and tests.
+
+### Upload intake: read only the sheets you need
+
+```ts
+import { readXlsx, XlsxError } from "@jdsalasc/solvejs-xlsx";
+
+export async function parseUpload(file: File) {
+  if (file.size > 10 * 1024 * 1024) throw new Error("Workbook is too large.");
+  try {
+    const workbook = await readXlsx(new Uint8Array(await file.arrayBuffer()), {
+      sheets: ["Orders"],
+      includeStyles: false
+    });
+    return workbook.sheets[0]?.rows ?? [];
+  } catch (error) {
+    if (error instanceof XlsxError) return { code: error.code, message: error.message };
+    throw error;
+  }
+}
+```
+
+The byte cap is your policy; `XLSX_LIMITS` bounds cells, rows, entries and decompression, but the reader still expands the ZIP before selecting sheets. Do not treat a spreadsheet parser as a sandbox.
+
+### CSV intake: keep leading zeros and protect exports
+
+```ts
+import { readCsv, sheetToJson, writeCsv } from "@jdsalasc/solvejs-xlsx";
+
+const rows = readCsv(await file.text());
+const records = sheetToJson(rows);
+
+const safeCsv = writeCsv(rows, { protectFormulas: true });
+```
+
+`sheetToJson` uses the first row as headers by default; use `skipHeader: true` when it is data, or pass an explicit `header` array. `writeCsv` protects strings that start with `=`, `+`, `-` or `@`, but leaves numeric `-5` untouched.
+
+## How it compares
+
+This is the honest gap list from the November 2026 audit. ExcelJS is a full workbook toolkit; SheetJS has the broadest import matrix and a Pro product for advanced features. SolveJS is deliberately XLSX/CSV-first and dependency-free.
+
+| Capability | SolveJS XLSX | ExcelJS | SheetJS |
+|---|---|---|---|
+| Runtime dependencies | **0** | Several | 0 in the community build |
+| XLSX read + write | Yes | Yes | Yes |
+| Rich styles, merges, widths, rows | Yes | Yes | Partial in the community build |
+| Formulas with cached values | Yes (no evaluation) | Yes | Yes |
+| PNG/JPEG images | Yes | Yes | Partial / Pro |
+| Page setup and print areas | Basic page setup | Full | Partial |
+| Defined names | Global names | Yes | Yes |
+| Data validation | Not yet | Yes | Partial / Pro |
+| Conditional formatting | Not yet | Yes | Partial / Pro |
+| Comments | Not yet | Yes | Partial |
+| Charts, pivots, macros | No | Charts | No in the community build |
+| Streaming write/read | No | Yes | Limited |
+| Template editing | No | Partly | Yes |
+| XLS/XLSB/ODS | No | No | Yes |
+| Browser-first zero-dependency bundle | **Yes** | No | Yes |
+
+Pick ExcelJS when you need validation, comments, conditional formatting or streaming today. Pick SheetJS when you must ingest legacy formats or edit templates. Pick SolveJS when you want a small, auditable writer/reader with a typed component API and no supply chain, and the advanced spreadsheet features are not on the critical path.
 
 ## Dates
 
@@ -344,6 +485,9 @@ The compatibility check converts a generated workbook to CSV and reads a LibreOf
 - Images are limited to PNG and JPEG; the writer uses one-cell anchors and the reader also accepts two-cell anchors. There are no charts, shapes or floating drawings.
 - The reader returns row arrays; use `sheetToJson` for header-based objects.
 - Column widths are character units, not pixels.
+- `pageSetup` covers orientation, paper size and fit-to-page. Print areas, repeating title rows and manual page breaks are not exposed yet.
+- Only global defined names are read; sheet-scoped names are skipped.
+- Shared formulas are translated with a quote-aware tokenizer for cell ranges and quoted sheet names. Unsupported constructs are returned as-is rather than guessed.
 - The stored writer is larger than a compressed workbook; use the compressed variants for large exports.
 - The `Xlsx.name` prop is workbook metadata, not a browser download filename.
 - XLS/XLSB/ODS/DBF, charts, pivot tables, comments, data validation, conditional formatting, encryption and macros are out of scope.

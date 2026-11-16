@@ -1,4 +1,4 @@
-import type { XlsxCellValue } from "../shared.js";
+import type { XlsxCellValue, XlsxPageSetup } from "../shared.js";
 import type { XlsxCellStyle, XlsxColor } from "../style.js";
 
 /** One image anchored on a worksheet. */
@@ -49,6 +49,7 @@ export type SheetModel = {
   freeze?: FreezeModel;
   autoFilter?: string;
   tabColor?: XlsxColor;
+  pageSetup?: XlsxPageSetup;
   images?: ImageModel[];
 };
 
@@ -57,4 +58,5 @@ export type WorkbookModel = {
   sheets: SheetModel[];
   title?: string;
   creator?: string;
+  definedNames?: Record<string, string>;
 };

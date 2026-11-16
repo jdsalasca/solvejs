@@ -12,6 +12,9 @@ test("formats common Excel number patterns", () => {
   assert.equal(formatExcelNumber(12345, "0.00E+00"), "1.23E+4");
   assert.equal(formatExcelNumber(1.5, "0.00##"), "1.50");
   assert.equal(formatExcelNumber(-12345, "0.00E+00"), "-1.23E+4");
+  assert.equal(formatExcelNumber(12, "00000"), "00012");
+  assert.equal(formatExcelNumber(12000, "0,"), "12");
+  assert.equal(formatExcelDate(new Date(Date.UTC(2026, 10, 16, 15, 30)), "[h]:mm"), "15:30");
 });
 
 test("formats dates and times with Excel tokens", () => {

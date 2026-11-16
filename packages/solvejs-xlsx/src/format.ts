@@ -24,6 +24,9 @@ function sectionFor(value: number, format: string): string {
 function decimalsOf(pattern: string): { max: number; min: number } {
   const match = /\.([0#]+)/.exec(pattern);
   if (!match) return { max: 0, min: 0 };
+  if (match[1].length > 100) {
+    failXlsx("XLSX_INVALID_INPUT", "Number format has too many decimal placeholders.", { pattern });
+  }
   return {
     max: match[1].length,
     min: (match[1].match(/0/g) ?? []).length
@@ -47,6 +50,8 @@ function numberBody(value: number, pattern: string, decimals: { max: number; min
     if (trimmed.length < decimals.min) trimmed = fraction.slice(0, decimals.min);
     text = decimals.min === 0 && trimmed.length === 0 ? integer : `${integer}.${trimmed}`;
   }
+  const integerFormat = pattern.split(".")[0].replace(/,/g, "");
+  if (/^0+$/.test(integerFormat)) text = text.padStart(integerFormat.length, "0");
   return /#,##|0,000/.test(pattern) ? grouped(text) : text;
 }
 
@@ -73,13 +78,15 @@ function patternText(value: number, pattern: string): string {
 }
 
 /** Formats a number with the common Excel number-format syntax. */
+// eslint-disable-next-line complexity -- format sections and special cases are explicit
 export function formatExcelNumber(value: number, format = "General"): string {
   if (!Number.isFinite(value)) failXlsx("XLSX_INVALID_INPUT", "Expected a finite number.", { value });
   if (format === "General" || format === "@" || format.length === 0) return String(value);
   const pattern = stripDecorations(sectionFor(value, format));
   if (pattern.includes("@")) return String(value);
   if (/E[+-]0+/i.test(pattern)) return scientificText(value, pattern);
-  return signedText(patternText(value, pattern), pattern, value < 0);
+  const scale = /(,+)$/.test(pattern.trim()) ? pattern.trim().match(/(,+)$/)?.[1].length ?? 0 : 0;
+  return signedText(patternText(scale === 0 ? value : value / 1000 ** scale, pattern), pattern, value < 0);
 }
 
 function isMinuteToken(next: string | undefined, seenHour: boolean): boolean {
@@ -126,6 +133,7 @@ export function formatExcelDate(value: Date, format = "yyyy-mm-dd"): string {
   const tokens = format.match(/\[[^\]]*\]|"[^"]*"|\\.|yyyy|yy|mmmm|mmm|mm|m|dddd|ddd|dd|d|hh|h|ss|s|AM\/PM|./gi) ?? [];
   const state: DateState = { seenHour: false, ampm: /AM\/PM/i.test(format) };
   let output = "";
+  // eslint-disable-next-line complexity -- token dispatch mirrors the Excel format grammar
   tokens.forEach((token, index) => {
     if (token.startsWith('"') && token.endsWith('"')) {
       output += token.slice(1, -1);
@@ -135,7 +143,18 @@ export function formatExcelDate(value: Date, format = "yyyy-mm-dd"): string {
       output += token.slice(1);
       return;
     }
-    if (token.startsWith("[")) return;
+    if (token.startsWith("[")) {
+      const totalSeconds = value.getUTCHours() * 3600 + value.getUTCMinutes() * 60 + value.getUTCSeconds();
+      const elapsed = token.toLowerCase();
+      if (elapsed === "[h]") {
+        state.seenHour = true;
+        output += String(Math.floor(totalSeconds / 3600));
+      } else if (elapsed === "[m]") {
+        state.seenHour = true;
+        output += String(Math.floor(totalSeconds / 60));
+      } else if (elapsed === "[s]") output += String(totalSeconds);
+      return;
+    }
     const handler = DATE_HANDLERS[token.toLowerCase()];
     output += handler ? handler(value, state, tokens[index + 1]) : token;
   });

@@ -40,6 +40,7 @@ test("writes CSV and TSV with quoting and formula protection", () => {
   assert.match(csv, /' {2}=SUM\(A1:A2\)/);
   assert.match(csv, /'=HYPERLINK/);
   assert.match(csv, /"line\nbreak"/);
+  assert.match(writeCsv([[ -5, "-5" ]]), /^-5,'-5/m);
   assert.equal(
     writeCsv([["a", "b"]], { delimiter: "\t", protectFormulas: false }),
     "a\tb\r\n"

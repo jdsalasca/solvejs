@@ -41,6 +41,13 @@ export type XlsxImageInput = {
   alt?: string;
 };
 
+export type XlsxPageSetup = {
+  orientation?: "portrait" | "landscape";
+  paperSize?: number;
+  fitToWidth?: number;
+  fitToHeight?: number;
+};
+
 /** A worksheet accepted by the writer. */
 export type XlsxSheetInput = {
   name: string;
@@ -49,6 +56,7 @@ export type XlsxSheetInput = {
   freeze?: { rows?: number; columns?: number };
   autoFilter?: boolean | string;
   tabColor?: XlsxColor;
+  pageSetup?: XlsxPageSetup;
   images?: readonly XlsxImageInput[];
 };
 
@@ -57,6 +65,7 @@ export type XlsxWorkbookInput = {
   sheets: readonly XlsxSheetInput[];
   title?: string;
   creator?: string;
+  definedNames?: Record<string, string>;
 };
 
 /** A cell style returned by the reader, including the raw number format when present. */
@@ -72,12 +81,15 @@ export type XlsxSheetData = {
   rowStyles?: Record<number, XlsxReadStyle>;
   freeze?: { rows: number; columns: number };
   autoFilter?: string;
+  pageSetup?: XlsxPageSetup;
   links?: Record<string, string>;
   formulas?: Record<string, string>;
   styles?: Record<string, XlsxReadStyle>;
   images?: Array<{
     anchor: string;
     to?: string;
+    fromOffset?: { column: number; row: number };
+    toOffset?: { column: number; row: number };
     width: number;
     height: number;
     format: "png" | "jpeg";
@@ -100,6 +112,7 @@ export type XlsxWorkbookData = {
   sheets: XlsxSheetData[];
   date1904?: boolean;
   properties?: { title?: string; creator?: string };
+  definedNames?: Record<string, string>;
 };
 
 /** Hard limits that keep a malformed file from exhausting memory. */
@@ -114,7 +127,9 @@ export const XLSX_LIMITS = {
   maxWorkbookCells: 2_000_000,
   maxSheets: 100,
   maxImagePixels: 40_000_000,
-  maxImageDisplay: 10_000
+  maxImageDisplay: 10_000,
+  maxMerges: 10_000,
+  maxDefinedNames: 1_000
 } as const;
 
 const INVALID_SHEET_CHARS = /[\\/?*[\]:]/;

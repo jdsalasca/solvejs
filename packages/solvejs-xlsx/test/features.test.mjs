@@ -273,6 +273,40 @@ test("rejects formula and hyperlink abuse", () => {
   }
 });
 
+test("writes and reads page setup and defined names", async () => {
+  const bytes = writeXlsx({
+    definedNames: { InvoiceTotal: "Invoice!$F$12", TaxRate: "Invoice!$B$2" },
+    sheets: [
+      {
+        name: "Invoice",
+        rows: [[1]],
+        pageSetup: { orientation: "landscape", paperSize: 9, fitToWidth: 1, fitToHeight: 2 }
+      }
+    ]
+  });
+  const workbook = await readXlsx(bytes);
+  assert.deepEqual(workbook.sheets[0].pageSetup, {
+    orientation: "landscape",
+    paperSize: 9,
+    fitToWidth: 1,
+    fitToHeight: 2
+  });
+  assert.deepEqual({ ...workbook.definedNames }, { InvoiceTotal: "Invoice!$F$12", TaxRate: "Invoice!$B$2" });
+});
+
+test("rejects invalid page setup and defined names", () => {
+  const invalid = [
+    () => writeXlsx({ sheets: [{ name: "S", rows: [], pageSetup: { paperSize: 0 } }] }),
+    () => writeXlsx({ sheets: [{ name: "S", rows: [], pageSetup: { fitToWidth: -1 } }] }),
+    () => writeXlsx({ sheets: [{ name: "S", rows: [] }], definedNames: { A1: "S!$A$1" } }),
+    () => writeXlsx({ sheets: [{ name: "S", rows: [] }], definedNames: { "has space": "S!$A$1" } }),
+    () => writeXlsx({ sheets: [{ name: "S", rows: [] }], definedNames: { Name: "" } })
+  ];
+  for (const run of invalid) {
+    assert.throws(run, (error) => error instanceof XlsxError && error.code === "XLSX_INVALID_INPUT");
+  }
+});
+
 test("does not pollute Object.prototype through XML attributes or JSON headers", () => {
   const root = parseXml('<root __proto__="polluted" constructor="also"/>');
   assert.equal({}.polluted, undefined);

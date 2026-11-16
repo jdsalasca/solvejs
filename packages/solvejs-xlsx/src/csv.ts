@@ -156,8 +156,12 @@ function cellText(value: XlsxCell): string {
   return isCellObject(value) ? primitiveCellText(value.value) : primitiveCellText(value);
 }
 
-function protectedText(text: string, protectFormulas: boolean): string {
-  if (!protectFormulas) return text;
+function isStringCell(value: XlsxCell): boolean {
+  return isCellObject(value) ? typeof value.value === "string" : typeof value === "string";
+}
+
+function protectedText(value: XlsxCell, text: string, protectFormulas: boolean): string {
+  if (!protectFormulas || !isStringCell(value)) return text;
   return /^[\s]*[=+\-@\t]/.test(text) ? `'${text}` : text;
 }
 
@@ -166,7 +170,7 @@ function needsQuotes(text: string, delimiter: string, quote: string): boolean {
 }
 
 function csvField(value: XlsxCell, delimiter: string, quote: string, protectFormulas: boolean): string {
-  const text = protectedText(cellText(value), protectFormulas);
+  const text = protectedText(value, cellText(value), protectFormulas);
   return needsQuotes(text, delimiter, quote) ? `${quote}${text.split(quote).join(quote + quote)}${quote}` : text;
 }
 

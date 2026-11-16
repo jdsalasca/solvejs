@@ -17,6 +17,7 @@ import { writeZip, writeZipDeflated, type ZipEntry } from "../zip/write.js";
 import type { CellModel, ColumnModel, FreezeModel, ImageModel, RowModel, SheetModel, WorkbookModel } from "./model.js";
 import { imageModel, pixelsToEmu, utf8 } from "./media.js";
 import { StyleRegistry } from "./styles.js";
+import type { XlsxPageSetup } from "../shared.js";
 
 const MAX_COLUMN_WIDTH = 255;
 const DEFAULT_COLUMN_WIDTH = 12;
@@ -169,9 +170,13 @@ function renderFreeze(freeze: FreezeModel | undefined): string {
   )}" state="frozen"/></sheetView></sheetViews>`;
 }
 
-function renderTabColor(color: string | undefined): string {
-  const normalized = normalizeColor(color);
-  return normalized ? `<sheetPr><tabColor rgb="${normalized}"/></sheetPr>` : "";
+function renderSheetProperties(tabColor: string | undefined, setup: XlsxPageSetup | undefined): string {
+  const normalized = normalizeColor(tabColor);
+  const fit = setup && (setup.fitToWidth !== undefined || setup.fitToHeight !== undefined);
+  if (!normalized && !fit) return "";
+  const color = normalized ? `<tabColor rgb="${normalized}"/>` : "";
+  const page = fit ? `<pageSetUpPr fitToPage="1"/>` : "";
+  return `<sheetPr>${color}${page}</sheetPr>`;
 }
 
 function columnIndex(letters: string): number | null {
@@ -274,11 +279,12 @@ function renderSheet(sheet: SheetModel, styles: StyleRegistry): { xml: string; l
   const data = renderSheetData(sheet, styles, merges, links);
   const hasImages = (sheet.images?.length ?? 0) > 0;
   const drawing = hasImages ? `<drawing r:id="rId${externalLinkCount(links) + 1}"/>` : "";
-  const xml = `${XML_HEADER}<worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships">${renderTabColor(
-    sheet.tabColor
+  const xml = `${XML_HEADER}<worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships">${renderSheetProperties(
+    sheet.tabColor,
+    sheet.pageSetup
   )}${renderFreeze(sheet.freeze)}${renderColumns(sheet.columns, styles)}${data}${renderAutoFilter(
     sheet.autoFilter
-  )}${renderMerges(merges)}${renderHyperlinks(links)}${drawing}</worksheet>`;
+  )}${renderMerges(merges)}${renderHyperlinks(links)}${renderPageSetup(sheet.pageSetup)}${drawing}</worksheet>`;
   return { xml, links, hasImages };
 }
 
@@ -298,14 +304,34 @@ function renderSheetRels(links: readonly LinkRef[], drawingNumber: number): stri
   return `${XML_HEADER}<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">${relationships}${drawing}</Relationships>`;
 }
 
-function renderWorkbook(sheets: readonly SheetModel[]): string {
+function renderWorkbook(sheets: readonly SheetModel[], definedNames?: Record<string, string>): string {
   const entries = sheets
     .map(
       (sheet, index) =>
         `<sheet name="${escapeXmlAttribute(sheet.name)}" sheetId="${index + 1}" r:id="rId${index + 1}"/>`
     )
     .join("");
-  return `${XML_HEADER}<workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"><sheets>${entries}</sheets></workbook>`;
+  const names =
+    definedNames && Object.keys(definedNames).length > 0
+      ? `<definedNames>${Object.entries(definedNames)
+          .map(
+            ([name, reference]) =>
+              `<definedName name="${escapeXmlAttribute(name)}">${escapeXmlText(reference)}</definedName>`
+          )
+          .join("")}</definedNames>`
+      : "";
+  return `${XML_HEADER}<workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"><sheets>${entries}</sheets>${names}</workbook>`;
+}
+
+function renderPageSetup(setup: XlsxPageSetup | undefined): string {
+  if (!setup) return "";
+  const orientation = setup.orientation === "landscape" ? ' orientation="landscape"' : "";
+  const paper = setup.paperSize ? ` paperSize="${setup.paperSize}"` : "";
+  const fit =
+    setup.fitToWidth || setup.fitToHeight
+      ? ` fitToWidth="${setup.fitToWidth ?? 0}" fitToHeight="${setup.fitToHeight ?? 0}"`
+      : "";
+  return `<pageMargins left="0.7" right="0.7" top="0.75" bottom="0.75" header="0.3" footer="0.3"/><pageSetup${orientation}${paper}${fit}/>`;
 }
 
 function renderWorkbookRels(sheetCount: number): string {
@@ -403,9 +429,12 @@ type MergeRange = { startRow: number; startColumn: number; endRow: number; endCo
 
 function assertRangeEmpty(sheet: SheetModel, range: MergeRange): void {
   for (let row = range.startRow; row < range.endRow; row += 1) {
-    for (let column = range.startColumn; column < range.endColumn; column += 1) {
+    const cells = sheet.rows[row]?.cells;
+    if (!cells) continue;
+    const end = Math.min(range.endColumn, cells.length);
+    for (let column = range.startColumn; column < end; column += 1) {
       if (row === range.startRow && column === range.startColumn) continue;
-      if (sheet.rows[row]?.cells[column]) {
+      if (cells[column]) {
         failXlsx("XLSX_INVALID_INPUT", "Merged cells overlap another cell.", {
           sheet: sheet.name,
           row: row + 1,
@@ -433,28 +462,36 @@ function assertMergeRange(sheet: SheetModel, range: MergeRange): void {
 
 function assertNoMergeIntersections(sheet: SheetModel, ranges: readonly MergeRange[]): void {
   const sorted = [...ranges].sort((a, b) => a.startRow - b.startRow || a.startColumn - b.startColumn);
-  for (let left = 0; left < sorted.length; left += 1) {
-    for (let right = left + 1; right < sorted.length; right += 1) {
-      const a = sorted[left];
-      const b = sorted[right];
-      if (b.startRow >= a.endRow) break;
-      if (b.startColumn < a.endColumn && a.startColumn < b.endColumn) {
+  let active: MergeRange[] = [];
+  for (const range of sorted) {
+    active = active.filter((candidate) => candidate.endRow > range.startRow);
+    for (const candidate of active) {
+      if (range.startColumn < candidate.endColumn && candidate.startColumn < range.endColumn) {
         failXlsx("XLSX_INVALID_INPUT", "Merged ranges cannot intersect.", { sheet: sheet.name });
       }
     }
+    active.push(range);
   }
 }
 
 function assertMergeRanges(sheet: SheetModel): void {
   const ranges: MergeRange[] = [];
+  let inspected = 0;
   sheet.rows.forEach((row, rowIndex) => {
     row.cells.forEach((cell, columnIndex) => {
       if (!cell) return;
       const range = mergeRangeOf(cell, rowIndex, columnIndex);
-      if (range) {
-        ranges.push(range);
-        assertMergeRange(sheet, range);
+      if (!range) return;
+      if (ranges.length >= XLSX_LIMITS.maxMerges) {
+        failXlsx("XLSX_LIMIT_EXCEEDED", "Sheet has too many merged ranges.", { sheet: sheet.name });
       }
+      const area = (range.endRow - range.startRow) * (range.endColumn - range.startColumn);
+      inspected += area;
+      if (inspected > XLSX_LIMITS.maxCells * 2) {
+        failXlsx("XLSX_LIMIT_EXCEEDED", "Merged ranges require too much validation work.", { sheet: sheet.name });
+      }
+      ranges.push(range);
+      assertMergeRange(sheet, range);
     });
   });
   assertNoMergeIntersections(sheet, ranges);
@@ -475,6 +512,56 @@ function assertFreeze(freeze: FreezeModel, sheet: SheetModel): void {
   }
 }
 
+// eslint-disable-next-line complexity -- each page setup field has its own range
+function validatePageSetup(setup: XlsxPageSetup | undefined, sheet: SheetModel): void {
+  if (!setup) return;
+  if (setup.orientation !== undefined && setup.orientation !== "portrait" && setup.orientation !== "landscape") {
+    failXlsx("XLSX_INVALID_INPUT", "Expected page orientation portrait or landscape.", { sheet: sheet.name });
+  }
+  if (
+    setup.paperSize !== undefined &&
+    (!Number.isInteger(setup.paperSize) || setup.paperSize < 1 || setup.paperSize > 118)
+  ) {
+    failXlsx("XLSX_INVALID_INPUT", "Expected a paper size between 1 and 118.", { sheet: sheet.name });
+  }
+  for (const key of ["fitToWidth", "fitToHeight"] as const) {
+    const value = setup[key];
+    if (value !== undefined && (!Number.isInteger(value) || value < 0 || value > 32_767)) {
+      failXlsx("XLSX_INVALID_INPUT", "Expected fit-to-page values between 0 and 32767.", {
+        sheet: sheet.name,
+        field: key
+      });
+    }
+  }
+}
+
+const DEFINED_NAME = /^[A-Za-z_\\][A-Za-z0-9._\\]*$/;
+const CELL_LIKE_NAME = /^[A-Za-z]{1,3}[0-9]+$/;
+
+// eslint-disable-next-line complexity -- name and reference rules are checked together
+function validateDefinedNames(names: Record<string, string> | undefined): void {
+  if (!names) return;
+  const entries = Object.entries(names);
+  if (entries.length > XLSX_LIMITS.maxDefinedNames) {
+    failXlsx("XLSX_LIMIT_EXCEEDED", "Workbook has too many defined names.", { count: entries.length });
+  }
+  for (const [name, reference] of entries) {
+    if (name.length > 255 || !DEFINED_NAME.test(name) || CELL_LIKE_NAME.test(name)) {
+      failXlsx("XLSX_INVALID_INPUT", "Defined names must be valid identifiers that are not cell references.", {
+        name
+      });
+    }
+    if (
+      typeof reference !== "string" ||
+      reference.length === 0 ||
+      reference.length > 8192 ||
+      hasControlCharacters(reference)
+    ) {
+      failXlsx("XLSX_INVALID_INPUT", "Defined name references must be non-empty formula text.", { name });
+    }
+  }
+}
+
 function validateSheetModel(sheet: SheetModel, names: Set<string>): void {
   assertSheetName(sheet.name, names);
   names.add(sheet.name.toLowerCase());
@@ -488,6 +575,7 @@ function validateSheetModel(sheet: SheetModel, names: Set<string>): void {
     failXlsx("XLSX_LIMIT_EXCEEDED", "Sheet has too many columns.", { sheet: sheet.name });
   }
   if (sheet.freeze) assertFreeze(sheet.freeze, sheet);
+  validatePageSetup(sheet.pageSetup, sheet);
   for (const row of sheet.rows) validateRowModel(row, sheet);
   assertMergeRanges(sheet);
 }
@@ -501,6 +589,7 @@ function validateModel(model: WorkbookModel): void {
   }
   const names = new Set<string>();
   for (const sheet of model.sheets) validateSheetModel(sheet, names);
+  validateDefinedNames(model.definedNames);
 }
 
 function assertSimpleDimensions(sheet: XlsxSheetInput): void {
@@ -535,6 +624,7 @@ function validateWorkbook(input: XlsxWorkbookInput): void {
   }
   const names = new Set<string>();
   for (const sheet of input.sheets) validateSimpleSheet(sheet, names);
+  validateDefinedNames(input.definedNames);
 }
 
 function toCell(value: XlsxCell): CellModel {
@@ -575,11 +665,13 @@ function toModel(input: XlsxWorkbookInput): WorkbookModel {
         freeze: sheet.freeze,
         autoFilter: filterRange(sheet),
         tabColor: sheet.tabColor,
+        pageSetup: sheet.pageSetup,
         images: sheet.images ? sheet.images.map(imageModel) : undefined
       };
     }),
     title: input.title,
-    creator: input.creator
+    creator: input.creator,
+    definedNames: input.definedNames
   };
 }
 
@@ -638,7 +730,7 @@ function baseEntries(model: WorkbookModel, formats: ReadonlySet<"png" | "jpeg">,
       data: utf8(renderContentTypes(model.sheets.length, hasCore, formats, drawingCount))
     },
     { name: "_rels/.rels", data: utf8(renderRootRels(hasCore)) },
-    { name: "xl/workbook.xml", data: utf8(renderWorkbook(model.sheets)) },
+    { name: "xl/workbook.xml", data: utf8(renderWorkbook(model.sheets, model.definedNames)) },
     { name: "xl/_rels/workbook.xml.rels", data: utf8(renderWorkbookRels(model.sheets.length)) }
   ];
 }

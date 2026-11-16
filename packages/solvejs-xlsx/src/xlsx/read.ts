@@ -3,6 +3,7 @@ import {
   XLSX_LIMITS,
   type ReadXlsxOptions,
   type XlsxCellValue,
+  type XlsxPageSetup,
   type XlsxReadStyle,
   type XlsxSheetData,
   type XlsxWorkbookData,
@@ -36,6 +37,7 @@ type ParsedSheet = {
   rowStyles: Record<number, XlsxReadStyle>;
   freeze?: { rows: number; columns: number };
   autoFilter?: string;
+  pageSetup?: XlsxPageSetup;
   formulas: Record<string, string>;
   styles: Record<string, XlsxReadStyle>;
   linkRefs: LinkRef[];
@@ -86,7 +88,7 @@ function findRelationship(relationships: ReadonlyMap<string, Relationship>, suff
   return [...relationships.values()].find((relationship) => relationship.type.endsWith(`/${suffix}`));
 }
 
-function parseWorkbook(xml: string): { sheets: WorkbookSheet[]; date1904: boolean } {
+function parseWorkbook(xml: string): { sheets: WorkbookSheet[]; date1904: boolean; definedNames?: Record<string, string> } {
   const root = parseXml(xml);
   const workbook = firstChild(root, "workbook") ?? root;
   const sheetsNode = firstChild(workbook, "sheets");
@@ -105,7 +107,55 @@ function parseWorkbook(xml: string): { sheets: WorkbookSheet[]; date1904: boolea
   }
   const workbookPr = firstChild(workbook, "workbookPr");
   const date1904 = workbookPr?.attributes.date1904 === "1" || workbookPr?.attributes.date1904 === "true";
-  return { sheets, date1904 };
+  return { sheets, date1904, ...parseDefinedNames(workbook) };
+}
+
+// eslint-disable-next-line complexity -- explicit OOXML validation branches
+function parseDefinedNames(workbook: XmlNode): { definedNames?: Record<string, string> } {
+  const container = firstChild(workbook, "definedNames");
+  if (!container) return {};
+  const definedNames = Object.create(null) as Record<string, string>;
+  let count = 0;
+  for (const node of childrenNamed(container, "definedName")) {
+    const name = node.attributes.name;
+    const reference = textContent(node);
+    if (!name) continue;
+    if (node.attributes.localSheetId !== undefined) continue;
+    if (name.length > 255 || hasControlCharacters(name)) {
+      failXlsx("XLSX_INVALID_XML", "Defined name is not a valid identifier.", { name });
+    }
+    if (reference.length === 0 || reference.length > 8192 || hasControlCharacters(reference)) {
+      failXlsx("XLSX_INVALID_XML", "Defined name reference is not valid formula text.", { name });
+    }
+    if (definedNames[name] !== undefined && definedNames[name] !== reference) {
+      failXlsx("XLSX_INVALID_XML", "Workbook defines the same name twice.", { name });
+    }
+    count += 1;
+    if (count > XLSX_LIMITS.maxDefinedNames) {
+      failXlsx("XLSX_LIMIT_EXCEEDED", "Workbook has too many defined names.", { count });
+    }
+    definedNames[name] = reference;
+  }
+  return count > 0 ? { definedNames } : {};
+}
+
+// eslint-disable-next-line complexity -- optional OOXML attributes are validated individually
+function parsePageSetup(worksheet: XmlNode): XlsxPageSetup | undefined {
+  const node = firstChild(worksheet, "pageSetup");
+  if (!node) return undefined;
+  const setup: XlsxPageSetup = {};
+  const orientation = node.attributes.orientation;
+  if (orientation === "portrait" || orientation === "landscape") setup.orientation = orientation;
+  const paper = Number(node.attributes.paperSize);
+  if (node.attributes.paperSize !== undefined && Number.isInteger(paper) && paper >= 1 && paper <= 118) {
+    setup.paperSize = paper;
+  }
+  for (const key of ["fitToWidth", "fitToHeight"] as const) {
+    const raw = node.attributes[key];
+    const value = Number(raw);
+    if (raw !== undefined && Number.isInteger(value) && value >= 0 && value <= 32_767) setup[key] = value;
+  }
+  return Object.keys(setup).length > 0 ? setup : undefined;
 }
 
 function parseCore(xml: string): { title?: string; creator?: string } {
@@ -260,31 +310,52 @@ type ShiftMatch = [columnAbsolute: string, letters: string, rowAbsolute: string,
 function shiftSegment(segment: string, rowDelta: number, columnDelta: number): string {
   return segment.replace(/(\$?)([A-Z]{1,3})(\$?)(\d+)/g, (match, ...args: ShiftMatch) => {
     const [columnAbsolute, letters, rowAbsolute, digits, offset] = args;
-    if (segment[offset + match.length] === "(") return match;
+    if (segment[offset + match.length] === "(" || segment[offset + match.length] === "!") return match;
     const column = columnNumber(letters) + (columnAbsolute ? 0 : columnDelta);
     const row = Number(digits) + (rowAbsolute ? 0 : rowDelta);
-    if (column < 1 || row < 1) return match;
+    if (column < 1 || row < 1) return "#REF!";
     return `${columnAbsolute}${lettersOf(column)}${rowAbsolute}${row}`;
   });
+}
+
+function quotedEnd(value: string, start: number, quote: string): number {
+  let index = start + 1;
+  while (index < value.length) {
+    if (value[index] !== quote) {
+      index += 1;
+      continue;
+    }
+    if (value[index + 1] === quote) {
+      index += 2;
+      continue;
+    }
+    return index;
+  }
+  return -1;
 }
 
 function shiftFormula(formula: string, rowDelta: number, columnDelta: number): string {
   let output = "";
   let index = 0;
   while (index < formula.length) {
-    const quote = formula.indexOf('"', index);
-    if (quote === -1) {
-      output += shiftSegment(formula.slice(index), rowDelta, columnDelta);
-      break;
+    const character = formula[index];
+    if (character === '"' || character === "'") {
+      const end = quotedEnd(formula, index, character);
+      if (end === -1) {
+        output += formula.slice(index);
+        break;
+      }
+      output += formula.slice(index, end + 1);
+      index = end + 1;
+      continue;
     }
-    output += shiftSegment(formula.slice(index, quote), rowDelta, columnDelta);
-    const end = formula.indexOf('"', quote + 1);
-    if (end === -1) {
-      output += formula.slice(quote);
-      break;
+    let next = formula.length;
+    for (const quote of ['"', "'"]) {
+      const found = formula.indexOf(quote, index);
+      if (found !== -1 && found < next) next = found;
     }
-    output += formula.slice(quote, end + 1);
-    index = end + 1;
+    output += shiftSegment(formula.slice(index, next), rowDelta, columnDelta);
+    index = next;
   }
   return output;
 }
@@ -524,12 +595,19 @@ function parseSheet(xml: string, context: CellContext): ParsedSheet {
   parseMerges(worksheet, sheet);
   parseFreeze(worksheet, sheet);
   parseAutoFilter(worksheet, sheet);
+  sheet.pageSetup = parsePageSetup(worksheet);
   parseHyperlinks(worksheet, sheet);
   parseDrawingRef(worksheet, sheet);
   const sheetData = firstChild(worksheet, "sheetData");
   if (!sheetData) return sheet;
   const sharedFormulas = parseSharedFormulas(sheetData);
-  for (const row of childrenNamed(sheetData, "row")) parseRow(row, context, sheet, sharedFormulas);
+  const seenRows = new Set<number>();
+  for (const row of childrenNamed(sheetData, "row")) {
+    const rowNumber = rowNumberOf(row);
+    if (seenRows.has(rowNumber)) failXlsx("XLSX_INVALID_XML", "Duplicate row in a worksheet.", { row: rowNumber });
+    seenRows.add(rowNumber);
+    parseRow(row, context, sheet, sharedFormulas);
+  }
   return sheet;
 }
 
@@ -571,10 +649,20 @@ function resolveLinks(
   return Object.keys(links).length > 0 ? links : undefined;
 }
 
-type ImageAnchor = { row: number; column: number; width?: number; height?: number; relationshipId: string; to?: string };
+type ImageAnchor = {
+  row: number;
+  column: number;
+  width?: number;
+  height?: number;
+  relationshipId: string;
+  to?: string;
+  fromOffset?: { column: number; row: number };
+  toOffset?: { column: number; row: number };
+};
 type ReadImage = NonNullable<XlsxSheetData["images"]>[number];
-type AnchorPosition = { row: number; column: number };
+type AnchorPosition = { row: number; column: number; columnOffset: number; rowOffset: number };
 
+// eslint-disable-next-line complexity -- marker and offset validation are explicit
 function anchorPosition(anchor: XmlNode, childName: "from" | "to"): AnchorPosition | undefined {
   const child = firstChild(anchor, childName);
   if (!child) return undefined;
@@ -583,12 +671,11 @@ function anchorPosition(anchor: XmlNode, childName: "from" | "to"): AnchorPositi
   const column = colNode ? Number(textContent(colNode)) : Number.NaN;
   const row = rowNode ? Number(textContent(rowNode)) : Number.NaN;
   if (!Number.isInteger(column) || !Number.isInteger(row) || column < 0 || row < 0) return undefined;
-  return { row, column };
-}
-
-function anchorReference(anchor: XmlNode, childName: "from" | "to"): string | undefined {
-  const position = anchorPosition(anchor, childName);
-  return position ? cellReferenceFor(position.row + 1, position.column + 1) : undefined;
+  const colOff = firstChild(child, "colOff");
+  const rowOff = firstChild(child, "rowOff");
+  const columnOffset = colOff ? Number(textContent(colOff)) : 0;
+  const rowOffset = rowOff ? Number(textContent(rowOff)) : 0;
+  return { row, column, columnOffset: Number.isFinite(columnOffset) ? columnOffset : 0, rowOffset: Number.isFinite(rowOffset) ? rowOffset : 0 };
 }
 
 function anchorRelationship(anchor: XmlNode): string | undefined {
@@ -613,9 +700,17 @@ function imageAnchorOf(anchor: XmlNode): ImageAnchor | undefined {
   const position = anchorPosition(anchor, "from");
   const relationshipId = anchorRelationship(anchor);
   if (!position || !relationshipId) return undefined;
-  return { ...position, relationshipId, ...anchorSize(anchor), to: anchorReference(anchor, "to") };
+  const to = anchorPosition(anchor, "to");
+  return {
+    ...position,
+    relationshipId,
+    ...anchorSize(anchor),
+    ...(to ? { to: cellReferenceFor(to.row + 1, to.column + 1), toOffset: { column: to.columnOffset, row: to.rowOffset } } : {}),
+    fromOffset: { column: position.columnOffset, row: position.rowOffset }
+  };
 }
 
+// eslint-disable-next-line complexity -- media lookup and anchor fallbacks
 function imageFromAnchor(
   anchor: ImageAnchor,
   drawingRels: ReadonlyMap<string, Relationship>,
@@ -630,6 +725,8 @@ function imageFromAnchor(
   return {
     anchor: cellReferenceFor(anchor.row + 1, anchor.column + 1),
     ...(anchor.to ? { to: anchor.to } : {}),
+    ...(anchor.fromOffset ? { fromOffset: anchor.fromOffset } : {}),
+    ...(anchor.toOffset ? { toOffset: anchor.toOffset } : {}),
     width: anchor.width ?? media.width,
     height: anchor.height ?? media.height,
     format: media.format,
@@ -700,7 +797,7 @@ function selectSheets(sheets: readonly WorkbookSheet[], requested: readonly stri
 }
 
 type PackageParts = {
-  workbook: { sheets: WorkbookSheet[]; date1904: boolean };
+  workbook: ReturnType<typeof parseWorkbook>;
   workbookDir: string;
   rels: Map<string, Relationship>;
   shared: string[];
@@ -765,7 +862,8 @@ function baseMetadata(
     ...(Object.keys(parsed.rowHeights).length > 0 ? { rowHeights: parsed.rowHeights } : {}),
     ...(includeStyles && Object.keys(parsed.rowStyles).length > 0 ? { rowStyles: parsed.rowStyles } : {}),
     ...(parsed.freeze ? { freeze: parsed.freeze } : {}),
-    ...(parsed.autoFilter ? { autoFilter: parsed.autoFilter } : {})
+    ...(parsed.autoFilter ? { autoFilter: parsed.autoFilter } : {}),
+    ...(parsed.pageSetup ? { pageSetup: parsed.pageSetup } : {})
   };
 }
 
@@ -830,6 +928,7 @@ export async function readXlsx(bytes: Uint8Array, options: ReadXlsxOptions = {})
   return {
     sheets,
     date1904: parts.workbook.date1904,
+    ...(parts.workbook.definedNames ? { definedNames: parts.workbook.definedNames } : {}),
     ...(parts.properties ? { properties: parts.properties } : {})
   };
 }
