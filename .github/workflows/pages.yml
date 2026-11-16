@@ -6,6 +6,10 @@ on:
       - main
     paths:
       - docs/**
+      - packages/**
+      - scripts/prepare-docs-vendor.mjs
+      - package.json
+      - package-lock.json
       - .github/workflows/pages.yml
 
 permissions:
@@ -26,6 +30,21 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build packages
+        run: npm run build
+
+      - name: Copy package builds for the Live Lab
+        run: node scripts/prepare-docs-vendor.mjs
 
       - name: Setup Pages
         uses: actions/configure-pages@v5

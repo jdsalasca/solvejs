@@ -1,0 +1,2 @@
+# Build output copied into the docs artifact by prepare-docs-vendor.mjs.
+vendor/

@@ -5,6 +5,8 @@
 
 Zero-dependency modern XLSX reader and writer built from scratch in TypeScript: ZIP, CRC-32, XML, OOXML, shared strings, dates, formulas, hyperlinks, PNG/JPEG images, styles, merged cells, print setup, defined names, data validation, CSV and a declarative component API. No SheetJS, no ExcelJS, no unzip library, no React.
 
+Try the [Live Lab](https://jdsalasca.github.io/solvejs/live/) to generate a validated workbook in the browser.
+
 ## When to use this package
 
 - Export a report or invoice with real formatting: colors, bold headers, borders, alignment, number formats, column/row styles, widths, heights, frozen headers, filters, formulas, links, images and merged title rows.

@@ -72,6 +72,15 @@ const TOPICS = [
     level: "Intermediate"
   },
   {
+    id: "live-lab",
+    title: "Live Lab: PDF + XLSX in the browser",
+    description: "Edit one invoice and generate a real PDF and XLSX with validation, bookmarks and downloads.",
+    path: "live/index.html",
+    tags: ["live", "demo", "pdf", "xlsx", "excel", "invoice"],
+    packages: ["@jdsalasc/solvejs-pdf", "@jdsalasc/solvejs-xlsx"],
+    level: "Beginner"
+  },
+  {
     id: "invoice-fintech",
     title: "Build Fintech-Ready Invoice Totals",
     description: "Combine typed env rules, input validators, and safe money math for invoice pipelines.",

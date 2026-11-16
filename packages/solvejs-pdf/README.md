@@ -7,6 +7,8 @@ Zero-dependency PDF generation and preview, built from scratch in TypeScript. Wr
 
 No PDF library, no React dependency, no CSS framework. See the [Report Studio example](../../examples/report-studio) for an invoice that drives both a PDF and an XLSX workbook from one dataset.
 
+Try the [Live Lab](https://jdsalasca.github.io/solvejs/live/) to edit an invoice and preview a bookmarked PDF in the browser.
+
 ## When to use this package
 
 - Generate invoices, reports, certificates, receipts and summaries with real layout: headings, paragraphs, rows, tables, page breaks, repeated headers and footers.

@@ -1,0 +1,104 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="SolveJS Live Lab: editable PDF and XLSX reports plus runnable utility examples." />
+  <title>Live Lab | SolveJS</title>
+  <link rel="stylesheet" href="../styles.css" />
+  <link rel="stylesheet" href="./live.css" />
+  <script type="importmap">
+    {
+      "imports": {
+        "@jdsalasc/solvejs-date": "../vendor/solvejs-date/index.js",
+        "@jdsalasc/solvejs-validators": "../vendor/solvejs-validators/index.js",
+        "@jdsalasc/solvejs-money": "../vendor/solvejs-money/index.js",
+        "@jdsalasc/solvejs-json": "../vendor/solvejs-json/index.js",
+        "@jdsalasc/solvejs-url": "../vendor/solvejs-url/index.js",
+        "@jdsalasc/solvejs-xlsx": "../vendor/solvejs-xlsx/index.js",
+        "@jdsalasc/solvejs-pdf": "../vendor/solvejs-pdf/index.js",
+        "@jdsalasc/solvejs-pdf/viewer": "../vendor/solvejs-pdf/viewer.js"
+      }
+    }
+  </script>
+</head>
+<body>
+  <main class="page">
+    <section class="hero live-hero">
+      <p class="live-eyebrow">LIVE DOCUMENTATION</p>
+      <h1>SolveJS Live Lab</h1>
+      <p>Edit one invoice and watch the PDF and XLSX render from the same data. Every example runs the workspace build in your browser.</p>
+      <p class="live-links"><a href="../index.html">← Cookbook</a><a href="https://github.com/jdsalasca/solvejs" target="_blank" rel="noreferrer">GitHub</a></p>
+    </section>
+
+    <section class="live-grid">
+      <article class="panel live-panel">
+        <h2>Invoice data</h2>
+        <div class="live-fields">
+          <label>Customer<input id="live-customer" value="Ada Lovelace" /></label>
+          <label>Company<input id="live-company" value="Analytical Engines Ltd." /></label>
+          <label>Invoice<input id="live-number" value="1042" /></label>
+          <label>Tax %<input id="live-tax" type="number" min="0" max="40" step="0.5" value="8" /></label>
+        </div>
+        <div class="live-items-head"><span>Description</span><span>Qty</span><span>Unit</span><span></span></div>
+        <div id="live-items"></div>
+        <button id="live-add" class="live-button ghost" type="button">+ Add item</button>
+        <p id="live-status" class="live-status" role="status" aria-live="polite"></p>
+      </article>
+
+      <article class="panel live-panel">
+        <h2>PDF preview</h2>
+        <p class="live-caption">Rendered with <code>@jdsalasc/solvejs-pdf</code>, including bookmarks and page numbers.</p>
+        <div id="live-viewer"></div>
+      </article>
+
+      <article class="panel live-panel">
+        <h2>XLSX output</h2>
+        <p class="live-caption">The workbook carries formulas with cached values, defined names, page setup and quantity validation.</p>
+        <dl class="live-facts">
+          <div><dt>Total</dt><dd id="live-total">$0.00</dd></div>
+          <div><dt>Rows</dt><dd id="live-rows">0</dd></div>
+          <div><dt>Validation</dt><dd>Qty 1–999</dd></div>
+        </dl>
+        <button id="live-download-xlsx" class="live-button" type="button">Download XLSX</button>
+        <button id="live-download-pdf" class="live-button ghost" type="button">Download PDF</button>
+      </article>
+
+      <article class="panel live-panel">
+        <h2>Validate input</h2>
+        <label>Email, phone, UUID or username<input id="live-validate-input" value="dev@example.com" /></label>
+        <div class="live-actions">
+          <button data-validate="email" class="live-button small" type="button">Email</button>
+          <button data-validate="phone" class="live-button small" type="button">Phone</button>
+          <button data-validate="uuid" class="live-button small" type="button">UUID v4</button>
+          <button data-validate="username" class="live-button small" type="button">Username</button>
+        </div>
+        <pre id="live-validate-output" class="live-output">Run a validator to see the structured result.</pre>
+      </article>
+
+      <article class="panel live-panel">
+        <h2>Date &amp; money</h2>
+        <div class="live-fields">
+          <label>Date<input id="live-date" type="date" value="2026-11-16" /></label>
+          <label>Add days<input id="live-days" type="number" value="30" /></label>
+          <label>Amount<input id="live-amount" value="19.99" /></label>
+        </div>
+        <pre id="live-date-output" class="live-output">Choose a date and an offset.</pre>
+      </article>
+
+      <article class="panel live-panel">
+        <h2>JSON &amp; URL</h2>
+        <label>Query string<input id="live-query" value="?page=2&q=pdf+reports&tag=docs" /></label>
+        <div class="live-actions">
+          <button id="live-run-query" class="live-button small" type="button">Parse + build URL</button>
+          <button id="live-run-json" class="live-button ghost small" type="button">Stable JSON</button>
+        </div>
+        <pre id="live-query-output" class="live-output">?page=2&amp;q=pdf+reports&amp;tag=docs</pre>
+      </article>
+    </section>
+
+    <p class="footer">The Live Lab is also an integration test: it imports the same ESM files the packages publish.</p>
+  </main>
+  <script type="module" src="./live.js"></script>
+</body>
+</html>
