@@ -10,8 +10,14 @@ Set-Location $repo
 node scripts/prepare-docs-vendor.mjs
 
 $zip = Join-Path $env:TEMP "solvejs-docs.zip"
+$stage = Join-Path $env:TEMP "solvejs-docs-stage"
 if (Test-Path $zip) { Remove-Item $zip -Force }
-Compress-Archive -Path "docs\*" -DestinationPath $zip -Force
+if (Test-Path $stage) { Remove-Item $stage -Recurse -Force }
+New-Item -ItemType Directory $stage | Out-Null
+Copy-Item -Path "docs\*" -Destination $stage -Recurse
+$version = Get-Date -Format "yyyyMMddHHmmss"
+node scripts/version-docs-assets.mjs $stage $version
+Compress-Archive -Path "$stage\*" -DestinationPath $zip -Force
 
 scp -o BatchMode=yes $zip "${Server}:${RemoteRoot}/site.zip"
 ssh -o BatchMode=yes $Server "cd $RemoteRoot && rm -rf site && mkdir site && unzip -q site.zip -d site && sudo docker restart solvejs-docs >/dev/null && sleep 2"
