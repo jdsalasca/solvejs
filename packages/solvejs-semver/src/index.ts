@@ -223,6 +223,7 @@ function caretRange(base: string): string {
   const suffix = version.prerelease.length > 0 ? `-${version.prerelease.join(".")}` : "";
 
   // On 0.x, caret only allows patch changes; on 0.0.x it pins the exact version.
+  if (wildcard === "major") return `>=${lower}${suffix} <${version.major + 1}.0.0-0`;
   if (version.major !== 0) return `>=${lower}${suffix} <${version.major + 1}.0.0-0`;
   if (version.minor !== 0 || wildcard !== "none") return `>=${lower}${suffix} <0.${version.minor + 1}.0-0`;
   return `>=${lower}${suffix} <0.0.${version.patch + 1}-0`;

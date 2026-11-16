@@ -77,6 +77,8 @@ test("clampPage keeps a page inside the available range", () => {
 
   assert.throws(() => clampPage(1, -1, 20), /PaginationError|total/);
   assert.throws(() => clampPage(1, 10, 0), /PaginationError|perPage/);
+  assert.throws(() => clampPage(Number.NaN, 10, 20), /PaginationError|page/);
+  assert.throws(() => clampPage(1.5, 10, 20), /PaginationError|page/);
 });
 
 test("offsetToCursor and cursorToOffset round trip", () => {

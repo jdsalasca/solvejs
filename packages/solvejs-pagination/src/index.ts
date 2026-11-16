@@ -108,6 +108,9 @@ export function pageCount(total: number, perPage: number): number {
 export function clampPage(page: number, total: number, perPage: number): number {
   assertNonNegativeInteger(total, "PAGINATION_INVALID_TOTAL", "total");
   assertPositiveInteger(perPage, "PAGINATION_INVALID_PER_PAGE", "perPage");
+  if (!Number.isInteger(page)) {
+    fail("PAGINATION_INVALID_PAGE", "Expected page to be a positive integer.", { page });
+  }
 
   const lastPage = Math.max(1, pageCount(total, perPage));
   return Math.min(Math.max(1, page), lastPage);

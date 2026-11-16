@@ -127,3 +127,7 @@ metadata.
 With `||`, each side is evaluated independently. A prerelease must be named in the same alternative
 that the version is tested against, so `satisfies("1.0.0-alpha", "^1.0.0 || >=1.0.0-alpha")` is `true`
 through the second side.
+
+## Review notes
+
+- `^0` covers every `0.x` release; `^0.0` is narrower and `^0.0.3` pins the patch line.

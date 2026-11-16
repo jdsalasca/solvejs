@@ -99,6 +99,9 @@ test("multiplyMoney uses integer arithmetic and an explicit rounding mode", () =
   assert.equal(multiplyMoney(1000, 1.5), 1500);
   assert.equal(multiplyMoney(101, 0.5), 51, "51 cents times half rounds half away from zero to 51");
   assert.equal(multiplyMoney(100, 0.333), 33);
+  assert.equal(multiplyMoney(1_000_000_000, 1e-7), 100, "exponent factors keep their precision");
+  assert.equal(multiplyMoney(1_000_000, 1.25e-4), 125);
+  assert.equal(percentageOf(1_000_000_000, 1e-7), 1);
   assert.equal(multiplyMoney(100, 0.333, { rounding: "floor" }), 33);
   assert.equal(multiplyMoney(105, 0.5, { rounding: "floor" }), 52, "floor of 52.5 is 52");
   assert.equal(multiplyMoney(105, 0.5, { rounding: "ceil" }), 53);

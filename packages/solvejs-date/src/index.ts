@@ -59,6 +59,14 @@ export function parseUnixTimestamp(value: number, unit: "seconds" | "millisecond
 
 type DateParts = { year: number; month: number; day: number };
 
+function utcTime(year: number, monthIndex: number, day: number): number {
+  // Date.UTC maps years 0-99 to 1900-1999, so set the full year explicitly.
+  const date = new Date(0);
+  date.setUTCFullYear(year, monthIndex, day);
+  date.setUTCHours(0, 0, 0, 0);
+  return date.getTime();
+}
+
 function partsFromMatch(match: RegExpMatchArray | null, order: "ymd" | "dmy" | "mdy"): DateParts | null {
   if (!match) return null;
   const first = Number(match[1]);
@@ -77,7 +85,7 @@ function parseParts(value: string, format: DateFormatToken): DateParts | null {
 
 function isValidCalendarDate(year: number, month: number, day: number): boolean {
   if (month < 1 || month > 12 || day < 1 || day > 31) return false;
-  const candidate = new Date(Date.UTC(year, month - 1, day));
+  const candidate = new Date(utcTime(year, month - 1, day));
   return (
     candidate.getUTCFullYear() === year &&
     candidate.getUTCMonth() === month - 1 &&
@@ -97,7 +105,7 @@ export function parseDateStrict(value: string, format: DateFormatToken = "YYYY-M
   if (!parts || !isValidCalendarDate(parts.year, parts.month, parts.day)) {
     return null;
   }
-  return new Date(Date.UTC(parts.year, parts.month - 1, parts.day));
+  return new Date(utcTime(parts.year, parts.month - 1, parts.day));
 }
 
 /**
@@ -147,6 +155,7 @@ export function isBusinessDay(date: Date): boolean {
   return !isWeekend(date);
 }
 
+/* eslint-disable complexity -- weekend normalization plus full-week arithmetic */
 /**
  * Adds business days while skipping UTC Saturdays and Sundays.
  *
@@ -162,20 +171,36 @@ export function addBusinessDays(date: Date, amount: number): Date {
   if (!Number.isInteger(amount)) {
     throw new TypeError("Expected amount to be an integer.");
   }
+  if (!Number.isSafeInteger(amount)) {
+    throw new TypeError("Expected amount to be a safe integer.");
+  }
+
+  if (amount === 0) return new Date(date.getTime());
 
   const direction = amount < 0 ? -1 : 1;
   let remaining = Math.abs(amount);
   let next = new Date(date.getTime());
 
+  // Move off the weekend first. The first business day found is the first one to count.
+  const countedFirst = isBusinessDay(date) ? 0 : 1;
+  while (!isBusinessDay(next)) next = addDays(next, direction);
+  remaining -= countedFirst;
+  if (remaining <= 0) return next;
+
+  // From a business day, every full week contains exactly five business days.
+  const weeks = Math.floor(remaining / 5);
+  if (weeks > 0) {
+    next = addDays(next, direction * weeks * 7);
+    remaining -= weeks * 5;
+  }
   while (remaining > 0) {
     next = addDays(next, direction);
-    if (isBusinessDay(next)) {
-      remaining -= 1;
-    }
+    if (isBusinessDay(next)) remaining -= 1;
   }
 
   return next;
 }
+/* eslint-enable complexity */
 
 /**
  * Returns the next UTC business day after the provided date.
@@ -210,7 +235,7 @@ export function startOfDay(date: Date): Date {
   if (!isDate(date)) {
     throw new TypeError("Expected a valid Date instance.");
   }
-  return new Date(Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate()));
+  return new Date(utcTime(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate()));
 }
 
 /**
@@ -231,7 +256,7 @@ export function fromUtcParts(year: number, month: number, day: number): Date {
     throw new RangeError("Expected month and day to be valid calendar parts.");
   }
 
-  return new Date(Date.UTC(year, month - 1, day));
+  return new Date(utcTime(year, month - 1, day));
 }
 
 /**
@@ -245,7 +270,9 @@ export function endOfDay(date: Date): Date {
   if (!isDate(date)) {
     throw new TypeError("Expected a valid Date instance.");
   }
-  return new Date(Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate(), 23, 59, 59, 999));
+  const end = new Date(utcTime(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate()));
+  end.setUTCHours(23, 59, 59, 999);
+  return end;
 }
 
 /**
@@ -296,7 +323,7 @@ export function daysInMonth(year: number, month: number): number {
   if (month < 1 || month > 12) {
     throw new RangeError("Expected month to be between 1 and 12.");
   }
-  return new Date(Date.UTC(year, month, 0)).getUTCDate();
+  return new Date(utcTime(year, month, 0)).getUTCDate();
 }
 
 /**
@@ -323,7 +350,7 @@ export function formatDate(date: Date, format: DateFormatToken = "YYYY-MM-DD"): 
     throw new TypeError("Expected a valid Date instance.");
   }
 
-  const year = date.getUTCFullYear();
+  const year = String(date.getUTCFullYear()).padStart(4, "0");
   const month = pad(date.getUTCMonth() + 1);
   const day = pad(date.getUTCDate());
 

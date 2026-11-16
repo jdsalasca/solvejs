@@ -1,6 +1,6 @@
 {
   "name": "@jdsalasc/solvejs-pagination",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "TypeScript pagination utilities for offset and cursor conversion, page clamping, total-page math, and API response envelopes with zero dependencies.",
   "license": "MIT",
   "type": "module",

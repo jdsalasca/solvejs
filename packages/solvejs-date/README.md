@@ -114,3 +114,7 @@ skipped.
 addBusinessDays(new Date("2024-01-31T12:00:00Z"), 1); // "2024-02-01", Wednesday month end
 addBusinessDays(new Date("2024-03-31T12:00:00Z"), 1); // "2024-04-01", Sunday month end skips the weekend
 ```
+
+## Review notes
+
+- Years 0-99 use the proleptic Gregorian calendar, and `YYYY` formatting always emits four digits. Business-day offsets accept only safe integers and run in O(1).

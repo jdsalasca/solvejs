@@ -114,6 +114,8 @@ test("satisfies handles caret ranges", () => {
   assert.equal(satisfies("1.2.3", "^1.2"), true, "a partial caret is allowed");
   assert.equal(satisfies("1.2.3", "^1"), true);
   assert.equal(satisfies("2.0.0", "^1"), false);
+  assert.equal(satisfies("0.5.0", "^0"), true, "caret on major 0 allows any 0.x");
+  assert.equal(satisfies("1.0.0", "^0"), false);
 });
 
 test("satisfies handles tilde ranges", () => {

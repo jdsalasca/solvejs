@@ -123,3 +123,7 @@ configuration mistake, and guessing a locale would hide it. `MoneyError` covers 
 
 `allocateAmount` refuses negative, fractional and all-zero weights, because there is no sensible way
 to split an amount among them. Pass a percentage as an integer like `20` for twenty percent.
+
+## Review notes
+
+- Factors written in exponent notation, such as `1e-7`, are reduced to an exact integer ratio instead of being truncated to zero.

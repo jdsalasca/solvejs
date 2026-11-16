@@ -266,19 +266,24 @@ export function multiplyMoney(minorUnits: number, factor: number, options: Multi
   }
 
   // Reduce the factor to an integer ratio so the product stays in integer space.
-  const scale = 10 ** countDecimals(factor);
-  const numerator = Math.round(factor * scale);
-
-  const result = round((minorUnits * numerator) / scale, rounding);
+  const ratio = ratioOf(factor);
+  const result = round((minorUnits * ratio.numerator) / ratio.denominator, rounding);
   assertMinorUnits(result, "the product");
   return result;
 }
 
-function countDecimals(value: number): number {
-  const text = String(value);
-  const dot = text.indexOf(".");
-  if (dot === -1) return 0;
-  return Math.min(text.length - dot - 1, 12);
+type Ratio = { numerator: number; denominator: number };
+
+function ratioOf(value: number): Ratio {
+  const [mantissa, exponentText] = String(value).split(/[eE]/);
+  const exponent = exponentText ? Number(exponentText) : 0;
+  const [whole, fraction = ""] = mantissa.split(".");
+  const digits = Number(`${whole}${fraction}`);
+  const netExponent = exponent - fraction.length;
+  if (netExponent >= 0) {
+    return { numerator: digits * 10 ** netExponent, denominator: 1 };
+  }
+  return { numerator: digits, denominator: 10 ** -netExponent };
 }
 
 /**

@@ -111,3 +111,7 @@ edge where a request comes in, not only where you slice.
 
 `withPagination` appends `page` and `perPage` to `baseUrl`, adding `&` when a query string is already
 present. It does not encode the values, so pass a base URL that is already safe to embed.
+
+## Review notes
+
+- A page must be an integer. `clampPage` and `withPagination` reject `NaN` and fractional pages instead of returning broken metadata.

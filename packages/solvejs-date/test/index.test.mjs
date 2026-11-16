@@ -147,6 +147,14 @@ test("isBusinessDay", () => {
   assert.throws(() => isBusinessDay("2024-03-09"), /valid Date instance/);
 });
 
+test("keeps low years in the proleptic Gregorian calendar", () => {
+  const date = parseDateStrict("0099-02-01", "YYYY-MM-DD");
+  assert.equal(date.getUTCFullYear(), 99);
+  assert.equal(formatDate(date, "YYYY-MM-DD"), "0099-02-01");
+  assert.equal(fromUtcParts(99, 2, 1).getUTCFullYear(), 99);
+  assert.equal(daysInMonth(0, 2), 29, "year 0 is a leap year in the proleptic calendar");
+});
+
 test("addBusinessDays", () => {
   assert.equal(isoDay(addBusinessDays(day("2024-03-08"), 1)), "2024-03-11", "Friday plus one skips the weekend");
   assert.equal(isoDay(addBusinessDays(day("2024-03-11"), 1)), "2024-03-12");
@@ -154,6 +162,10 @@ test("addBusinessDays", () => {
   assert.equal(isoDay(addBusinessDays(day("2024-03-08"), 0)), "2024-03-08");
   assert.equal(isoDay(addBusinessDays(day("2024-03-11"), -1)), "2024-03-08", "going back skips the weekend too");
   assert.equal(isoDay(addBusinessDays(day("2024-03-11"), -5)), "2024-03-04");
+  assert.equal(isoDay(addBusinessDays(day("2024-03-09"), 1)), "2024-03-11", "Saturday plus one lands on Monday");
+  assert.equal(isoDay(addBusinessDays(day("2024-03-10"), -1)), "2024-03-08", "Sunday minus one lands on Friday");
+  assert.ok(addBusinessDays(day("2024-03-11"), 1_000_000) instanceof Date, "large offsets stay O(1)");
+  assert.throws(() => addBusinessDays(day("2024-03-11"), 1e20), /safe integer/);
   assert.equal(
     isoDay(addBusinessDays(day("2024-03-08"), 1)),
     isoDay(nextBusinessDay(day("2024-03-08"))),
