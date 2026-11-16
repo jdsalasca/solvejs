@@ -328,25 +328,21 @@ function isPlainNumber(value: string): boolean {
   return /^[+-]?(?:\d+\.?\d*|\.\d+)$/.test(value);
 }
 
-export function toNumber(
-  value: string,
-  options: { allowThousandsSeparator?: boolean } = {}
-): number | null {
+type NumberTextOptions = { allowThousandsSeparator?: boolean };
+
+function normalizeNumberText(value: string, options: NumberTextOptions): string | null {
   const normalized = value.trim();
-  if (!normalized) {
-    return null;
-  }
+  if (!normalized) return null;
 
   const allowThousandsSeparator = options.allowThousandsSeparator ?? true;
-  if (allowThousandsSeparator && normalized.includes(",") && !hasValidGrouping(normalized)) {
-    return null;
-  }
+  if (allowThousandsSeparator && normalized.includes(",") && !hasValidGrouping(normalized)) return null;
 
-  const candidate = allowThousandsSeparator ? normalized.replace(/,/g, "") : normalized;
+  return allowThousandsSeparator ? normalized.replace(/,/g, "") : normalized;
+}
 
-  if (!isPlainNumber(candidate)) {
-    return null;
-  }
+export function toNumber(value: string, options: NumberTextOptions = {}): number | null {
+  const candidate = normalizeNumberText(value, options);
+  if (candidate === null || !isPlainNumber(candidate)) return null;
 
   const parsed = Number(candidate);
   return Number.isFinite(parsed) ? parsed : null;

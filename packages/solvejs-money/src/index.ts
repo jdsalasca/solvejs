@@ -34,6 +34,7 @@ export type RoundingMode = "half-away-from-zero" | "half-up" | "floor" | "ceil" 
 const ROUNDING_MODES: RoundingMode[] = ["half-away-from-zero", "half-up", "floor", "ceil", "down"];
 
 // A plain decimal string. Deliberately narrow: no exponent, no currency symbol, no separators.
+// eslint-disable-next-line security/detect-unsafe-regex -- anchored, no nested quantifier
 const DECIMAL = /^(-?)(\d+)(?:\.(\d+))?$/;
 
 /** Options for {@link fromDecimal}. */
@@ -120,6 +121,39 @@ function round(value: number, mode: RoundingMode): number {
  * fromDecimal("19.99"); // 1999
  * fromDecimal("0.07");  // 7
  */
+type DecimalParts = { sign: string; whole: string; fraction: string };
+
+function parseDecimal(raw: string, value: unknown): DecimalParts {
+  const match = raw.trim().match(DECIMAL);
+  if (!match) {
+    fail("MONEY_INVALID_DECIMAL", `Expected a plain decimal amount, received ${JSON.stringify(value)}.`, {
+      received: value
+    });
+  }
+  const [, sign, whole, fraction = ""] = match;
+  return { sign, whole, fraction };
+}
+
+function assertExactPrecision(fraction: string, fractionDigits: number, value: unknown): void {
+  // Conversion is exact or refused. Rounding an input amount silently is how an invoice dispute
+  // starts, so anything beyond the currency's own precision is an error rather than a rounded value.
+  if (/[^0]/.test(fraction.slice(fractionDigits))) {
+    fail("MONEY_INVALID_DECIMAL", `Expected at most ${fractionDigits} fraction digits.`, {
+      received: value,
+      fractionDigits
+    });
+  }
+}
+
+function scaleDecimal(whole: string, fraction: string, fractionDigits: number, value: unknown): number {
+  const kept = fraction.padEnd(fractionDigits, "0").slice(0, fractionDigits);
+  const scaled = Number(`${whole}${kept}`);
+  if (!Number.isSafeInteger(scaled)) {
+    fail("MONEY_INVALID_DECIMAL", "Expected an amount within the safe integer range.", { received: value });
+  }
+  return scaled;
+}
+
 export function fromDecimal(value: string | number, options: FromDecimalOptions = {}): number {
   const fractionDigits = options.fractionDigits ?? 2;
   assertFractionDigits(fractionDigits);
@@ -129,31 +163,9 @@ export function fromDecimal(value: string | number, options: FromDecimalOptions 
     fail("MONEY_INVALID_DECIMAL", "Expected a decimal string or a number.", { received: typeof value });
   }
 
-  const match = raw.trim().match(DECIMAL);
-  if (!match) {
-    fail("MONEY_INVALID_DECIMAL", `Expected a plain decimal amount, received ${JSON.stringify(value)}.`, {
-      received: value
-    });
-  }
-
-  const [, sign, whole, fraction = ""] = match;
-  const discarded = fraction.slice(fractionDigits);
-
-  // Conversion is exact or refused. Rounding an input amount silently is how an invoice dispute
-  // starts, so anything beyond the currency's own precision is an error rather than a rounded value.
-  if (/[^0]/.test(discarded)) {
-    fail("MONEY_INVALID_DECIMAL", `Expected at most ${fractionDigits} fraction digits.`, {
-      received: value,
-      fractionDigits
-    });
-  }
-
-  const kept = fraction.padEnd(fractionDigits, "0").slice(0, fractionDigits);
-  const scaled = Number(`${whole}${kept}`);
-  if (!Number.isSafeInteger(scaled)) {
-    fail("MONEY_INVALID_DECIMAL", "Expected an amount within the safe integer range.", { received: value });
-  }
-
+  const { sign, whole, fraction } = parseDecimal(raw, value);
+  assertExactPrecision(fraction, fractionDigits, value);
+  const scaled = scaleDecimal(whole, fraction, fractionDigits, value);
   return (sign === "-" ? -1 : 1) * scaled;
 }
 
@@ -318,9 +330,7 @@ export function applyPercentage(minorUnits: number, percent: number, options: Mu
  * @example
  * allocateAmount(1000, [1, 1, 1]); // [334, 333, 333]
  */
-export function allocateAmount(total: number, weights: readonly number[]): number[] {
-  assertMinorUnits(total, "total");
-
+function assertWeights(weights: readonly number[]): void {
   if (!Array.isArray(weights) || weights.length === 0) {
     fail("MONEY_INVALID_WEIGHTS", "Expected a non-empty array of weights.", { received: weights });
   }
@@ -330,27 +340,41 @@ export function allocateAmount(total: number, weights: readonly number[]): numbe
       fail("MONEY_INVALID_WEIGHTS", "Expected every weight to be a non-negative integer.", { received: weight });
     }
   }
+}
 
+function weightSumOrFail(weights: readonly number[]): number {
   const weightSum = weights.reduce((sum, weight) => sum + weight, 0);
   if (weightSum === 0) {
     fail("MONEY_INVALID_WEIGHTS", "Expected the weights to sum above zero.", { weights });
   }
+  return weightSum;
+}
 
-  const sign = total < 0 ? -1 : 1;
-  const magnitude = Math.abs(total);
+type SharePlan = { floors: number[]; order: { index: number; fraction: number }[] };
 
+function planShares(weights: readonly number[], magnitude: number, weightSum: number): SharePlan {
   // Exact share times the weight, kept as a numerator so no precision is lost.
   const scale = 10 ** 9;
   const shares = weights.map((weight) => (weight * magnitude * scale) / weightSum);
   const floors = shares.map((share) => Math.floor(share / scale));
-  let remainder = magnitude - floors.reduce((sum, value) => sum + value, 0);
-
-  const result = [...floors];
   // Hand the leftover units to the largest fractional shares first, earliest part winning a tie.
   const order = shares
     .map((share, index) => ({ index, fraction: (share / scale) % 1 }))
     .sort((a, b) => b.fraction - a.fraction || a.index - b.index);
+  return { floors, order };
+}
 
+export function allocateAmount(total: number, weights: readonly number[]): number[] {
+  assertMinorUnits(total, "total");
+  assertWeights(weights);
+  const weightSum = weightSumOrFail(weights);
+
+  const sign = total < 0 ? -1 : 1;
+  const magnitude = Math.abs(total);
+  const { floors, order } = planShares(weights, magnitude, weightSum);
+  let remainder = magnitude - floors.reduce((sum, value) => sum + value, 0);
+
+  const result = [...floors];
   for (const { index } of order) {
     if (remainder <= 0) break;
     result[index] += 1;

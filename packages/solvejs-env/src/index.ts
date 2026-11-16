@@ -63,6 +63,70 @@ function normalizeProtocol(protocol: string): string {
   return protocol.endsWith(":") ? protocol.toLowerCase() : `${protocol.toLowerCase()}:`;
 }
 
+function readPresent(name: string, env: EnvSource): string | undefined {
+  const raw = readEnvRaw(name, env);
+  return raw === undefined || raw === null || raw.trim() === "" ? undefined : raw;
+}
+
+function missing(name: string): never {
+  throw new Error(`Missing required environment variable: ${name}`);
+}
+
+function defaultValueOrThrow<T>(name: string, value: T | undefined): T {
+  if (value !== undefined) return value;
+  missing(name);
+}
+
+function resolveStringValue(raw: string, name: string, options: StringOptions): string {
+  const trim = options.trim ?? true;
+  const allowEmpty = options.allowEmpty ?? false;
+  const value = trim ? raw.trim() : raw;
+  if (!allowEmpty && value.length === 0) {
+    throw new Error(`Environment variable ${name} cannot be empty.`);
+  }
+  return value;
+}
+
+function resolveArrayValue(raw: string, name: string, options: ArrayOptions): string[] {
+  const { separator = ",", trimItems = true, allowEmptyItems = false } = options;
+  const filtered = parseListItems(raw, separator, trimItems, allowEmptyItems);
+  if (!allowEmptyItems && filtered.length === 0) {
+    throw new Error(`Environment variable ${name} must contain at least one non-empty item.`);
+  }
+  return filtered;
+}
+
+function assertNumberBounds(name: string, value: number, options: NumberOptions): void {
+  if (options.integer && !Number.isInteger(value)) {
+    throw new Error(`Environment variable ${name} must be an integer.`);
+  }
+  if (options.min !== undefined && value < options.min) {
+    throw new Error(`Environment variable ${name} must be greater than or equal to ${options.min}.`);
+  }
+  if (options.max !== undefined && value > options.max) {
+    throw new Error(`Environment variable ${name} must be less than or equal to ${options.max}.`);
+  }
+}
+
+function parseListItems(raw: string, separator: string, trimItems: boolean, allowEmptyItems: boolean): string[] {
+  const parts = raw.split(separator).map((part) => (trimItems ? part.trim() : part));
+  return allowEmptyItems ? parts : parts.filter((part) => part.length > 0);
+}
+
+function resolveUrlCandidate(name: string, env: EnvSource, defaultValue: string | undefined): string {
+  const raw = readEnvRaw(name, env);
+  const candidate = raw && raw.trim() ? raw.trim() : defaultValue;
+  if (!candidate) missing(name);
+  return candidate;
+}
+
+function assertAllowedProtocols(name: string, protocol: string, allowedProtocols: string[] | undefined): void {
+  if (!allowedProtocols || allowedProtocols.length === 0) return;
+  if (!allowedProtocols.includes(protocol.toLowerCase())) {
+    throw new Error(`Environment variable ${name} must use one of: ${allowedProtocols.join(", ")}.`);
+  }
+}
+
 /**
  * Reads a required string environment variable with optional defaults.
  *
@@ -72,23 +136,9 @@ function normalizeProtocol(protocol: string): string {
  * @returns Parsed string value.
  */
 export function getEnvString(name: string, env: EnvSource = defaultEnvSource(), options: StringOptions = {}): string {
-  const trim = options.trim ?? true;
-  const allowEmpty = options.allowEmpty ?? false;
   const raw = readEnvRaw(name, env);
-
-  if (raw === undefined || raw === null) {
-    if (options.defaultValue !== undefined) {
-      return options.defaultValue;
-    }
-    throw new Error(`Missing required environment variable: ${name}`);
-  }
-
-  const value = trim ? raw.trim() : raw;
-  if (!allowEmpty && value.length === 0) {
-    throw new Error(`Environment variable ${name} cannot be empty.`);
-  }
-
-  return value;
+  if (raw === undefined || raw === null) return defaultValueOrThrow(name, options.defaultValue);
+  return resolveStringValue(raw, name, options);
 }
 
 /**
@@ -100,27 +150,17 @@ export function getEnvString(name: string, env: EnvSource = defaultEnvSource(), 
  * @returns Parsed number.
  */
 export function getEnvNumber(name: string, env: EnvSource = defaultEnvSource(), options: NumberOptions = {}): number {
-  const raw = readEnvRaw(name, env);
-  if (raw === undefined || raw === null || raw.trim() === "") {
-    if (options.defaultValue !== undefined) {
-      return options.defaultValue;
-    }
-    throw new Error(`Missing required environment variable: ${name}`);
+  const raw = readPresent(name, env);
+  if (raw === undefined) {
+    if (options.defaultValue !== undefined) return options.defaultValue;
+    missing(name);
   }
 
   const value = Number(raw.trim());
   if (!Number.isFinite(value)) {
     throw new Error(`Environment variable ${name} must be a valid number.`);
   }
-  if (options.integer && !Number.isInteger(value)) {
-    throw new Error(`Environment variable ${name} must be an integer.`);
-  }
-  if (options.min !== undefined && value < options.min) {
-    throw new Error(`Environment variable ${name} must be greater than or equal to ${options.min}.`);
-  }
-  if (options.max !== undefined && value > options.max) {
-    throw new Error(`Environment variable ${name} must be less than or equal to ${options.max}.`);
-  }
+  assertNumberBounds(name, value, options);
 
   return value;
 }
@@ -134,12 +174,10 @@ export function getEnvNumber(name: string, env: EnvSource = defaultEnvSource(), 
  * @returns Parsed boolean value.
  */
 export function getEnvBoolean(name: string, env: EnvSource = defaultEnvSource(), options: BooleanOptions = {}): boolean {
-  const raw = readEnvRaw(name, env);
-  if (raw === undefined || raw === null || raw.trim() === "") {
-    if (options.defaultValue !== undefined) {
-      return options.defaultValue;
-    }
-    throw new Error(`Missing required environment variable: ${name}`);
+  const raw = readPresent(name, env);
+  if (raw === undefined) {
+    if (options.defaultValue !== undefined) return options.defaultValue;
+    missing(name);
   }
 
   const normalized = raw.trim().toLowerCase();
@@ -163,12 +201,10 @@ export function getEnvEnum<T extends string>(
   env: EnvSource = defaultEnvSource(),
   options: EnumOptions<T> = {}
 ): T {
-  const raw = readEnvRaw(name, env);
-  if (raw === undefined || raw === null || raw.trim() === "") {
-    if (options.defaultValue !== undefined) {
-      return options.defaultValue;
-    }
-    throw new Error(`Missing required environment variable: ${name}`);
+  const raw = readPresent(name, env);
+  if (raw === undefined) {
+    if (options.defaultValue !== undefined) return options.defaultValue;
+    missing(name);
   }
 
   const candidate = raw.trim();
@@ -191,26 +227,9 @@ export function getEnvEnum<T extends string>(
  * @returns Parsed array of strings.
  */
 export function getEnvArray(name: string, env: EnvSource = defaultEnvSource(), options: ArrayOptions = {}): string[] {
-  const raw = readEnvRaw(name, env);
-  if (raw === undefined || raw === null || raw.trim() === "") {
-    if (options.defaultValue !== undefined) {
-      return options.defaultValue;
-    }
-    throw new Error(`Missing required environment variable: ${name}`);
-  }
-
-  const separator = options.separator ?? ",";
-  const trimItems = options.trimItems ?? true;
-  const allowEmptyItems = options.allowEmptyItems ?? false;
-
-  const parts = raw.split(separator).map((part) => (trimItems ? part.trim() : part));
-  const filtered = allowEmptyItems ? parts : parts.filter((part) => part.length > 0);
-
-  if (!allowEmptyItems && filtered.length === 0) {
-    throw new Error(`Environment variable ${name} must contain at least one non-empty item.`);
-  }
-
-  return filtered;
+  const raw = readPresent(name, env);
+  if (raw === undefined) return defaultValueOrThrow(name, options.defaultValue);
+  return resolveArrayValue(raw, name, options);
 }
 
 /**
@@ -222,12 +241,10 @@ export function getEnvArray(name: string, env: EnvSource = defaultEnvSource(), o
  * @returns Parsed JSON value.
  */
 export function getEnvJson<T>(name: string, env: EnvSource = defaultEnvSource(), options: JsonOptions<T> = {}): T {
-  const raw = readEnvRaw(name, env);
-  if (raw === undefined || raw === null || raw.trim() === "") {
-    if (options.defaultValue !== undefined) {
-      return options.defaultValue;
-    }
-    throw new Error(`Missing required environment variable: ${name}`);
+  const raw = readPresent(name, env);
+  if (raw === undefined) {
+    if (options.defaultValue !== undefined) return options.defaultValue;
+    missing(name);
   }
 
   try {
@@ -271,12 +288,7 @@ export function getEnvObject<T extends Record<string, unknown>>(
  * @returns Parsed URL instance.
  */
 export function getEnvUrl(name: string, env: EnvSource = defaultEnvSource(), options: UrlOptions = {}): URL {
-  const raw = readEnvRaw(name, env);
-  const candidate = raw && raw.trim() ? raw.trim() : options.defaultValue;
-
-  if (!candidate) {
-    throw new Error(`Missing required environment variable: ${name}`);
-  }
+  const candidate = resolveUrlCandidate(name, env, options.defaultValue);
 
   let parsed: URL;
   try {
@@ -286,14 +298,9 @@ export function getEnvUrl(name: string, env: EnvSource = defaultEnvSource(), opt
   }
 
   const allowedProtocols = options.allowedProtocols?.map(normalizeProtocol);
-  if (allowedProtocols && allowedProtocols.length > 0 && !allowedProtocols.includes(parsed.protocol.toLowerCase())) {
-    throw new Error(
-      `Environment variable ${name} must use one of: ${allowedProtocols.join(", ")}.`
-    );
-  }
+  assertAllowedProtocols(name, parsed.protocol, allowedProtocols);
 
-  const requireHostname = options.requireHostname ?? true;
-  if (requireHostname && !parsed.hostname) {
+  if ((options.requireHostname ?? true) && !parsed.hostname) {
     throw new Error(`Environment variable ${name} must include a hostname.`);
   }
 

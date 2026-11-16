@@ -57,6 +57,34 @@ export function parseUnixTimestamp(value: number, unit: "seconds" | "millisecond
   return isDate(parsed) ? parsed : null;
 }
 
+type DateParts = { year: number; month: number; day: number };
+
+function partsFromMatch(match: RegExpMatchArray | null, order: "ymd" | "dmy" | "mdy"): DateParts | null {
+  if (!match) return null;
+  const first = Number(match[1]);
+  const second = Number(match[2]);
+  const third = Number(match[3]);
+  if (order === "ymd") return { year: first, month: second, day: third };
+  if (order === "dmy") return { day: first, month: second, year: third };
+  return { month: first, day: second, year: third };
+}
+
+function parseParts(value: string, format: DateFormatToken): DateParts | null {
+  if (format === "YYYY-MM-DD") return partsFromMatch(value.match(/^(\d{4})-(\d{2})-(\d{2})$/), "ymd");
+  if (format === "DD/MM/YYYY") return partsFromMatch(value.match(/^(\d{2})\/(\d{2})\/(\d{4})$/), "dmy");
+  return partsFromMatch(value.match(/^(\d{2})-(\d{2})-(\d{4})$/), "mdy");
+}
+
+function isValidCalendarDate(year: number, month: number, day: number): boolean {
+  if (month < 1 || month > 12 || day < 1 || day > 31) return false;
+  const candidate = new Date(Date.UTC(year, month - 1, day));
+  return (
+    candidate.getUTCFullYear() === year &&
+    candidate.getUTCMonth() === month - 1 &&
+    candidate.getUTCDate() === day
+  );
+}
+
 /**
  * Parses a date string using a strict known format.
  *
@@ -65,51 +93,11 @@ export function parseUnixTimestamp(value: number, unit: "seconds" | "millisecond
  * @returns Parsed UTC Date when valid, otherwise `null`.
  */
 export function parseDateStrict(value: string, format: DateFormatToken = "YYYY-MM-DD"): Date | null {
-  const normalized = value.trim();
-  let year = 0;
-  let month = 0;
-  let day = 0;
-
-  if (format === "YYYY-MM-DD") {
-    const match = normalized.match(/^(\d{4})-(\d{2})-(\d{2})$/);
-    if (!match) {
-      return null;
-    }
-    year = Number(match[1]);
-    month = Number(match[2]);
-    day = Number(match[3]);
-  } else if (format === "DD/MM/YYYY") {
-    const match = normalized.match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
-    if (!match) {
-      return null;
-    }
-    day = Number(match[1]);
-    month = Number(match[2]);
-    year = Number(match[3]);
-  } else {
-    const match = normalized.match(/^(\d{2})-(\d{2})-(\d{4})$/);
-    if (!match) {
-      return null;
-    }
-    month = Number(match[1]);
-    day = Number(match[2]);
-    year = Number(match[3]);
-  }
-
-  if (month < 1 || month > 12 || day < 1 || day > 31) {
+  const parts = parseParts(value.trim(), format);
+  if (!parts || !isValidCalendarDate(parts.year, parts.month, parts.day)) {
     return null;
   }
-
-  const candidate = new Date(Date.UTC(year, month - 1, day));
-  if (
-    candidate.getUTCFullYear() !== year ||
-    candidate.getUTCMonth() !== month - 1 ||
-    candidate.getUTCDate() !== day
-  ) {
-    return null;
-  }
-
-  return candidate;
+  return new Date(Date.UTC(parts.year, parts.month - 1, parts.day));
 }
 
 /**
@@ -239,20 +227,11 @@ export function fromUtcParts(year: number, month: number, day: number): Date {
     throw new TypeError("Expected year, month, and day to be integers.");
   }
 
-  if (month < 1 || month > 12 || day < 1 || day > 31) {
+  if (!isValidCalendarDate(year, month, day)) {
     throw new RangeError("Expected month and day to be valid calendar parts.");
   }
 
-  const candidate = new Date(Date.UTC(year, month - 1, day));
-  if (
-    candidate.getUTCFullYear() !== year ||
-    candidate.getUTCMonth() !== month - 1 ||
-    candidate.getUTCDate() !== day
-  ) {
-    throw new RangeError("Expected month and day to be valid calendar parts.");
-  }
-
-  return candidate;
+  return new Date(Date.UTC(year, month - 1, day));
 }
 
 /**

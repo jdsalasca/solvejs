@@ -198,15 +198,19 @@ function causeOf(value: unknown, options: NormalizeOptions): unknown {
   return options.cause;
 }
 
+function resolveErrorDetails(existing: AppError | undefined, value: unknown, options: NormalizeOptions) {
+  return {
+    status: options.status ?? existing?.status,
+    details: options.details ?? existing?.details,
+    cause: options.cause ?? causeOf(value, options)
+  };
+}
+
 export function normalizeError(value: unknown, options: NormalizeOptions = {}): AppError {
   const existing = isAppError(value) ? value : undefined;
   if (existing && options.code === undefined) return existing;
 
-  return new AppError(options.code ?? "INTERNAL", messageOf(value), {
-    status: options.status ?? existing?.status,
-    details: options.details ?? existing?.details,
-    cause: options.cause ?? causeOf(value, options)
-  });
+  return new AppError(options.code ?? "INTERNAL", messageOf(value), resolveErrorDetails(existing, value, options));
 }
 
 /**
