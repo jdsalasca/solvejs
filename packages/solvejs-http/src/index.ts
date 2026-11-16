@@ -143,6 +143,10 @@ export function isRetryableStatus(status: number): boolean {
  * @example
  * if (isRetryableError(error) && attempt < 3) retry();
  */
+function isFetchConnectionFailure(value: unknown, message: unknown): boolean {
+  return value instanceof TypeError && typeof message === "string" && /fetch failed/i.test(message);
+}
+
 export function isRetryableError(value: unknown): boolean {
   if (value === null || typeof value !== "object") return false;
 
@@ -153,11 +157,7 @@ export function isRetryableError(value: unknown): boolean {
   if (typeof candidate.code === "string" && RETRYABLE_CODES.has(candidate.code)) return true;
 
   // Node's fetch reports a connection failure as a plain TypeError.
-  if (value instanceof TypeError && typeof candidate.message === "string" && /fetch failed/i.test(candidate.message)) {
-    return true;
-  }
-
-  return false;
+  return isFetchConnectionFailure(value, candidate.message);
 }
 
 /**
@@ -178,21 +178,15 @@ export function isRetryableError(value: unknown): boolean {
  * @example
  * await sleep(calculateBackoffDelay(attempt, { baseMs: 100, factor: 2, maxMs: 30_000 }));
  */
-export function calculateBackoffDelay(attempt: number, options: BackoffOptions): number {
-  if (!Number.isInteger(attempt) || attempt < 0) {
-    fail("HTTP_INVALID_ATTEMPT", "Expected attempt to be a non-negative integer.", { received: attempt });
-  }
-  if (options === null || typeof options !== "object") {
-    fail("HTTP_INVALID_OPTION", "Expected backoff options.", { received: options });
-  }
-
-  const { baseMs, factor, maxMs, jitter = true } = options;
-
-  for (const [name, value] of Object.entries({ baseMs, factor, maxMs })) {
+function assertFiniteOptions(values: Record<string, number>): void {
+  for (const [name, value] of Object.entries(values)) {
     if (typeof value !== "number" || !Number.isFinite(value)) {
       fail("HTTP_INVALID_OPTION", `Expected ${name} to be a finite number.`, { [name]: value });
     }
   }
+}
+
+function assertBackoffBounds(baseMs: number, factor: number, maxMs: number): void {
   if (baseMs <= 0) {
     fail("HTTP_INVALID_OPTION", "Expected baseMs to be greater than zero.", { baseMs });
   }
@@ -202,10 +196,34 @@ export function calculateBackoffDelay(attempt: number, options: BackoffOptions):
   if (maxMs < baseMs) {
     fail("HTTP_INVALID_OPTION", "Expected maxMs to be greater than or equal to baseMs.", { baseMs, maxMs });
   }
+}
+
+function validateBackoff(options: BackoffOptions): {
+  baseMs: number;
+  factor: number;
+  maxMs: number;
+  jitter: boolean;
+} {
+  if (options === null || typeof options !== "object") {
+    fail("HTTP_INVALID_OPTION", "Expected backoff options.", { received: options });
+  }
+
+  const { baseMs, factor, maxMs, jitter = true } = options;
+  assertFiniteOptions({ baseMs, factor, maxMs });
+  assertBackoffBounds(baseMs, factor, maxMs);
   if (typeof jitter !== "boolean") {
     fail("HTTP_INVALID_OPTION", "Expected jitter to be a boolean.", { jitter });
   }
 
+  return { baseMs, factor, maxMs, jitter };
+}
+
+export function calculateBackoffDelay(attempt: number, options: BackoffOptions): number {
+  if (!Number.isInteger(attempt) || attempt < 0) {
+    fail("HTTP_INVALID_ATTEMPT", "Expected attempt to be a non-negative integer.", { received: attempt });
+  }
+
+  const { baseMs, factor, maxMs, jitter } = validateBackoff(options);
   const nominal = Math.min(maxMs, baseMs * factor ** attempt);
   const delay = jitter ? nominal / 2 + Math.random() * (nominal / 2) : nominal;
 
@@ -243,13 +261,7 @@ export type ParsedContentType = {
  * parseContentType("application/json; charset=utf-8");
  * // { type: "application/json", subtype: "json", charset: "utf-8", parameters: { charset: "utf-8" } }
  */
-export function parseContentType(header: string): ParsedContentType | null {
-  if (typeof header !== "string" || header.trim() === "") return null;
-
-  const [rawType, ...rawParameters] = header.split(";");
-  const [type, subtype, ...extra] = rawType.trim().toLowerCase().split("/");
-  if (!type || !subtype || extra.length > 0) return null;
-
+function parseContentParameters(rawParameters: readonly string[]): Record<string, string> {
   const parameters: Record<string, string> = {};
   for (const parameter of rawParameters) {
     const separator = parameter.indexOf("=");
@@ -258,6 +270,17 @@ export function parseContentType(header: string): ParsedContentType | null {
     const value = parameter.slice(separator + 1).trim().replace(/^"(.*)"$/, "$1");
     if (key) parameters[key] = value;
   }
+  return parameters;
+}
+
+export function parseContentType(header: string): ParsedContentType | null {
+  if (typeof header !== "string" || header.trim() === "") return null;
+
+  const [rawType, ...rawParameters] = header.split(";");
+  const [type, subtype, ...extra] = rawType.trim().toLowerCase().split("/");
+  if (!type || !subtype || extra.length > 0) return null;
+
+  const parameters = parseContentParameters(rawParameters);
 
   return {
     type: `${type}/${subtype}`,
@@ -272,6 +295,62 @@ export type AcceptOptions = {
   /** Raw `Accept` header value. */
   accept?: string;
 };
+
+type AcceptRange = { media: string; quality: number };
+type ScoredCandidate = { media: string; quality: number; index: number };
+
+function parseAcceptRange(part: string): AcceptRange {
+  const [value, ...parameters] = part.split(";");
+  const quality = parameters.map((parameter) => parameter.trim()).find((parameter) => parameter.startsWith("q="));
+  const parsedQuality = quality ? Number.parseFloat(quality.slice(2)) : 1;
+  return { media: value.trim().toLowerCase(), quality: Number.isFinite(parsedQuality) ? parsedQuality : 0 };
+}
+
+function parseAcceptRanges(raw: string): AcceptRange[] {
+  return raw.split(",").map(parseAcceptRange);
+}
+
+function matchesRange(range: AcceptRange, media: string): boolean {
+  if (range.media === "*/*") return true;
+  if (range.media === media) return true;
+  return range.media.endsWith("/*") && media.startsWith(range.media.slice(0, -1));
+}
+
+function scoreMedia(candidate: string, index: number, ranges: readonly AcceptRange[]): ScoredCandidate | undefined {
+  const media = candidate.toLowerCase();
+  for (const range of ranges) {
+    if (range.quality <= 0) continue;
+    if (!matchesRange(range, media)) continue;
+    // A higher quality wins; an exact match beats a wildcard; the server order breaks a tie.
+    const exactness = range.media === media ? 1 : 0;
+    return { media: candidate, quality: range.quality * 10 + exactness, index };
+  }
+  return undefined;
+}
+
+function bestCandidate(available: readonly string[], ranges: readonly AcceptRange[]): ScoredCandidate | undefined {
+  let best: ScoredCandidate | undefined;
+  for (const [index, candidate] of available.entries()) {
+    const scored = scoreMedia(candidate, index, ranges);
+    if (scored && (!best || scored.quality > best.quality)) best = scored;
+  }
+  return best;
+}
+
+function assertAcceptOptions(options: AcceptOptions | null | undefined): void {
+  if (options === null || options === undefined) return;
+  if (typeof options.accept === "string" || options.accept === undefined) return;
+  fail("HTTP_INVALID_ACCEPT", "Expected accept to be a string.", { received: typeof options.accept });
+}
+
+function resolveAccept(available: readonly string[], options: AcceptOptions | null | undefined) {
+  if (!Array.isArray(available)) {
+    fail("HTTP_INVALID_LIST", "Expected available to be an array of media types.", { received: typeof available });
+  }
+  if (available.length === 0) return { available, raw: "" };
+  assertAcceptOptions(options);
+  return { available, raw: (options?.accept ?? "").trim() };
+}
 
 /**
  * Picks the media type the client prefers from the ones the server can produce.
@@ -294,47 +373,9 @@ export function negotiateContentType(
   available: readonly string[],
   options: AcceptOptions | null = {}
 ): string | null {
-  if (!Array.isArray(available)) {
-    fail("HTTP_INVALID_LIST", "Expected available to be an array of media types.", { received: typeof available });
-  }
-  if (available.length === 0) return null;
-  if (options !== null && options !== undefined && typeof options.accept !== "string" && options.accept !== undefined) {
-    fail("HTTP_INVALID_ACCEPT", "Expected accept to be a string.", { received: typeof options.accept });
-  }
+  const resolved = resolveAccept(available, options);
+  if (resolved.raw === "") return resolved.available[0] ?? null;
 
-  const raw = (options?.accept ?? "").trim();
-  if (raw === "") return available[0];
-
-  const ranges = raw.split(",").map((part) => {
-    const [value, ...parameters] = part.split(";");
-    const quality = parameters
-      .map((parameter) => parameter.trim())
-      .find((parameter) => parameter.startsWith("q="));
-    const parsedQuality = quality ? Number.parseFloat(quality.slice(2)) : 1;
-    return { media: value.trim().toLowerCase(), quality: Number.isFinite(parsedQuality) ? parsedQuality : 0 };
-  });
-
-  let best: { media: string; quality: number; index: number } | undefined;
-
-  available.forEach((candidate, index) => {
-    const media = candidate.toLowerCase();
-
-    for (const range of ranges) {
-      if (range.quality <= 0) continue;
-
-      const matches =
-        range.media === "*/*" ||
-        range.media === media ||
-        (range.media.endsWith("/*") && media.startsWith(`${range.media.slice(0, -1)}`));
-      if (!matches) continue;
-
-      // A higher quality wins; an exact match beats a wildcard; the server order breaks a tie.
-      const exactness = range.media === media ? 1 : 0;
-      const score = range.quality * 10 + exactness;
-      if (!best || score > best.quality) best = { media: candidate, quality: score, index };
-      break;
-    }
-  });
-
-  return best?.media ?? null;
+  const ranges = parseAcceptRanges(resolved.raw);
+  return bestCandidate(resolved.available, ranges)?.media ?? null;
 }
