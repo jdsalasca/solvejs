@@ -4,7 +4,7 @@
 [![node](https://img.shields.io/node/v/@jdsalasc/solvejs-validators)](https://www.npmjs.com/package/@jdsalasc/solvejs-validators)
 
 
-Zero-dependency validators for JavaScript and TypeScript forms and API payloads.
+Zero-dependency validators for forms and API payloads: email, phone with 12 country presets plus ANY, postal codes, UUID v4, IPv4, ISO dates, domains, usernames, passwords, and addresses. Every validator returns a stable code, a human message, and EN/ES/PT translations.
 
 ## Utilities
 
@@ -39,6 +39,21 @@ validateCellphoneNumber("+447911123456", { country: "ANY" }); // ok
 validatePostalCode("K1A 0B1", { country: "CA" });             // ok
 validatePostalCode("12345", { country: "FR" });               // UNSUPPORTED_COUNTRY
 ```
+
+### Non-string input returns `INVALID_TYPE`
+
+The TypeScript signature asks for a `string`, but a JavaScript caller can pass anything. Every
+`validate*` helper answers with the same result shape instead of throwing, so a form or API boundary
+does not need a `try/catch`:
+
+```ts
+validateEmail(undefined); // { ok: false, code: "INVALID_TYPE", message: "Expected a string." }
+isEmail(42);              // false
+translateValidationResult(undefined); // { ok: false, code: "INVALID_RESULT", ... }
+```
+
+`translateValidationResult` also tolerates an unknown code and falls back to a generic message, so a
+custom validator cannot take down the UI layer with a code this package has never seen.
 
 ## Limitations and Constraints
 

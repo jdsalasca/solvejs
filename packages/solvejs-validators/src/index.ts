@@ -1,6 +1,8 @@
 export type ValidationResultCode =
   | "VALID"
   | "EMPTY"
+  | "INVALID_TYPE"
+  | "INVALID_RESULT"
   | "INVALID_FORMAT"
   | "TOO_SHORT"
   | "TOO_LONG"
@@ -117,6 +119,8 @@ const VALIDATION_MESSAGES: Record<ValidationMessageLocale, Record<ValidationResu
   en: {
     VALID: "{field} is valid.",
     EMPTY: "{field} is required.",
+    INVALID_TYPE: "{field} must be a string.",
+    INVALID_RESULT: "Invalid validation result.",
     INVALID_FORMAT: "{field} has an invalid format.",
     TOO_SHORT: "{field} is too short.",
     TOO_LONG: "{field} is too long.",
@@ -128,6 +132,8 @@ const VALIDATION_MESSAGES: Record<ValidationMessageLocale, Record<ValidationResu
   es: {
     VALID: "{field} es valido.",
     EMPTY: "{field} es obligatorio.",
+    INVALID_TYPE: "{field} debe ser texto.",
+    INVALID_RESULT: "Resultado de validacion invalido.",
     INVALID_FORMAT: "{field} tiene un formato invalido.",
     TOO_SHORT: "{field} es demasiado corto.",
     TOO_LONG: "{field} es demasiado largo.",
@@ -139,6 +145,8 @@ const VALIDATION_MESSAGES: Record<ValidationMessageLocale, Record<ValidationResu
   pt: {
     VALID: "{field} e valido.",
     EMPTY: "{field} e obrigatorio.",
+    INVALID_TYPE: "{field} deve ser texto.",
+    INVALID_RESULT: "Resultado de validacao invalido.",
     INVALID_FORMAT: "{field} tem um formato invalido.",
     TOO_SHORT: "{field} e muito curto.",
     TOO_LONG: "{field} e muito longo.",
@@ -157,6 +165,33 @@ function fail(code: Exclude<ValidationResultCode, "VALID">, message: string): Va
   return { ok: false, code, message };
 }
 
+function requireString(value: unknown): ValidationResult | null {
+  if (typeof value === "string") return null;
+  return fail("INVALID_TYPE", "Expected a string.");
+}
+
+function checkStringLength(
+  normalized: string,
+  field: string,
+  minLength: number,
+  maxLength: number
+): ValidationResult | null {
+  if (!normalized) return fail("EMPTY", `${field} cannot be empty.`);
+  if (normalized.length < minLength) {
+    return fail("TOO_SHORT", `${field} must have at least ${minLength} characters.`);
+  }
+  if (normalized.length > maxLength) {
+    return fail("TOO_LONG", `${field} must have at most ${maxLength} characters.`);
+  }
+  return null;
+}
+
+function isValidationResult(value: unknown): value is ValidationResult {
+  if (value === null || typeof value !== "object") return false;
+  const candidate = value as { ok?: unknown; code?: unknown; message?: unknown };
+  return typeof candidate.ok === "boolean" && typeof candidate.code === "string" && typeof candidate.message === "string";
+}
+
 /**
  * Translates a structured validation result into a UI-ready message.
  *
@@ -171,9 +206,16 @@ export function translateValidationResult(
   result: ValidationResult,
   options: TranslateValidationOptions = {}
 ): ValidationResult {
+  if (!isValidationResult(result)) {
+    return fail("INVALID_RESULT", "Invalid validation result.");
+  }
+
   const locale = options.locale ?? "en";
   const fieldLabel = options.fieldLabel ?? "Value";
-  const template = options.messages?.[result.code] ?? VALIDATION_MESSAGES[locale][result.code];
+  const template =
+    options.messages?.[result.code] ??
+    VALIDATION_MESSAGES[locale][result.code] ??
+    "{field} is invalid.";
 
   return {
     ...result,
@@ -239,6 +281,9 @@ export function validateCellphoneNumber(
     maxDigits?: number;
   } = {}
 ): ValidationResult {
+  const typeError = requireString(value);
+  if (typeError) return typeError;
+
   const allowInternational = options.allowInternational ?? true;
   const country = options.country ?? "ANY";
 
@@ -286,6 +331,9 @@ export function validateAddressDirection(
   value: string,
   options: { locale?: DirectionLocale } = {}
 ): ValidationResult {
+  const typeError = requireString(value);
+  if (typeError) return typeError;
+
   const locale = options.locale ?? "en";
   if (!ADDRESS_DIRECTIONS[locale]) {
     return fail("UNSUPPORTED_LOCALE", `Unsupported direction locale: ${locale}.`);
@@ -351,19 +399,15 @@ export function validateName(
   value: string,
   options: { minLength?: number; maxLength?: number } = {}
 ): ValidationResult {
+  const typeError = requireString(value);
+  if (typeError) return typeError;
+
   const minLength = options.minLength ?? 2;
   const maxLength = options.maxLength ?? 80;
   const normalized = value.trim();
 
-  if (!normalized) {
-    return fail("EMPTY", "Name cannot be empty.");
-  }
-  if (normalized.length < minLength) {
-    return fail("TOO_SHORT", `Name must have at least ${minLength} characters.`);
-  }
-  if (normalized.length > maxLength) {
-    return fail("TOO_LONG", `Name must have at most ${maxLength} characters.`);
-  }
+  const lengthError = checkStringLength(normalized, "Name", minLength, maxLength);
+  if (lengthError) return lengthError;
   if (!/^[A-Za-zÀ-ÖØ-öø-ÿ' -]+$/.test(normalized)) {
     return fail("INVALID_CHARACTERS", "Name contains unsupported characters.");
   }
@@ -395,19 +439,15 @@ export function validateUsername(
   value: string,
   options: { minLength?: number; maxLength?: number } = {}
 ): ValidationResult {
+  const typeError = requireString(value);
+  if (typeError) return typeError;
+
   const minLength = options.minLength ?? 3;
   const maxLength = options.maxLength ?? 30;
   const normalized = value.trim();
 
-  if (!normalized) {
-    return fail("EMPTY", "Username cannot be empty.");
-  }
-  if (normalized.length < minLength) {
-    return fail("TOO_SHORT", `Username must have at least ${minLength} characters.`);
-  }
-  if (normalized.length > maxLength) {
-    return fail("TOO_LONG", `Username must have at most ${maxLength} characters.`);
-  }
+  const lengthError = checkStringLength(normalized, "Username", minLength, maxLength);
+  if (lengthError) return lengthError;
   if (!/^[a-zA-Z0-9_]+$/.test(normalized)) {
     return fail("INVALID_CHARACTERS", "Username can only contain letters, numbers, and underscores.");
   }
@@ -433,6 +473,9 @@ export function isUsername(value: string, options: { minLength?: number; maxLeng
  * @returns Structured validation result.
  */
 export function validateEmail(value: string): ValidationResult {
+  const typeError = requireString(value);
+  if (typeError) return typeError;
+
   const normalized = value.trim();
   if (!normalized) {
     return fail("EMPTY", "Email cannot be empty.");
@@ -459,6 +502,9 @@ export function isEmail(value: string): boolean {
  * @returns Structured validation result.
  */
 export function validateHttpUrl(value: string): ValidationResult {
+  const typeError = requireString(value);
+  if (typeError) return typeError;
+
   const normalized = value.trim();
   if (!normalized) {
     return fail("EMPTY", "URL cannot be empty.");
@@ -491,6 +537,9 @@ export function isHttpUrl(value: string): boolean {
  * @returns Structured validation result.
  */
 export function validateDomain(value: string): ValidationResult {
+  const typeError = requireString(value);
+  if (typeError) return typeError;
+
   const normalized = value.trim().toLowerCase();
   if (!normalized) {
     return fail("EMPTY", "Domain cannot be empty.");
@@ -531,6 +580,9 @@ export function validatePostalCode(
   value: string,
   options: { country?: PostalCountry } = {}
 ): ValidationResult {
+  const typeError = requireString(value);
+  if (typeError) return typeError;
+
   const normalized = value.trim();
   const country = options.country ?? "US";
 
@@ -571,19 +623,15 @@ export function validateAddressLine(
   value: string,
   options: { minLength?: number; maxLength?: number } = {}
 ): ValidationResult {
+  const typeError = requireString(value);
+  if (typeError) return typeError;
+
   const minLength = options.minLength ?? 5;
   const maxLength = options.maxLength ?? 120;
   const normalized = value.trim();
 
-  if (!normalized) {
-    return fail("EMPTY", "Address line cannot be empty.");
-  }
-  if (normalized.length < minLength) {
-    return fail("TOO_SHORT", `Address line must have at least ${minLength} characters.`);
-  }
-  if (normalized.length > maxLength) {
-    return fail("TOO_LONG", `Address line must have at most ${maxLength} characters.`);
-  }
+  const lengthError = checkStringLength(normalized, "Address line", minLength, maxLength);
+  if (lengthError) return lengthError;
   if (!/^[A-Za-z0-9À-ÖØ-öø-ÿ#.,'/ -]+$/.test(normalized)) {
     return fail("INVALID_CHARACTERS", "Address line contains unsupported characters.");
   }
@@ -615,6 +663,9 @@ function hasPasswordClasses(value: string): boolean {
  * @returns Structured validation result.
  */
 export function validateStrongPassword(value: string, options: { minLength?: number } = {}): ValidationResult {
+  const typeError = requireString(value);
+  if (typeError) return typeError;
+
   const minLength = options.minLength ?? 8;
 
   if (!value) {
@@ -681,6 +732,9 @@ function isValidIsoDateParts(value: string): boolean {
  * @returns Structured validation result.
  */
 export function validateCreditCardNumber(value: string): ValidationResult {
+  const typeError = requireString(value);
+  if (typeError) return typeError;
+
   const normalized = value.replace(/[\s-]/g, "");
   if (!normalized) {
     return fail("EMPTY", "Card number cannot be empty.");
@@ -711,6 +765,9 @@ export function isCreditCardNumber(value: string): boolean {
  * @returns Structured validation result.
  */
 export function validateUuidV4(value: string): ValidationResult {
+  const typeError = requireString(value);
+  if (typeError) return typeError;
+
   const normalized = value.trim();
   if (!normalized) {
     return fail("EMPTY", "UUID cannot be empty.");
@@ -737,6 +794,9 @@ export function isUuidV4(value: string): boolean {
  * @returns Structured validation result.
  */
 export function validateIpv4(value: string): ValidationResult {
+  const typeError = requireString(value);
+  if (typeError) return typeError;
+
   const normalized = value.trim();
   if (!normalized) {
     return fail("EMPTY", "IPv4 address cannot be empty.");
@@ -764,6 +824,9 @@ export function isIpv4(value: string): boolean {
  * @returns Structured validation result.
  */
 export function validateIsoDateString(value: string): ValidationResult {
+  const typeError = requireString(value);
+  if (typeError) return typeError;
+
   const normalized = value.trim();
   if (!normalized) {
     return fail("EMPTY", "Date string cannot be empty.");

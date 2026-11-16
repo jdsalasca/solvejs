@@ -568,3 +568,95 @@ test("the built declarations mark the typo aliases as deprecated", async () => {
     assert.match(doc, /isAddressDirection/, `${alias} must name its replacement`);
   }
 });
+
+test("every validate* returns INVALID_TYPE for a non-string value instead of throwing", () => {
+  const validators = {
+    validateCellphoneNumber,
+    validateAddressDirection,
+    validateName,
+    validateUsername,
+    validateEmail,
+    validateHttpUrl,
+    validateDomain,
+    validatePostalCode,
+    validateAddressLine,
+    validateStrongPassword,
+    validateCreditCardNumber,
+    validateUuidV4,
+    validateIpv4,
+    validateIsoDateString
+  };
+
+  for (const [name, validate] of Object.entries(validators)) {
+    for (const value of [undefined, null, 42, {}, []]) {
+      let result;
+      assert.doesNotThrow(() => {
+        result = validate(value);
+      }, `${name} must not throw for ${String(value)}`);
+      assert.equal(result.ok, false, `${name} must reject a non-string`);
+      assert.equal(result.code, "INVALID_TYPE", `${name} must report INVALID_TYPE`);
+    }
+  }
+});
+
+test("every is* wrapper returns false for a non-string value instead of throwing", () => {
+  const checks = {
+    isCellphoneNumber,
+    isAddressDirection,
+    isValidName,
+    isUsername,
+    isEmail,
+    isHttpUrl,
+    isDomain,
+    isPostalCode,
+    isAddressLine,
+    isStrongPassword,
+    isCreditCardNumber,
+    isUuidV4,
+    isIpv4,
+    isIsoDateString
+  };
+
+  for (const [name, check] of Object.entries(checks)) {
+    for (const value of [undefined, null, 42, {}, []]) {
+      assert.doesNotThrow(() => check(value), `${name} must not throw`);
+      assert.equal(check(value), false, `${name} must return false for a non-string`);
+    }
+  }
+});
+
+test("translateValidationResult is stable for malformed input and unknown codes", () => {
+  for (const value of [undefined, null, 42, {}, { ok: false }]) {
+    const translated = translateValidationResult(value);
+    assert.equal(translated.ok, false);
+    assert.equal(translated.code, "INVALID_RESULT");
+    assert.equal(typeof translated.message, "string");
+  }
+
+  const unknown = translateValidationResult({ ok: false, code: "SOMETHING_UNKNOWN", message: "raw" });
+  assert.equal(unknown.ok, false);
+  assert.equal(unknown.code, "SOMETHING_UNKNOWN");
+  assert.match(unknown.message, /Value/);
+
+  assert.equal(translateValidationResult(validateEmail("")).message, "Value is required.");
+  assert.equal(
+    translateValidationResult(validateEmail("ada@example.com"), { locale: "es", fieldLabel: "Correo" }).message,
+    "Correo es valido."
+  );
+});
+
+test("INVALID_TYPE and INVALID_RESULT have localized messages", () => {
+  const typeResult = { ok: false, code: "INVALID_TYPE", message: "raw" };
+  assert.equal(translateValidationResult(typeResult, { fieldLabel: "Email" }).message, "Email must be a string.");
+  assert.equal(
+    translateValidationResult(typeResult, { locale: "es", fieldLabel: "Correo" }).message,
+    "Correo debe ser texto."
+  );
+  assert.equal(
+    translateValidationResult(typeResult, { locale: "pt", fieldLabel: "Email" }).message,
+    "Email deve ser texto."
+  );
+
+  const invalidResult = { ok: false, code: "INVALID_RESULT", message: "raw" };
+  assert.equal(translateValidationResult(invalidResult).message, "Invalid validation result.");
+});
