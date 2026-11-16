@@ -99,6 +99,19 @@ Built `@jdsalasc/solvejs-xlsx@0.1.0` from scratch, with no runtime dependencies:
 
 Next in this line: PDF writer/reader, formula writing as an explicit opt-in, and richer style metadata on read.
 
+## Round 6: PDF generator and viewer — vertical slice done
+
+Built `@jdsalasc/solvejs-pdf@0.1.0` from scratch, browser-first and with no runtime dependencies:
+
+- PDF 1.7 serializer with classic xref, metadata in UTF-16, standard Type1 fonts (Helvetica, Times, Courier and their bold/italic variants), WinAnsi text encoding, text measurement, wrapping, links, rounded rectangles, lines and JPEG images (`DCTDecode`).
+- Declarative components: `Pdf`, `PdfPage`, `View`, `Row`, `Text`, `Heading`, `Paragraph`, `Table`, `Image`, `Link`, `Divider`, `Spacer`, plus fragments, custom function components and JSX runtimes for `react-jsx`/`react-jsxdev`.
+- Layout: A4/Letter/A3/A5/custom sizes, margins, nested vertical/horizontal containers, percentage widths, automatic page breaks, split text blocks and views, tables that split by rows and repeat their header, repeated header/footer decorators with page numbers.
+- Browser viewer: `<solvejs-pdf-viewer>` custom element plus `createPdfViewer`/`mountPdfViewer`, iframe or compact preview, download/open actions, light/dark/auto themes, and a full `render` override for custom UI.
+- 27 tests covering the serializer, pagination, nested percentage widths, table splitting (including tables nested in padded views), JPEG parsing and data URLs, WinAnsi accents, links, JSX components, viewer DOM behavior and error paths; TSX fixtures compile for both JSX runtimes; the styled invoice and the viewer were reviewed as PNG/screenshots.
+- Benchmark on Node 24 / Windows: one-page invoice ~0.85 ms / 4.4 KB; 10-page report ~14.6 ms / 72 KB, or ~52 ms / 7.4 KB compressed.
+
+Limitations for this slice: no PDF reading, no custom font embedding, no PNG images, no charts or forms. Next: PNG support, custom TTF embedding and an optional page-thumbnail renderer.
+
 ## Risks and Rollback
 
 - Publishing eight `0.1.0` packages for the first time is irreversible: npm does not allow

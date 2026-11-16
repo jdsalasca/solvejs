@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.11.0 - 2026-11-16
+
+- Added `@jdsalasc/solvejs-pdf@0.1.0`, a browser-first, zero-dependency PDF generator and viewer. The declarative API (`Pdf`, `PdfPage`, `View`, `Row`, `Text`, `Heading`, `Paragraph`, `Table`, `Image`, `Link`, `Divider`, `Spacer`) supports automatic text wrapping, page breaks, repeated headers and footers with page numbers, rich colors, borders, radius, padding, alignment, standard fonts, JPEG images, links and metadata. The companion viewer (`@jdsalasc/solvejs-pdf/viewer`) renders a toolbar with open/download actions, an iframe or compact preview, light/dark themes, and a `render` callback that replaces the whole UI. Ships ESM, CommonJS, TypeScript declarations, JSX runtimes for `react-jsx`/`react-jsxdev`, and works in vanilla JS, React + Vite and Next.js client components. Migration impact: none, new package.
+
+- Bumped the meta package to `1.11.0` so it can depend on and re-export `@jdsalasc/solvejs-pdf@0.1.0`. Migration impact: none; `npm i @jdsalasc/solvejs@1.11.0` includes PDF support.
+
 ## 1.10.0 - 2026-11-16
 
 - Changed every `validate*` helper in `@jdsalasc/solvejs-validators` to return a structured `INVALID_TYPE` result when the value is not a string, instead of throwing a `TypeError`. A JavaScript consumer can now pass `undefined`, `null`, a number, an object, or an array and get the same `{ ok, code, message }` shape as any other validation failure; the `is*` wrappers return `false`. `translateValidationResult` now returns `INVALID_RESULT` for a malformed result and a generic message for an unknown code instead of throwing, and `INVALID_TYPE`/`INVALID_RESULT` carry EN/ES/PT messages. Migration impact: TypeScript callers are unaffected. A JavaScript caller that relied on catching `TypeError` must check `result.ok` instead.

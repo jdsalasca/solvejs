@@ -4,7 +4,7 @@ Generated on 2026-11-16.
 
 | Package | Version | Functions | Consts | Types | Tests |
 |---|---:|---:|---:|---:|---:|
-| @jdsalasc/solvejs | 1.10.0 | 0 | 0 | 0 | 4 |
+| @jdsalasc/solvejs | 1.11.0 | 0 | 0 | 0 | 4 |
 | @jdsalasc/solvejs-async | 1.10.0 | 10 | 0 | 8 | 26 |
 | @jdsalasc/solvejs-cache | 0.2.0 | 5 | 0 | 7 | 31 |
 | @jdsalasc/solvejs-constants | 1.10.0 | 1 | 8 | 0 | 9 |
@@ -18,6 +18,7 @@ Generated on 2026-11-16.
 | @jdsalasc/solvejs-numbers | 1.10.0 | 16 | 0 | 0 | 18 |
 | @jdsalasc/solvejs-objects | 1.10.0 | 7 | 0 | 0 | 9 |
 | @jdsalasc/solvejs-pagination | 0.2.0 | 8 | 0 | 5 | 15 |
+| @jdsalasc/solvejs-pdf | 0.1.0 | 0 | 0 | 0 | 27 |
 | @jdsalasc/solvejs-regex | 1.10.0 | 5 | 1 | 1 | 15 |
 | @jdsalasc/solvejs-schema | 1.10.0 | 1 | 1 | 5 | 20 |
 | @jdsalasc/solvejs-semver | 0.2.0 | 9 | 0 | 4 | 34 |

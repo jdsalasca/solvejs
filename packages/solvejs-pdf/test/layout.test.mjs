@@ -1,0 +1,199 @@
+import test from "node:test";
+import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
+import {
+  PdfColors,
+  Heading,
+  Image,
+  Pdf,
+  Row,
+  Table,
+  Text,
+  View,
+  buildPdfDocument,
+  renderPdf
+} from "../dist/esm/index.js";
+
+test("wraps text and paginates long flowed content", () => {
+  const long = "A very long sentence that must wrap across the available width. ".repeat(80);
+  const document = buildPdfDocument(
+    Pdf({
+      children: [
+        Heading({ children: "Report" }),
+        Text({ value: long }),
+        Text({ value: long, marginTop: 12 })
+      ]
+    })
+  );
+
+  assert.ok(document.pages.length >= 2);
+  const textOps = document.pages.flatMap((page) => page.ops.filter((op) => op.kind === "text"));
+  assert.ok(textOps.length > 4);
+  assert.ok(textOps.every((op) => op.x >= 40));
+});
+
+test("row children keep their widths and gap", () => {
+  const document = buildPdfDocument(
+    Pdf({
+      children: Row({
+        gap: 10,
+        children: [
+          View({ width: 100, height: 20, background: PdfColors.Red }),
+          View({ width: 200, height: 20, background: PdfColors.Blue })
+        ]
+      })
+    })
+  );
+
+  const rects = document.pages[0].ops.filter((op) => op.kind === "rect");
+  assert.equal(rects.length, 2);
+  assert.equal(rects[0].x, 40);
+  assert.equal(rects[0].width, 100);
+  assert.equal(rects[1].x, 150);
+  assert.equal(rects[1].width, 200);
+});
+
+test("resolves percentage widths once inside nested rows", () => {
+  const document = buildPdfDocument(
+    Pdf({
+      children: Row({
+        children: [
+          View({ width: "60%" }),
+          View({
+            width: "36%",
+            padding: 14,
+            background: PdfColors.LightBlue,
+            children: Row({
+              children: [
+                Text({ value: "Subtotal", fontSize: 10 }),
+                Text({ value: "$5,640.00", fontSize: 10, align: "right" })
+              ]
+            })
+          })
+        ]
+      })
+    })
+  );
+
+  const texts = document.pages[0].ops.filter((op) => op.kind === "text");
+  assert.deepEqual(
+    texts.map((op) => op.text),
+    ["Subtotal", "$5,640.00"]
+  );
+  assert.ok(texts[1].x > texts[0].x + 60);
+});
+
+test("tables split by rows and repeat their header", () => {
+  const rows = Array.from({ length: 40 }, (_, index) => ({
+    item: `Item ${index}`,
+    total: (index * 10).toFixed(2)
+  }));
+  const document = buildPdfDocument(
+    Pdf({
+      page: { width: 400, height: 320 },
+      margin: 20,
+      children: Table({
+        columns: [
+          { key: "item", header: "Item", width: 220 },
+          { key: "total", header: "Total", width: 120, align: "right" }
+        ],
+        rows
+      })
+    })
+  );
+
+  assert.ok(document.pages.length > 1);
+  const headerPages = document.pages.filter((page) =>
+    page.ops.some((op) => op.kind === "text" && op.text === "Item")
+  );
+  assert.equal(headerPages.length, document.pages.length);
+  const bodyTexts = document.pages.flatMap((page) =>
+    page.ops.filter((op) => op.kind === "text").map((op) => op.text)
+  );
+  assert.ok(bodyTexts.includes("Item 0"));
+  assert.ok(bodyTexts.includes("Item 39"));
+});
+
+test("splits a table nested inside a padded view", () => {
+  const rows = Array.from({ length: 30 }, (_, index) => ({
+    item: `Nested ${index}`,
+    total: (index * 10).toFixed(2)
+  }));
+  const document = buildPdfDocument(
+    Pdf({
+      page: { width: 400, height: 320 },
+      margin: 20,
+      children: View({
+        padding: 10,
+        background: PdfColors.SoftGray,
+        children: Table({
+          columns: [
+            { key: "item", header: "Item", width: 220 },
+            { key: "total", header: "Total", width: 120, align: "right" }
+          ],
+          rows
+        })
+      })
+    })
+  );
+
+  assert.ok(document.pages.length > 1);
+  const headerPages = document.pages.filter((page) =>
+    page.ops.some((op) => op.kind === "text" && op.text === "Item")
+  );
+  assert.equal(headerPages.length, document.pages.length);
+});
+
+test("renders styled table cells", () => {
+  const document = buildPdfDocument(
+    Pdf({
+      children: Table({
+        columns: [
+          { key: "label", header: "Label", width: 200 },
+          { key: "amount", header: "Amount", width: 120, align: "right" }
+        ],
+        rows: [
+          { label: "Subtotal", amount: "100.00" },
+          { label: { value: "Total", bold: true, color: PdfColors.DarkBlue }, amount: { value: "100.00", bold: true, background: PdfColors.Yellow } }
+        ]
+      })
+    })
+  );
+
+  const texts = document.pages[0].ops.filter((op) => op.kind === "text");
+  const total = texts.find((op) => op.text === "Total");
+  assert.equal(total.font, "helvetica-bold");
+  assert.equal(total.color, PdfColors.DarkBlue);
+  const fills = document.pages[0].ops.filter((op) => op.kind === "rect" && op.fill === PdfColors.Yellow);
+  assert.ok(fills.length >= 1);
+});
+
+test("embeds a JPEG image and preserves its aspect ratio", () => {
+  const jpeg = readFileSync(new URL("./fixtures/tiny.jpg", import.meta.url));
+  const document = buildPdfDocument(Pdf({ children: Image({ src: jpeg, width: 40 }) }));
+  const image = document.pages[0].ops.find((op) => op.kind === "image");
+  assert.ok(image);
+  assert.equal(image.width, 40);
+  assert.equal(image.height, 40);
+  const bytes = renderPdf(Pdf({ children: Image({ src: jpeg, width: 40 }) }));
+  assert.match(new TextDecoder("windows-1252").decode(bytes), /\/Filter \/DCTDecode/);
+});
+
+test("accepts JPEG data URLs and base64 strings", () => {
+  const jpeg = readFileSync(new URL("./fixtures/tiny.jpg", import.meta.url));
+  const base64 = jpeg.toString("base64");
+  const fromDataUrl = buildPdfDocument(
+    Pdf({ children: Image({ src: `data:image/jpeg;base64,${base64}`, width: 20 }) })
+  );
+  const fromBase64 = buildPdfDocument(Pdf({ children: Image({ src: base64, width: 20 }) }));
+  assert.equal(fromDataUrl.pages[0].ops.find((op) => op.kind === "image").width, 20);
+  assert.equal(fromBase64.pages[0].ops.find((op) => op.kind === "image").width, 20);
+});
+
+test("rejects non-JPEG image data", () => {
+  assert.throws(
+    () => renderPdf(Pdf({ children: Image({ src: new Uint8Array([1, 2, 3, 4]) }) })),
+    (error) => error.code === "PDF_INVALID_INPUT"
+  );
+});
+

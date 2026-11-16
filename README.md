@@ -2,7 +2,7 @@
 
 **Zero-dependency TypeScript utilities for the problems every JavaScript app hits: dates, validation, money, caching, HTTP, JSON, URLs, pagination, semver, errors, environment config, and more.**
 
-SolveJS is a monorepo of 20 focused packages. Install the whole ecosystem with one import, or install only the module you need. No runtime dependencies, no peer dependencies, no native builds.
+SolveJS is a monorepo of 21 focused packages. Install the whole ecosystem with one import, or install only the module you need. No runtime dependencies, no peer dependencies, no native builds.
 
 [![CI](https://github.com/jdsalasca/solvejs/actions/workflows/ci.yml/badge.svg)](https://github.com/jdsalasca/solvejs/actions/workflows/ci.yml)
 [![npm](https://img.shields.io/npm/v/@jdsalasc/solvejs)](https://www.npmjs.com/package/@jdsalasc/solvejs)
@@ -43,6 +43,7 @@ SolveJS is a monorepo of 20 focused packages. Install the whole ecosystem with o
 | Parse numbers, compute percentages, format currency, or round safely | `@jdsalasc/solvejs-numbers` | `npm i @jdsalasc/solvejs-numbers` |
 | Use time, file-size, HTTP method, status, and content-type constants | `@jdsalasc/solvejs-constants` | `npm i @jdsalasc/solvejs-constants` |
 | Export or read XLSX spreadsheets with JSX components and rich styling | `@jdsalasc/solvejs-xlsx` | `npm i @jdsalasc/solvejs-xlsx` |
+| Generate PDFs with JSX components and preview them with a built-in viewer | `@jdsalasc/solvejs-pdf` | `npm i @jdsalasc/solvejs-pdf` |
 | Import any of the above from one entry point | `@jdsalasc/solvejs` | `npm i @jdsalasc/solvejs` |
 
 ## Install

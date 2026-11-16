@@ -35,7 +35,26 @@ const metaPkg = JSON.parse(readFileSync("packages/solvejs/package.json", "utf8")
 const declared = Object.keys(metaPkg.dependencies ?? {}).sort();
 
 const metaSrc = readFileSync("packages/solvejs/src/index.ts", "utf8");
-const reexported = [...metaSrc.matchAll(/export\s+\*\s+from\s+"([^"]+)"/g)].map((m) => m[1]).sort();
+const starReexports = [...metaSrc.matchAll(/export\s+\*\s+from\s+"([^"]+)"/g)].map((m) => m[1]);
+// eslint-disable-next-line security/detect-unsafe-regex -- anchored export prefix, no nested quantifier
+const namedReexports = [...metaSrc.matchAll(/export\s+(?:type\s+)?\{[^}]+\}\s+from\s+"([^"]+)"/g)].map(
+  (m) => m[1]
+);
+const reexported = [...new Set([...starReexports, ...namedReexports])].sort();
+
+// A name that two leaves export is fine in the meta package only when all but one of those leaves
+// re-exports it under an alias. This map records `package:original` pairs that the meta aliases.
+const aliases = new Set();
+// eslint-disable-next-line security/detect-unsafe-regex -- anchored export prefix, no nested quantifier
+for (const match of metaSrc.matchAll(/export\s+(?:type\s+)?\{([^}]+)\}\s+from\s+"([^"]+)"/g)) {
+  const specifier = match[2];
+  for (const part of match[1].split(",")) {
+    const cleaned = part.trim().replace(/^type\s+/, "");
+    if (!cleaned) continue;
+    const [original, alias] = cleaned.split(/\s+as\s+/).map((value) => value.trim());
+    if (alias) aliases.add(`${specifier}:${original}`);
+  }
+}
 
 const compare = (label, list, other) => {
   for (const name of list.filter((n) => !other.includes(n))) {
@@ -87,7 +106,8 @@ const namedExportsOf = (file) => {
 
 const owners = new Map();
 for (const path of leafPaths) {
-  const short = path.replace(/^packages[\\/]/, "").split("solvejs-")[1] ?? path;
+  const manifest = JSON.parse(readFileSync(join(path, "package.json"), "utf8"));
+  const short = manifest.name.replace("@jdsalasc/solvejs-", "").replace("@jdsalasc/", "");
   const file = join(path, "dist", "esm", "index.js");
   if (!existsSync(file)) {
     problems.push(`No ESM build for ${short}; run npm run build first`);
@@ -95,13 +115,15 @@ for (const path of leafPaths) {
   }
   for (const symbol of namedExportsOf(file)) {
     if (!owners.has(symbol)) owners.set(symbol, []);
-    owners.get(symbol).push(short);
+    owners.get(symbol).push({ name: manifest.name, short });
   }
 }
 
 for (const [symbol, pkgs] of owners) {
-  if (pkgs.length > 1) {
-    problems.push(`Ambiguous export ${symbol}, provided by: ${pkgs.join(", ")}`);
+  if (pkgs.length <= 1) continue;
+  const unresolved = pkgs.filter((pkg) => !aliases.has(`${pkg.name}:${symbol}`));
+  if (unresolved.length > 1) {
+    problems.push(`Ambiguous export ${symbol}, provided by: ${unresolved.map((pkg) => pkg.short).join(", ")}`);
   }
 }
 
