@@ -81,7 +81,24 @@ const COUNTRY_RULES: Record<Exclude<SupportedCountry, "ANY">, { minDigits: numbe
   DE: { minDigits: 10, maxDigits: 14 }
 };
 
+const PHONE_COUNTRIES = new Set<SupportedCountry>([
+  "ANY",
+  "US",
+  "CO",
+  "MX",
+  "ES",
+  "AR",
+  "CL",
+  "PE",
+  "BR",
+  "CA",
+  "UY",
+  "GB",
+  "DE"
+]);
+
 const POSTAL_PATTERNS: Record<PostalCountry, RegExp> = {
+  // eslint-disable-next-line security/detect-unsafe-regex -- anchored, fixed-width alternatives
   US: /^\d{5}(?:-\d{4})?$/,
   CO: /^\d{6}$/,
   MX: /^\d{5}$/,
@@ -164,6 +181,44 @@ export function translateValidationResult(
   };
 }
 
+function checkPhoneCountry(country: SupportedCountry): ValidationResult | null {
+  return PHONE_COUNTRIES.has(country)
+    ? null
+    : fail("UNSUPPORTED_COUNTRY", `Unsupported country preset: ${country}.`);
+}
+
+function normalizePhone(value: string, allowInternational: boolean): string | ValidationResult {
+  const normalized = value.trim();
+  if (normalized.length === 0) return fail("EMPTY", "Phone number cannot be empty.");
+
+  const compact = normalized.replace(/[\s().-]/g, "");
+  const pattern = allowInternational ? /^\+?\d+$/ : /^\d+$/;
+  if (!pattern.test(compact)) return fail("INVALID_FORMAT", "Phone number contains invalid characters.");
+
+  return compact.startsWith("+") ? compact.slice(1) : compact;
+}
+
+function resolvePhoneBounds(
+  country: SupportedCountry,
+  options: { minDigits?: number; maxDigits?: number }
+): { minDigits: number; maxDigits: number } {
+  const preset = country === "ANY" ? { minDigits: 7, maxDigits: 15 } : COUNTRY_RULES[country];
+  return {
+    minDigits: options.minDigits ?? preset.minDigits,
+    maxDigits: options.maxDigits ?? preset.maxDigits
+  };
+}
+
+function checkPhoneLength(digits: string, minDigits: number, maxDigits: number): ValidationResult | null {
+  if (digits.length < minDigits) {
+    return fail("TOO_SHORT", `Phone number must have at least ${minDigits} digits.`);
+  }
+  if (digits.length > maxDigits) {
+    return fail("TOO_LONG", `Phone number must have at most ${maxDigits} digits.`);
+  }
+  return null;
+}
+
 /**
  * Validates cellphone numbers using regional presets.
  *
@@ -187,33 +242,15 @@ export function validateCellphoneNumber(
   const allowInternational = options.allowInternational ?? true;
   const country = options.country ?? "ANY";
 
-  if (!["ANY", "US", "CO", "MX", "ES", "AR", "CL", "PE", "BR", "CA", "UY", "GB", "DE"].includes(country)) {
-    return fail("UNSUPPORTED_COUNTRY", `Unsupported country preset: ${country}.`);
-  }
+  const countryError = checkPhoneCountry(country);
+  if (countryError) return countryError;
 
-  const normalized = value.trim();
-  if (normalized.length === 0) {
-    return fail("EMPTY", "Phone number cannot be empty.");
-  }
+  const digits = normalizePhone(value, allowInternational);
+  if (typeof digits !== "string") return digits;
 
-  const compact = normalized.replace(/[\s().-]/g, "");
-  const pattern = allowInternational ? /^\+?\d+$/ : /^\d+$/;
-
-  if (!pattern.test(compact)) {
-    return fail("INVALID_FORMAT", "Phone number contains invalid characters.");
-  }
-
-  const digits = compact.startsWith("+") ? compact.slice(1) : compact;
-  const preset = country === "ANY" ? { minDigits: 7, maxDigits: 15 } : COUNTRY_RULES[country];
-  const minDigits = options.minDigits ?? preset.minDigits;
-  const maxDigits = options.maxDigits ?? preset.maxDigits;
-
-  if (digits.length < minDigits) {
-    return fail("TOO_SHORT", `Phone number must have at least ${minDigits} digits.`);
-  }
-  if (digits.length > maxDigits) {
-    return fail("TOO_LONG", `Phone number must have at most ${maxDigits} digits.`);
-  }
+  const { minDigits, maxDigits } = resolvePhoneBounds(country, options);
+  const lengthError = checkPhoneLength(digits, minDigits, maxDigits);
+  if (lengthError) return lengthError;
 
   return ok("Valid cellphone number.");
 }
@@ -466,6 +503,7 @@ export function validateDomain(value: string): ValidationResult {
     return fail("INVALID_FORMAT", "Domain must include a top-level domain.");
   }
   const valid = labels.every(
+    // eslint-disable-next-line security/detect-unsafe-regex -- bounded label length, no nested wildcard
     (label) => /^[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?$/.test(label)
   );
   return valid ? ok("Valid domain.") : fail("INVALID_FORMAT", "Domain does not match expected format.");
@@ -564,6 +602,10 @@ export function isAddressLine(value: string, options: { minLength?: number; maxL
   return validateAddressLine(value, options).ok;
 }
 
+function hasPasswordClasses(value: string): boolean {
+  return /[A-Z]/.test(value) && /[a-z]/.test(value) && /\d/.test(value) && /[^A-Za-z0-9]/.test(value);
+}
+
 /**
  * Validates password strength using default security checks.
  *
@@ -581,7 +623,7 @@ export function validateStrongPassword(value: string, options: { minLength?: num
   if (value.length < minLength) {
     return fail("TOO_SHORT", `Password must have at least ${minLength} characters.`);
   }
-  if (!/[A-Z]/.test(value) || !/[a-z]/.test(value) || !/\d/.test(value) || !/[^A-Za-z0-9]/.test(value)) {
+  if (!hasPasswordClasses(value)) {
     return fail("INVALID_FORMAT", "Password must include upper, lower, digit, and symbol characters.");
   }
 
@@ -699,6 +741,7 @@ export function validateIpv4(value: string): ValidationResult {
   if (!normalized) {
     return fail("EMPTY", "IPv4 address cannot be empty.");
   }
+  // eslint-disable-next-line security/detect-unsafe-regex -- four bounded octet groups, anchored
   return /^(?:25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(?:\.(?:25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3}$/.test(normalized)
     ? ok("Valid IPv4 address.")
     : fail("INVALID_FORMAT", "IPv4 address does not match expected format.");

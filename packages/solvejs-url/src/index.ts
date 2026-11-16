@@ -61,22 +61,24 @@ function assertAbsoluteUrl(value: string, field: string): URL {
  * @param query - Values to serialise.
  * @returns Query string without a leading `?`, or an empty string.
  */
+function appendQueryValue(params: URLSearchParams, key: string, value: unknown): void {
+  if (value === null || value === undefined) return;
+
+  if (Array.isArray(value)) {
+    for (const entry of value) {
+      if (entry !== null && entry !== undefined) params.append(key, String(entry));
+    }
+    return;
+  }
+
+  params.append(key, String(value));
+}
+
 export function stringifyQuery(query: QueryInput): string {
   const params = new URLSearchParams();
 
   for (const key of Object.keys(query).sort()) {
-    const value = query[key];
-    if (value === null || value === undefined) continue;
-
-    if (Array.isArray(value)) {
-      for (const entry of value) {
-        if (entry === null || entry === undefined) continue;
-        params.append(key, String(entry));
-      }
-      continue;
-    }
-
-    params.append(key, String(value));
+    appendQueryValue(params, key, query[key]);
   }
 
   return params.toString();
