@@ -118,7 +118,11 @@ function createFrame(blobUrl: string, fileName: string, height: number | string)
   frame.src = blobUrl;
   frame.title = fileName;
   frame.setAttribute("referrerpolicy", "no-referrer");
-  frame.style.height = typeof height === "number" ? `${height}px` : height;
+  frame.style.height =
+    typeof height === "number" ||
+    (typeof height === "string" && height.trim() !== "" && Number.isFinite(Number(height)))
+      ? `${height}px`
+      : height;
   return frame;
 }
 

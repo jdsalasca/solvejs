@@ -26,22 +26,6 @@ function colorSpaceOf(components: number): PdfImage["colorSpace"] {
 
 type Segment = { marker: number; length: number; next: number };
 
-function standaloneMarker(marker: number): boolean {
-  return marker === 0xd8 || marker === 0xd9 || (marker >= 0xd0 && marker <= 0xd7);
-}
-
-function readSegment(data: Uint8Array, offset: number): Segment {
-  if (data[offset] !== 0xff) return { marker: -1, length: 0, next: offset + 1 };
-  const marker = data[offset + 1] ?? 0;
-  if (standaloneMarker(marker)) return { marker, length: 0, next: offset + 2 };
-  if (offset + 2 >= data.length) return { marker, length: 0, next: data.length };
-  const length = readUint16(data, offset + 2);
-  if (length < 2 || offset + 2 + length > data.length) {
-    failPdf("PDF_INVALID_INPUT", "JPEG segment length is invalid.");
-  }
-  return { marker, length, next: offset + 2 + length };
-}
-
 function frameOf(data: Uint8Array, segment: Segment): PdfImage {
   if (segment.length < 8) failPdf("PDF_INVALID_INPUT", "JPEG frame header is too short.");
   const offset = segment.next - segment.length;
@@ -52,21 +36,17 @@ function frameOf(data: Uint8Array, segment: Segment): PdfImage {
   if (components !== 1 && components !== 3) {
     failPdf("PDF_UNSUPPORTED", "Only grayscale and RGB JPEG images are supported.", { components });
   }
+  if (segment.length < 8 + components * 3) {
+    failPdf("PDF_INVALID_INPUT", "JPEG frame header is truncated.");
+  }
   if (width <= 0 || height <= 0) {
     failPdf("PDF_INVALID_INPUT", "JPEG dimensions must be positive.", { width, height });
   }
   return { data, width, height, colorSpace: colorSpaceOf(components) };
 }
 
-function hasMarker(data: Uint8Array, marker: number): boolean {
-  for (let index = 0; index + 1 < data.length; index += 1) {
-    if (data[index] === 0xff && data[index + 1] === marker) return true;
-  }
-  return false;
-}
-
-/** Reads the dimensions and color space of a baseline or progressive JPEG. */
-// eslint-disable-next-line complexity -- JPEG segment state machine with explicit validation
+/* eslint-disable complexity, max-lines-per-function, max-depth -- JPEG segment/scan state machine */
+/** Reads the dimensions and color space of a baseline or extended sequential JPEG. */
 export function parseJpeg(data: Uint8Array): PdfImage {
   if (data.length > PDF_LIMITS.maxImageBytes) {
     failPdf("PDF_LIMIT_EXCEEDED", "Image exceeds the configured byte limit.", { bytes: data.length });
@@ -74,19 +54,62 @@ export function parseJpeg(data: Uint8Array): PdfImage {
   if (data.length < 4 || data[0] !== 0xff || data[1] !== 0xd8) {
     failPdf("PDF_INVALID_INPUT", "Expected a JPEG image beginning with FFD8.");
   }
-  if (!hasMarker(data, 0xda) || !hasMarker(data, 0xd9)) {
-    failPdf("PDF_INVALID_INPUT", "JPEG scan data is incomplete.");
-  }
 
   let offset = 2;
-  while (offset + 3 < data.length) {
-    const segment = readSegment(data, offset);
-    if (segment.marker === -1) {
-      offset = segment.next;
-      continue;
+  let frame: PdfImage | undefined;
+  while (offset < data.length) {
+    if (data[offset] !== 0xff) failPdf("PDF_INVALID_INPUT", "Expected a JPEG marker.");
+    while (data[offset] === 0xff) offset += 1;
+    if (offset >= data.length) failPdf("PDF_INVALID_INPUT", "JPEG ended inside a marker.");
+    const marker = data[offset];
+    offset += 1;
+    if (marker === 0xd9) {
+      if (!frame) failPdf("PDF_INVALID_INPUT", "JPEG ended before its frame header.");
+      return frame;
     }
-    if (SOF_MARKERS.has(segment.marker)) return frameOf(data, segment);
-    offset = segment.next;
+    if (marker === 0x00 || marker === 0xd8 || (marker >= 0xd0 && marker <= 0xd7)) {
+      failPdf("PDF_INVALID_INPUT", "Unexpected JPEG marker outside scan data.", { marker });
+    }
+    if (offset + 2 > data.length) failPdf("PDF_INVALID_INPUT", "JPEG segment is truncated.");
+    const length = readUint16(data, offset);
+    if (length < 2 || offset + length > data.length) {
+      failPdf("PDF_INVALID_INPUT", "JPEG segment length is invalid.");
+    }
+    if (marker === 0xda) {
+      if (!frame) failPdf("PDF_INVALID_INPUT", "JPEG scan appears before its frame header.");
+      let scan = offset + length;
+      let ended = false;
+      while (scan + 1 < data.length) {
+        if (data[scan] !== 0xff) {
+          scan += 1;
+          continue;
+        }
+        const next = data[scan + 1];
+        if (next === 0x00 || (next >= 0xd0 && next <= 0xd7)) {
+          scan += 2;
+          continue;
+        }
+        if (next === 0xff) {
+          scan += 1;
+          continue;
+        }
+        if (next === 0xd9) {
+          ended = true;
+          break;
+        }
+        failPdf("PDF_UNSUPPORTED", "JPEG contains multiple scans or unsupported markers.", { marker: next });
+      }
+      if (!ended) failPdf("PDF_INVALID_INPUT", "JPEG scan data is incomplete.");
+      return frame;
+    }
+    if (SOF_MARKERS.has(marker)) {
+      if (marker !== 0xc0 && marker !== 0xc1) {
+        failPdf("PDF_UNSUPPORTED", "Only baseline and extended sequential JPEG images are supported.", { marker });
+      }
+      if (frame) failPdf("PDF_INVALID_INPUT", "JPEG has more than one frame header.");
+      frame = frameOf(data, { marker, length, next: offset + length });
+    }
+    offset += length;
   }
 
   return failPdf("PDF_INVALID_INPUT", "JPEG frame header was not found.");

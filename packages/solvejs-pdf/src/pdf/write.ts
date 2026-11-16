@@ -199,12 +199,18 @@ function streamObject(data: Uint8Array, compressed: boolean): Uint8Array {
 }
 
 function escapeUri(value: string): string {
-  let encoded: string;
-  try {
-    encoded = encodeURI(value);
-  } catch {
-    encoded = value;
-  }
+  const escape = /%[0-9A-Fa-f]{2}/;
+  const encoded = value
+    .split(/(%[0-9A-Fa-f]{2})/)
+    .map((part) => {
+      if (escape.test(part) && part.length === 3) return part;
+      try {
+        return encodeURI(part);
+      } catch {
+        failPdf("PDF_INVALID_INPUT", "Link target contains malformed Unicode.", { href: value });
+      }
+    })
+    .join("");
   return encoded.replace(/[\\()]/g, "\\$&");
 }
 

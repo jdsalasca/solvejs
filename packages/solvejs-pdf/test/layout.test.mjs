@@ -230,6 +230,36 @@ test("rejects an explicit box height smaller than its content", () => {
   );
 });
 
+test("rejects progressive frames and extra scans in JPEG data", () => {
+  const jpeg = readFileSync(new URL("./fixtures/tiny.jpg", import.meta.url));
+  const progressive = Uint8Array.from(jpeg);
+  let sof = -1;
+  for (let index = 0; index + 1 < progressive.length; index += 1) {
+    if (progressive[index] === 0xff && progressive[index + 1] === 0xc0) {
+      sof = index;
+      break;
+    }
+  }
+  assert.notEqual(sof, -1);
+  progressive[sof + 1] = 0xc2;
+  assert.throws(
+    () => buildPdfDocument(Pdf({ children: Image({ src: progressive }) })),
+    (error) => error.code === "PDF_UNSUPPORTED"
+  );
+
+  let eoi = jpeg.length - 2;
+  while (eoi > 0 && !(jpeg[eoi] === 0xff && jpeg[eoi + 1] === 0xd9)) eoi -= 1;
+  assert.ok(eoi > 0);
+  const extraScan = new Uint8Array(jpeg.length + 2);
+  extraScan.set(jpeg.subarray(0, eoi), 0);
+  extraScan.set([0xff, 0xda], eoi);
+  extraScan.set(jpeg.subarray(eoi), eoi + 2);
+  assert.throws(
+    () => buildPdfDocument(Pdf({ children: Image({ src: extraScan }) })),
+    (error) => error.code === "PDF_UNSUPPORTED"
+  );
+});
+
 test("rejects truncated JPEG data", () => {
   assert.throws(
     () => renderPdf(Pdf({ children: Image({ src: new Uint8Array([0xff, 0xd8, 0xff, 0xd9]) }) })),

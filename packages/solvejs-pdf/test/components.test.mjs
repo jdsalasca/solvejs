@@ -88,6 +88,48 @@ test("draws header and footer on every page with page numbers", () => {
   assert.ok(texts.includes("Page 2 of 2"));
 });
 
+test("reserves the tallest header on every page, including middle pages", () => {
+  const document = buildPdfDocument(
+    Pdf({
+      margin: 40,
+      header: ({ page }) =>
+        View({
+          height: page === 2 ? 160 : 20,
+          children: Text({ value: `H${page}` })
+        }),
+      children: [
+        PdfPage({ children: Text({ value: "one" }) }),
+        PdfPage({ children: Text({ value: "two" }) })
+      ]
+    })
+  );
+  const body = document.pages[1].ops.find((op) => op.kind === "text" && op.text === "two");
+  assert.ok(body);
+  assert.ok(body.y > 200, `expected body below the 160pt header, got ${body.y}`);
+});
+
+test("rejects primitives as row children", () => {
+  assert.throws(
+    () => buildPdfDocument(Pdf({ children: Row({ children: ["oops"] }) })),
+    (error) => error.code === "PDF_INVALID_INPUT"
+  );
+});
+
+test("rejects oversized table cell text", () => {
+  assert.throws(
+    () =>
+      buildPdfDocument(
+        Pdf({
+          children: Table({
+            columns: [{ key: "text", header: "Text" }],
+            rows: [["x".repeat(200_001)]]
+          })
+        })
+      ),
+    (error) => error.code === "PDF_LIMIT_EXCEEDED"
+  );
+});
+
 test("keeps table cell styles and link annotations", () => {
   const bytes = renderPdf(
     Pdf({

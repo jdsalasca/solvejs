@@ -5,7 +5,7 @@
 
 Zero-dependency PDF generation and preview, built from scratch in TypeScript. Write a document as components, render it in the browser or on the server, and show it with a ready-made viewer that has an iframe, open/download actions and a completely replaceable UI.
 
-No PDF library, no React dependency, no CSS framework.
+No PDF library, no React dependency, no CSS framework. See the [Report Studio example](../../examples/report-studio) for an invoice that drives both a PDF and an XLSX workbook from one dataset.
 
 ## When to use this package
 
@@ -160,7 +160,8 @@ Units are PDF points (1/72 inch). Use `mm()`, `cm()`, `inches()` or `pt()` when 
 - `PdfPage` forces a break.
 - A `View` that is too tall splits at child boundaries; a `Text` splits between lines.
 - A `Table` splits between rows and repeats its header on every page.
-- `header` and `footer` can be a node or a function `({ page, total }) => node` and are drawn on every page.
+- `header` and `footer` can be a node or a function `({ page, total }) => node` and are drawn on every page. The layout measures every page, reserves the tallest header/footer across the document and repaginates to a fixed point; if it cannot stabilize, it fails with `PDF_LIMIT_EXCEEDED`.
+- `Row` children must be components; primitives are rejected instead of being silently dropped.
 - `width` percentages are resolved against the containing row or view exactly once.
 
 ## Viewer
@@ -285,7 +286,9 @@ export const InvoiceViewer = dynamic(
 | `mountPdfViewer(options, target?)` | Mounts a viewer and returns `{ element, ready, destroy }`. |
 | `definePdfViewer(tag?)` | Registers `<solvejs-pdf-viewer>`. |
 | `PdfError` | Stable codes: `PDF_INVALID_INPUT`, `PDF_LIMIT_EXCEEDED`, `PDF_UNSUPPORTED`. |
-| `PDF_LIMITS` | Pages, blocks, text, image and table-row limits. |
+| `PDF_LIMITS` | Pages, blocks, text, image bytes (per image and aggregate), table rows and table cells. |
+
+`PDF_LIMITS` is intentionally conservative for untrusted input: 500 pages, 20,000 layout nodes, 200,000 characters per text block, 20 MB per image, 64 MB of image bytes per document, 20,000 table rows and 200,000 table cells.
 
 ## What is supported
 
@@ -294,31 +297,138 @@ export const InvoiceViewer = dynamic(
 - Text wrapping, alignment, line height, colors, backgrounds, borders, rounded corners, padding and margins.
 - Nested `View` and `Row` layouts with numeric or percentage widths.
 - Automatic pagination, forced pages, split text/views, split tables with repeated headers, repeated headers/footers with page numbers.
-- JPEG images embedded with `DCTDecode`: 8-bit grayscale or RGB, with validated scan and EOI markers.
+- JPEG images embedded with `DCTDecode`: 8-bit grayscale or RGB, baseline and extended sequential frames, with validated segment lengths, marker order, scan data and EOI.
 - Optional Flate compression through the platform `CompressionStream`.
+
+## Real-world recipes
+
+### API route: return a generated invoice
+
+```ts
+import { Pdf, PdfPage, Text, Table, PdfColors, renderPdf } from "@jdsalasc/solvejs-pdf";
+
+export async function GET() {
+  const bytes = renderPdf(
+    Pdf({
+      title: "Invoice 1042",
+      author: "ACME Studio",
+      footer: ({ page, total }) => Text({ value: `Page ${page} of ${total}`, align: "center", fontSize: 9 }),
+      children: PdfPage({
+        children: [
+          Text({ value: "INVOICE 1042", fontSize: 26, bold: true, color: PdfColors.DarkBlue }),
+          Text({ value: "Due within 15 days", color: PdfColors.Gray, marginBottom: 18 }),
+          Table({
+            columns: [
+              { key: "item", header: "Item", width: 280 },
+              { key: "qty", header: "Qty", width: 60, align: "center" },
+              { key: "total", header: "Total", width: 100, align: "right" }
+            ],
+            rows: [
+              { item: "Design", qty: 1, total: "2,400.00" },
+              { item: "Development", qty: 2, total: "4,800.00" }
+            ]
+          })
+        ]
+      })
+    })
+  );
+
+  return new Response(bytes, {
+    headers: {
+      "content-type": "application/pdf",
+      "content-disposition": 'attachment; filename="invoice-1042.pdf"'
+    }
+  });
+}
+```
+
+The same builder works in a browser event handler: create a `Blob` from the returned bytes and hand it to the viewer or a download link.
+
+### Long report: let the engine paginate
+
+```ts
+import { Pdf, PdfPage, Heading, Paragraph, Text, PdfColors } from "@jdsalasc/solvejs-pdf";
+
+const report = Pdf({
+  title: "Annual report",
+  footer: ({ page, total }) => Text({ value: `${page} / ${total}`, align: "right", fontSize: 8 }),
+  children: PdfPage({
+    children: [
+      Heading({ level: 1, children: "Annual report" }),
+      ...sections.map((section) => [
+        Heading({ level: 2, children: section.title }),
+        Paragraph({ children: section.body })
+      ])
+    ]
+  })
+});
+```
+
+Do not calculate page breaks yourself. Wrapped paragraphs and tables split automatically, and the footer receives the final page count after pagination.
+
+### Preview without a framework
+
+```html
+<solvejs-pdf-viewer filename="report.pdf" height="640" theme="light"></solvejs-pdf-viewer>
+<script type="module">
+  import { definePdfViewer } from "@jdsalasc/solvejs-pdf/viewer";
+  import { Pdf, PdfPage, Text } from "@jdsalasc/solvejs-pdf";
+
+  definePdfViewer();
+  const viewer = document.querySelector("solvejs-pdf-viewer");
+  viewer.document = Pdf({ children: PdfPage({ children: Text({ value: "Hello" }) }) });
+</script>
+```
+
+Set attributes before the element connects. The custom element renders on connect and whenever you assign `document` or `data`; other option attributes are initialization-time values.
+
+## How it compares
+
+This is the gap list from the November 2026 audit. pdf-lib is the broadest low-level editor, PDFKit is the mature streaming generator, jsPDF is the long-standing client-side writer, and react-pdf is a React renderer.
+
+| Capability | SolveJS PDF | pdf-lib | PDFKit | jsPDF | react-pdf |
+|---|---|---|---|---|---|
+| Runtime dependencies | **0** | Several | Several | Several | React + renderer |
+| Browser-first, no Node built-ins | **Yes** | Yes | Partial | Yes | Yes |
+| Declarative components | **Yes** | No | No | No | Yes (React) |
+| Tables, wrapping, pagination | Built in | Manual | Manual | Manual | Built in |
+| Repeated header/footer with page numbers | Built in | Manual | Manual | Manual | Built in |
+| JPEG images | Yes | Yes | Yes | Yes | Yes |
+| PNG with transparency | Not yet | Yes | Yes | Yes | Yes |
+| Custom TTF/Unicode fonts | Not yet | Yes | Yes | Yes | Yes |
+| Read/edit existing PDFs | No | Yes | No | No | No |
+| Forms, outlines, encryption | No | Yes | Outlines | No | Outlines |
+| Zero-dependency viewer with download/open | **Yes** | No | No | No | No |
+| Bundle size for a small invoice | Small | Medium | Medium | Medium | Large |
+
+Pick pdf-lib to edit or merge existing documents, PDFKit for streaming Node pipelines, jsPDF for a familiar client-side canvas-style API, and react-pdf when the document should be React all the way down. Pick SolveJS when you want a small zero-dependency generator with a component vocabulary, predictable pagination and a viewer included.
 
 ## Not supported (yet)
 
 - Reading or parsing existing PDFs.
 - Custom TTF/OTF font embedding and Unicode outside WinAnsi.
 - PNG, WebP, GIF or SVG images.
-- CMYK or 12-bit JPEG images; these are rejected instead of producing incorrect colors.
+- CMYK or 12-bit JPEG images, and progressive/arithmetic JPEG frames; these are rejected instead of producing incorrect colors or broken scans.
 - Charts, forms, annotations other than links, outlines, encryption or digital signatures.
 
 ## Limits and fidelity
 
 - Standard Type 1 fonts only; unsupported Unicode characters become `?` and repeated whitespace is collapsed during wrapping. Supply text your chosen font can represent.
 - Tables cannot split a single row taller than the page; keep individual rows within the printable height.
-- Images use one-cell anchors on write; the reader also accepts two-cell anchors and returns their `to` marker.
-- `Row` children must produce one layout block; wrap multiple blocks in a `View`.
+- Table cells are limited to 200,000 characters each, and a document to 200,000 table cells.
+- Images are JPEG only and use `DCTDecode`. Each `Image` renders one image; there are no floating or inline image flows.
+- `Row` children must be components that produce one layout block; wrap multiple blocks in a `View`. Primitives and multi-block children fail with `PDF_INVALID_INPUT`.
+- Header/footer heights are measured across every page; page-specific decorators that grow without bound fail instead of overlapping the body.
+- Page backgrounds are drawn as a full-page rectangle; there is no transparency group or blend mode.
 
 ## Security notes
 
-- Link targets must use `http`, `https`, `mailto` or `tel`; `javascript:` is rejected. Non-ASCII URI characters are percent-encoded independently of the text font.
+- Link targets must use `http`, `https`, `mailto` or `tel`; `javascript:` is rejected. Non-ASCII URI characters are percent-encoded independently of the text font, existing `%XX` escapes are preserved, and malformed Unicode fails instead of writing truncated bytes.
 - The viewer creates blob URLs and revokes them on `destroy()`; custom renderers that throw also trigger revocation.
 - `render` returning a string is treated as trusted HTML; prefer returning a DOM node.
 - A PDF generator is an input boundary: cap pages, rows, text, block count and image sizes for untrusted documents with `PDF_LIMITS`.
-- The layout engine enforces page, block, text and nesting budgets before serialization.
+- The layout engine enforces page, block, text, table-cell and aggregate image-byte budgets before serialization. JPEG parsing walks segment lengths and marker order instead of searching for marker bytes.
+- Link annotations are only produced for validated schemes; the package does not fetch or embed remote resources.
 
 ## Performance
 

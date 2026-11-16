@@ -28,7 +28,13 @@ import {
 } from "./types.js";
 
 type Edges = { top: number; right: number; bottom: number; left: number };
-type LayoutContext = { imageCache: Map<string | Uint8Array, PdfImage>; blocks: number; depth: number };
+type LayoutContext = {
+  imageCache: Map<string | Uint8Array, PdfImage>;
+  blocks: number;
+  cells: number;
+  imageBytes: number;
+  depth: number;
+};
 type LinkRect = { x: number; y: number; width: number; height: number; href: string };
 type DrawTarget = { page: PdfPageModel; addLink: (link: LinkRect) => void };
 type RootProps = Record<string, unknown>;
@@ -74,13 +80,27 @@ function resolveElement(element: PdfElement, depth = 0): PdfElement {
   return resolveElement(result, depth + 1);
 }
 
+// eslint-disable-next-line complexity -- iterative traversal with budget checks
 function flatten(value: PdfNode | PdfNode[] | undefined): PdfNode[] {
-  if (value === undefined || value === null) return [];
-  if (Array.isArray(value)) return value.flatMap((child) => flatten(child));
-  if (isElement(value) && value.type === Fragment) {
-    return flatten(value.props.children as PdfNode | PdfNode[] | undefined);
+  const output: PdfNode[] = [];
+  const stack: unknown[] = [value];
+  while (stack.length > 0) {
+    const node = stack.pop();
+    if (node === undefined || node === null) continue;
+    if (Array.isArray(node)) {
+      for (let index = node.length - 1; index >= 0; index -= 1) stack.push(node[index]);
+      continue;
+    }
+    if (isElement(node) && node.type === Fragment) {
+      stack.push(node.props.children);
+      continue;
+    }
+    output.push(node as PdfNode);
+    if (output.length + stack.length > PDF_LIMITS.maxBlocks * 2) {
+      failPdf("PDF_LIMIT_EXCEEDED", "Component tree has too many nodes.");
+    }
   }
-  return [value];
+  return output;
 }
 
 function childrenOf(element: PdfElement): PdfNode[] {
@@ -221,12 +241,22 @@ function layoutView(node: PdfElement, available: number, context: LayoutContext)
   return [withWidth(boxBlock(children, style, style.height), width)];
 }
 
+// eslint-disable-next-line max-lines-per-function -- column sizing, gap math and child validation stay together
 function layoutRow(node: PdfElement, available: number, context: LayoutContext): Block[] {
   const style = resolveStyle(styleProps(node.props));
   const width = resolveWidth(style.width, available);
   const contentWidth = innerWidth(style, width);
   enterContainer(context);
-  const children = childrenOf(node).filter(isElement).map(resolveElement);
+  const children = childrenOf(node).map((child, index) => {
+    if (!isElement(child)) {
+      failPdf("PDF_INVALID_INPUT", "Row children must be components.", { child: index + 1 });
+    }
+    return resolveElement(child);
+  });
+  context.blocks += children.length;
+  if (context.blocks > PDF_LIMITS.maxBlocks) {
+    failPdf("PDF_LIMIT_EXCEEDED", "Component tree has too many nodes.", { blocks: context.blocks });
+  }
   if (children.length === 0) {
     context.depth -= 1;
     return [withWidth(rowBlock([], style), width)];
@@ -293,7 +323,11 @@ function cellLayout(value: PdfCell, column: PdfTableColumn, options: TableOption
   const parsed = cellOptions(value);
   const font = resolveFontKey(options.fontFamily, isHeader || parsed.bold === true, false);
   const width = options.widths[options.columns.indexOf(column)] - options.cellPadding * 2;
-  const lines = layoutText(cellText(value), font, options.fontSize, Math.max(1, width));
+  const text = cellText(value);
+  if (text.length > PDF_LIMITS.maxTextLength) {
+    failPdf("PDF_LIMIT_EXCEEDED", "Table cell text exceeds the configured length limit.", { length: text.length });
+  }
+  const lines = layoutText(text, font, options.fontSize, Math.max(1, width));
   return {
     lines,
     align: parsed.align ?? column.align ?? options.style.align,
@@ -380,12 +414,17 @@ function tableRowsOf(
   return tableRows(rows, columns, options);
 }
 
-function layoutTable(node: PdfElement, available: number): Block[] {
+function layoutTable(node: PdfElement, available: number, context: LayoutContext): Block[] {
   const props = node.props;
   const style = resolveStyle(styleProps(props));
   const width = resolveWidth(style.width, available);
   const columns = props.columns as PdfTableColumn[];
   const widths = columnWidths(columns, width);
+  const rowCount = Array.isArray(props.rows) ? (props.rows as unknown[]).length : 0;
+  context.cells += rowCount * columns.length + columns.length;
+  if (context.cells > PDF_LIMITS.maxTableCells) {
+    failPdf("PDF_LIMIT_EXCEEDED", "Document has too many table cells.", { cells: context.cells });
+  }
   const options = tableOptionsOf(props, style, columns, widths);
   const block = tableBlock({
     columnWidths: widths,
@@ -416,6 +455,12 @@ function layoutImage(node: PdfElement, available: number, context: LayoutContext
   let image = context.imageCache.get(src);
   if (!image) {
     image = parseJpeg(decodeImageSource(src));
+    context.imageBytes += image.data.length;
+    if (context.imageBytes > PDF_LIMITS.maxTotalImageBytes) {
+      failPdf("PDF_LIMIT_EXCEEDED", "Document images exceed the aggregate byte limit.", {
+        bytes: context.imageBytes
+      });
+    }
     context.imageCache.set(src, image);
   }
   const style = resolveStyle({
@@ -504,7 +549,7 @@ const NODE_HANDLERS: Record<string, NodeHandler> = {
   text: (node, available) => layoutTextNode(node, available),
   heading: layoutHeading,
   paragraph: layoutParagraph,
-  table: (node, available) => layoutTable(node, available),
+  table: (node, available, context) => layoutTable(node, available, context),
   image: layoutImage,
   divider: (node, available) => layoutDivider(node, available),
   spacer: (node, available) => layoutSpacer(node, available),
@@ -693,10 +738,10 @@ function measureDecoratorHeights(
 ): { header: number; footer: number } {
   const header = props.header as PdfPageDecorator | undefined;
   const footer = props.footer as PdfPageDecorator | undefined;
-  const pages = total <= 1 ? [1] : [1, total];
+  const pageCount = Math.max(1, total);
   let headerHeight = 0;
   let footerHeight = 0;
-  for (const page of pages) {
+  for (let page = 1; page <= pageCount; page += 1) {
     headerHeight = Math.max(headerHeight, decoratorHeight({ decorator: header, context, width, page, total }));
     footerHeight = Math.max(footerHeight, decoratorHeight({ decorator: footer, context, width, page, total }));
   }
@@ -728,22 +773,27 @@ function decorate(
 }
 
 /** Lays out a declarative PDF component tree into pages. */
+// eslint-disable-next-line complexity -- pagination and decorator convergence state machine
 function buildDocument(element: PdfElement): { document: { pages: PdfPageModel[]; metadata: PdfMetadata }; layout: PageLayout } {
   const root = resolveElement(element);
   if (root.type !== "pdf") failPdf("PDF_INVALID_INPUT", "Expected a Pdf root element.");
-  const context: LayoutContext = { imageCache: new Map(), blocks: 0, depth: 0 };
+  const context: LayoutContext = { imageCache: new Map(), blocks: 0, cells: 0, imageBytes: 0, depth: 0 };
   let layout = pageLayoutOf(root.props, context);
   if (layout.contentBottom <= layout.contentTop) failPdf("PDF_INVALID_INPUT", "Margins and header/footer leave no body height.");
   const blocks = layoutNodes(childrenOf(root), layout.contentWidth, context);
   let pages = paginate(blocks, layout);
-  for (let pass = 0; pass < 3; pass += 1) {
-    const heights = measureDecoratorHeights(root.props, context, layout.contentWidth, pages.length);
-    if (heights.header <= layout.headerReserved && heights.footer <= layout.footerReserved) break;
-    layout = pageLayoutOf(root.props, context, heights);
+  let measured = measureDecoratorHeights(root.props, context, layout.contentWidth, pages.length);
+  for (let pass = 0; pass < 4; pass += 1) {
+    if (measured.header <= layout.headerReserved && measured.footer <= layout.footerReserved) break;
+    layout = pageLayoutOf(root.props, context, measured);
     if (layout.contentBottom <= layout.contentTop) {
       failPdf("PDF_INVALID_INPUT", "Margins and header/footer leave no body height.");
     }
     pages = paginate(blocks, layout);
+    measured = measureDecoratorHeights(root.props, context, layout.contentWidth, pages.length);
+  }
+  if (measured.header > layout.headerReserved || measured.footer > layout.footerReserved) {
+    failPdf("PDF_LIMIT_EXCEEDED", "Header and footer heights did not stabilize.", { pages: pages.length });
   }
   decorate(pages, root.props, layout, context);
   return { document: { pages, metadata: metadataOf(root.props) }, layout };

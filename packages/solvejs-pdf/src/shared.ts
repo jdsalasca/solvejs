@@ -6,7 +6,9 @@ export const PDF_LIMITS = {
   maxBlocks: 20_000,
   maxTextLength: 200_000,
   maxImageBytes: 20 * 1024 * 1024,
-  maxTableRows: 20_000
+  maxTotalImageBytes: 64 * 1024 * 1024,
+  maxTableRows: 20_000,
+  maxTableCells: 200_000
 } as const;
 
 /** Named PdfColors accepted anywhere a color is expected. */

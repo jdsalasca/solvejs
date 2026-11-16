@@ -98,6 +98,17 @@ test("percent-encodes non-ASCII link targets independently of the text font", ()
   assert.match(latin1(bytes), /\/URI \(https:\/\/example\.com\/a%C3%B1o\)/);
 });
 
+test("preserves existing percent escapes in link targets", () => {
+  const bytes = renderPdf(
+    Pdf({
+      children: Link({ href: "https://example.com/a%20b?q=x%2Fy", children: Text({ value: "Encoded" }) })
+    })
+  );
+  const text = latin1(bytes);
+  assert.match(text, /\/URI \(https:\/\/example\.com\/a%20b\?q=x%2Fy\)/);
+  assert.doesNotMatch(text, /%2520/);
+});
+
 test("builds a document model with A4 dimensions", () => {
   const document = buildPdfDocument(Pdf({ children: Text({ value: "A4" }) }));
   assert.equal(document.pages.length, 1);
