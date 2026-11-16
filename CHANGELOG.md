@@ -1,5 +1,9 @@
 # Changelog
 
+## Unreleased
+
+- Adopted the external portable quality baseline as a repo-owned ESLint config (`eslint.config.mjs`), wired into `npm run quality` and CI with `--max-warnings 0`: complexity 8, 40 lines per function, nesting depth 3, 4 parameters, plus the correctness and security rules. The first run reported 77 problems (58 errors, 19 warnings) across 14 packages and the scripts; all were resolved by extracting validation, parsing, serialization, comparison, cache-entry and bucket-state helpers, splitting the report generators, deleting stale compiled artifacts from six `src` directories, and documenting the verified regex false positives with a reason. Behavior is unchanged and every package suite stayed green. Migration impact: none, refactor and tooling only.
+
 ## 1.9.0 - 2026-11-16
 
 - Fixed three defects found by the external quality audit: an unused test fixture in `solvejs-validators`, a precision-losing numeric literal in the `solvejs-numbers` test, and an unnecessary escape in the address-line character class. Regenerated the package inventory, which omitted seven packages. Migration impact: none, tests and docs only; the address-line rule accepts exactly the same characters.
