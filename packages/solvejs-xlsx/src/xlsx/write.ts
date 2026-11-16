@@ -3,6 +3,7 @@ import {
   XLSX_LIMITS,
   type XlsxCell,
   type XlsxCellValue,
+  type XlsxDataValidation,
   type XlsxSheetInput,
   type XlsxWorkbookInput,
   assertSheetName,
@@ -18,6 +19,27 @@ import type { CellModel, ColumnModel, FreezeModel, ImageModel, RowModel, SheetMo
 import { imageModel, pixelsToEmu, utf8 } from "./media.js";
 import { StyleRegistry } from "./styles.js";
 import type { XlsxPageSetup } from "../shared.js";
+
+const DATA_VALIDATION_TYPES = new Set([
+  "list",
+  "whole",
+  "decimal",
+  "date",
+  "time",
+  "textLength",
+  "custom"
+]);
+const DATA_VALIDATION_OPERATORS = new Set([
+  "between",
+  "notBetween",
+  "equal",
+  "notEqual",
+  "greaterThan",
+  "lessThan",
+  "greaterThanOrEqual",
+  "lessThanOrEqual"
+]);
+const DATA_VALIDATION_ERROR_STYLES = new Set(["stop", "warning", "information"]);
 
 const MAX_COLUMN_WIDTH = 255;
 const DEFAULT_COLUMN_WIDTH = 12;
@@ -284,7 +306,7 @@ function renderSheet(sheet: SheetModel, styles: StyleRegistry): { xml: string; l
     sheet.pageSetup
   )}${renderFreeze(sheet.freeze)}${renderColumns(sheet.columns, styles)}${data}${renderAutoFilter(
     sheet.autoFilter
-  )}${renderMerges(merges)}${renderHyperlinks(links)}${renderPageSetup(sheet.pageSetup)}${drawing}</worksheet>`;
+  )}${renderMerges(merges)}${renderDataValidations(sheet.dataValidations)}${renderHyperlinks(links)}${renderPageSetup(sheet.pageSetup)}${drawing}</worksheet>`;
   return { xml, links, hasImages };
 }
 
@@ -332,6 +354,78 @@ function renderPageSetup(setup: XlsxPageSetup | undefined): string {
       ? ` fitToWidth="${setup.fitToWidth ?? 0}" fitToHeight="${setup.fitToHeight ?? 0}"`
       : "";
   return `<pageMargins left="0.7" right="0.7" top="0.75" bottom="0.75" header="0.3" footer="0.3"/><pageSetup${orientation}${paper}${fit}/>`;
+}
+
+function inlineListFormula(values: readonly string[]): string {
+  return `"${values.join(",").replace(/"/g, '""')}"`;
+}
+
+/* eslint-disable complexity, max-depth -- list and range formulas have distinct rules */
+function validationFormulas(validation: XlsxDataValidation): { formula1: string; formula2?: string } {
+  if (validation.type === "list") {
+    if (validation.values !== undefined) {
+      if (!Array.isArray(validation.values) || validation.values.length === 0) {
+        failXlsx("XLSX_INVALID_INPUT", "Expected list validation values to be a non-empty array.");
+      }
+      for (const value of validation.values) {
+        if (typeof value !== "string" || value.length === 0 || value.includes(",")) {
+          failXlsx("XLSX_INVALID_INPUT", "List validation items must be non-empty strings without commas.", {
+            value
+          });
+        }
+      }
+      const formula = inlineListFormula(validation.values);
+      if (formula.length > 255) {
+        failXlsx("XLSX_INVALID_INPUT", "Inline list validation must be at most 255 characters.", {
+          length: formula.length
+        });
+      }
+      return { formula1: formula, formula2: validation.formula2 };
+    }
+    if (!validation.formula1) {
+      failXlsx("XLSX_INVALID_INPUT", "List validation requires values or formula1.");
+    }
+    return { formula1: validation.formula1, formula2: validation.formula2 };
+  }
+
+  if (!validation.formula1) {
+    failXlsx("XLSX_INVALID_INPUT", "Data validation requires formula1.");
+  }
+  const operator = validation.operator ?? "between";
+  if ((operator === "between" || operator === "notBetween") && !validation.formula2) {
+    failXlsx("XLSX_INVALID_INPUT", "Between validation requires formula2.");
+  }
+  return { formula1: validation.formula1, formula2: validation.formula2 };
+}
+/* eslint-enable complexity, max-depth */
+
+function renderDataValidations(validations: readonly XlsxDataValidation[] | undefined): string {
+  if (!validations || validations.length === 0) return "";
+  // eslint-disable-next-line complexity -- OOXML attribute matrix
+  const entries = validations.map((validation) => {
+    const formulas = validationFormulas(validation);
+    const attributes = [
+      `type="${validation.type}"`,
+      `sqref="${escapeXmlAttribute(validation.range)}"`,
+      validation.operator && validation.type !== "list" && validation.type !== "custom"
+        ? `operator="${validation.operator}"`
+        : "",
+      validation.allowBlank ? 'allowBlank="1"' : "",
+      validation.hideDropDown ? 'showDropDown="1"' : "",
+      validation.showInputMessage ? 'showInputMessage="1"' : "",
+      validation.showErrorMessage ? 'showErrorMessage="1"' : "",
+      validation.errorStyle ? `errorStyle="${validation.errorStyle}"` : "",
+      validation.errorTitle ? `errorTitle="${escapeXmlAttribute(validation.errorTitle)}"` : "",
+      validation.error ? `error="${escapeXmlAttribute(validation.error)}"` : "",
+      validation.promptTitle ? `promptTitle="${escapeXmlAttribute(validation.promptTitle)}"` : "",
+      validation.prompt ? `prompt="${escapeXmlAttribute(validation.prompt)}"` : ""
+    ]
+      .filter(Boolean)
+      .join(" ");
+    const formula2 = formulas.formula2 ? `<formula2>${escapeXmlText(formulas.formula2)}</formula2>` : "";
+    return `<dataValidation ${attributes}><formula1>${escapeXmlText(formulas.formula1)}</formula1>${formula2}</dataValidation>`;
+  });
+  return `<dataValidations count="${entries.length}">${entries.join("")}</dataValidations>`;
 }
 
 function renderWorkbookRels(sheetCount: number): string {
@@ -562,6 +656,67 @@ function validateDefinedNames(names: Record<string, string> | undefined): void {
   }
 }
 
+function assertValidationMessage(value: unknown, label: string): void {
+  if (value === undefined) return;
+  if (typeof value !== "string" || value.length > 255 || hasControlCharacters(value)) {
+    failXlsx("XLSX_INVALID_INPUT", `Expected ${label} to be a string of at most 255 characters.`);
+  }
+}
+
+// eslint-disable-next-line max-lines-per-function, complexity -- each OOXML field has its own rule
+function validateDataValidations(validations: readonly XlsxDataValidation[] | undefined, sheet: string): void {
+  if (validations === undefined) return;
+  if (!Array.isArray(validations)) {
+    failXlsx("XLSX_INVALID_INPUT", "Expected dataValidations to be an array.", { sheet });
+  }
+  if (validations.length > XLSX_LIMITS.maxDataValidations) {
+    failXlsx("XLSX_LIMIT_EXCEEDED", "Sheet has too many data validations.", { sheet });
+  }
+  for (const validation of validations) {
+    if (!validation || typeof validation !== "object") {
+      failXlsx("XLSX_INVALID_INPUT", "Expected every data validation to be an object.", { sheet });
+    }
+    if (typeof validation.range !== "string") {
+      failXlsx("XLSX_INVALID_INPUT", "Expected data validation range to be A1 or A1:B2.", { sheet });
+    }
+    assertAutoFilterRef(validation.range);
+    if (!DATA_VALIDATION_TYPES.has(validation.type)) {
+      failXlsx("XLSX_INVALID_INPUT", "Unknown data validation type.", { type: validation.type });
+    }
+    if (validation.type !== "list" && validation.values !== undefined) {
+      failXlsx("XLSX_INVALID_INPUT", "Only list validation accepts values.", { sheet });
+    }
+    if (validation.type === "list" && validation.values !== undefined && validation.formula1 !== undefined) {
+      failXlsx("XLSX_INVALID_INPUT", "List validation accepts values or formula1, not both.", { sheet });
+    }
+    if (validation.operator !== undefined && !DATA_VALIDATION_OPERATORS.has(validation.operator)) {
+      failXlsx("XLSX_INVALID_INPUT", "Unknown data validation operator.", { operator: validation.operator });
+    }
+    if (validation.errorStyle !== undefined && !DATA_VALIDATION_ERROR_STYLES.has(validation.errorStyle)) {
+      failXlsx("XLSX_INVALID_INPUT", "Unknown data validation error style.", {
+        errorStyle: validation.errorStyle
+      });
+    }
+    for (const key of ["allowBlank", "hideDropDown", "showInputMessage", "showErrorMessage"] as const) {
+      if (validation[key] !== undefined && typeof validation[key] !== "boolean") {
+        failXlsx("XLSX_INVALID_INPUT", "Expected data validation flags to be booleans.", { field: key });
+      }
+    }
+    for (const key of ["formula1", "formula2"] as const) {
+      const value = validation[key];
+      if (value === undefined) continue;
+      if (typeof value !== "string" || value.length === 0 || value.length > 8192 || hasControlCharacters(value)) {
+        failXlsx("XLSX_INVALID_INPUT", "Expected data validation formula to be non-empty text.", { field: key });
+      }
+    }
+    assertValidationMessage(validation.errorTitle, "errorTitle");
+    assertValidationMessage(validation.error, "error");
+    assertValidationMessage(validation.promptTitle, "promptTitle");
+    assertValidationMessage(validation.prompt, "prompt");
+    validationFormulas(validation);
+  }
+}
+
 function validateSheetModel(sheet: SheetModel, names: Set<string>): void {
   assertSheetName(sheet.name, names);
   names.add(sheet.name.toLowerCase());
@@ -576,6 +731,7 @@ function validateSheetModel(sheet: SheetModel, names: Set<string>): void {
   }
   if (sheet.freeze) assertFreeze(sheet.freeze, sheet);
   validatePageSetup(sheet.pageSetup, sheet);
+  validateDataValidations(sheet.dataValidations, sheet.name);
   for (const row of sheet.rows) validateRowModel(row, sheet);
   assertMergeRanges(sheet);
 }
@@ -613,6 +769,7 @@ function validateSimpleSheet(sheet: XlsxSheetInput, names: Set<string>): void {
     failXlsx("XLSX_INVALID_INPUT", "Expected every sheet to expose a rows array.", { sheet: sheet.name });
   }
   assertSimpleDimensions(sheet);
+  validateDataValidations(sheet.dataValidations, sheet.name);
 }
 
 function validateWorkbook(input: XlsxWorkbookInput): void {
@@ -666,6 +823,7 @@ function toModel(input: XlsxWorkbookInput): WorkbookModel {
         autoFilter: filterRange(sheet),
         tabColor: sheet.tabColor,
         pageSetup: sheet.pageSetup,
+        dataValidations: sheet.dataValidations,
         images: sheet.images ? sheet.images.map(imageModel) : undefined
       };
     }),

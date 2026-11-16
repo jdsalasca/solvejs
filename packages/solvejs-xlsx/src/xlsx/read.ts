@@ -3,6 +3,7 @@ import {
   XLSX_LIMITS,
   type ReadXlsxOptions,
   type XlsxCellValue,
+  type XlsxDataValidation,
   type XlsxPageSetup,
   type XlsxReadStyle,
   type XlsxSheetData,
@@ -38,6 +39,7 @@ type ParsedSheet = {
   freeze?: { rows: number; columns: number };
   autoFilter?: string;
   pageSetup?: XlsxPageSetup;
+  dataValidations?: XlsxDataValidation[];
   formulas: Record<string, string>;
   styles: Record<string, XlsxReadStyle>;
   linkRefs: LinkRef[];
@@ -156,6 +158,94 @@ function parsePageSetup(worksheet: XmlNode): XlsxPageSetup | undefined {
     if (raw !== undefined && Number.isInteger(value) && value >= 0 && value <= 32_767) setup[key] = value;
   }
   return Object.keys(setup).length > 0 ? setup : undefined;
+}
+
+const READ_VALIDATION_TYPES = new Set([
+  "list",
+  "whole",
+  "decimal",
+  "date",
+  "time",
+  "textLength",
+  "custom"
+]);
+const READ_VALIDATION_OPERATORS = new Set([
+  "between",
+  "notBetween",
+  "equal",
+  "notEqual",
+  "greaterThan",
+  "lessThan",
+  "greaterThanOrEqual",
+  "lessThanOrEqual"
+]);
+const READ_VALIDATION_ERROR_STYLES = new Set(["stop", "warning", "information"]);
+
+function textChild(node: XmlNode, name: string): string | undefined {
+  const child = firstChild(node, name);
+  return child ? textContent(child) : undefined;
+}
+
+// eslint-disable-next-line max-lines-per-function, complexity -- optional attributes and inline lists
+function parseDataValidation(node: XmlNode): XlsxDataValidation | undefined {
+  const range = node.attributes.sqref;
+  const type = node.attributes.type;
+  if (!range || !type || !READ_VALIDATION_TYPES.has(type)) return undefined;
+
+  const validation: XlsxDataValidation = { range, type: type as XlsxDataValidation["type"] };
+  const operator = node.attributes.operator;
+  if (operator && READ_VALIDATION_OPERATORS.has(operator)) {
+    validation.operator = operator as XlsxDataValidation["operator"];
+  }
+  const errorStyle = node.attributes.errorStyle;
+  if (errorStyle && READ_VALIDATION_ERROR_STYLES.has(errorStyle)) {
+    validation.errorStyle = errorStyle as XlsxDataValidation["errorStyle"];
+  }
+  for (const key of ["allowBlank", "showDropDown", "showInputMessage", "showErrorMessage"] as const) {
+    const value = node.attributes[key];
+    if (value === "1" || value === "true") {
+      if (key === "showDropDown") validation.hideDropDown = true;
+      else if (key === "allowBlank" || key === "showInputMessage" || key === "showErrorMessage") {
+        validation[key] = true;
+      }
+    }
+  }
+  for (const key of ["errorTitle", "error", "promptTitle", "prompt"] as const) {
+    const value = node.attributes[key];
+    if (value) validation[key] = value;
+  }
+
+  const formula1 = textChild(node, "formula1");
+  const formula2 = textChild(node, "formula2");
+  if (formula2) validation.formula2 = formula2;
+  if (formula1) {
+    if (type === "list" && formula1.startsWith('"') && formula1.endsWith('"')) {
+      validation.values = formula1
+        .slice(1, -1)
+        .replace(/""/g, '"')
+        .split(",");
+    } else {
+      validation.formula1 = formula1;
+    }
+  }
+  return validation;
+}
+
+function parseDataValidations(worksheet: XmlNode): XlsxDataValidation[] | undefined {
+  const container = firstChild(worksheet, "dataValidations");
+  if (!container) return undefined;
+  const validations: XlsxDataValidation[] = [];
+  for (const node of childrenNamed(container, "dataValidation")) {
+    const validation = parseDataValidation(node);
+    if (!validation) continue;
+    validations.push(validation);
+    if (validations.length > XLSX_LIMITS.maxDataValidations) {
+      failXlsx("XLSX_LIMIT_EXCEEDED", "Sheet has too many data validations.", {
+        count: validations.length
+      });
+    }
+  }
+  return validations.length > 0 ? validations : undefined;
 }
 
 function parseCore(xml: string): { title?: string; creator?: string } {
@@ -596,6 +686,7 @@ function parseSheet(xml: string, context: CellContext): ParsedSheet {
   parseFreeze(worksheet, sheet);
   parseAutoFilter(worksheet, sheet);
   sheet.pageSetup = parsePageSetup(worksheet);
+  sheet.dataValidations = parseDataValidations(worksheet);
   parseHyperlinks(worksheet, sheet);
   parseDrawingRef(worksheet, sheet);
   const sheetData = firstChild(worksheet, "sheetData");
@@ -851,6 +942,7 @@ function columnMetadata(
   return parsed.columns.length > 0 ? { columns: columnsOf(parsed, styles, includeStyles) } : {};
 }
 
+// eslint-disable-next-line complexity -- optional metadata is merged conditionally
 function baseMetadata(
   parsed: ParsedSheet,
   styles: ParsedStyles,
@@ -863,7 +955,8 @@ function baseMetadata(
     ...(includeStyles && Object.keys(parsed.rowStyles).length > 0 ? { rowStyles: parsed.rowStyles } : {}),
     ...(parsed.freeze ? { freeze: parsed.freeze } : {}),
     ...(parsed.autoFilter ? { autoFilter: parsed.autoFilter } : {}),
-    ...(parsed.pageSetup ? { pageSetup: parsed.pageSetup } : {})
+    ...(parsed.pageSetup ? { pageSetup: parsed.pageSetup } : {}),
+    ...(parsed.dataValidations ? { dataValidations: parsed.dataValidations } : {})
   };
 }
 

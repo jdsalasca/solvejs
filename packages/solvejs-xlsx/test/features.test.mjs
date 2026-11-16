@@ -294,6 +294,79 @@ test("writes and reads page setup and defined names", async () => {
   assert.deepEqual({ ...workbook.definedNames }, { InvoiceTotal: "Invoice!$F$12", TaxRate: "Invoice!$B$2" });
 });
 
+test("writes and reads data validation rules", async () => {
+  const bytes = writeXlsx({
+    sheets: [
+      {
+        name: "Orders",
+        rows: [["Status", "Qty"], ["open", 2]],
+        dataValidations: [
+          {
+            range: "A2:A100",
+            type: "list",
+            values: ["open", "paid", "cancelled"],
+            allowBlank: true,
+            errorStyle: "stop",
+            errorTitle: "Pick a status",
+            error: "Choose open, paid or cancelled.",
+            promptTitle: "Status",
+            prompt: "Select one value.",
+            showInputMessage: true,
+            showErrorMessage: true
+          },
+          {
+            range: "B2:B100",
+            type: "whole",
+            operator: "between",
+            formula1: "1",
+            formula2: "999",
+            errorStyle: "warning"
+          },
+          {
+            range: "C2:C100",
+            type: "list",
+            formula1: "=$Z$2:$Z$4"
+          }
+        ]
+      }
+    ]
+  });
+  const sheet = (await readXlsx(bytes)).sheets[0];
+  assert.deepEqual(sheet.dataValidations?.[0], {
+    range: "A2:A100",
+    type: "list",
+    values: ["open", "paid", "cancelled"],
+    errorStyle: "stop",
+    allowBlank: true,
+    showInputMessage: true,
+    showErrorMessage: true,
+    errorTitle: "Pick a status",
+    error: "Choose open, paid or cancelled.",
+    promptTitle: "Status",
+    prompt: "Select one value."
+  });
+
+  const files = await readZip(bytes);
+  const xml = new TextDecoder().decode(files.get("xl/worksheets/sheet1.xml"));
+  assert.match(xml, /<dataValidations count="3">/);
+  assert.match(xml, /type="list" sqref="A2:A100"/);
+  assert.match(xml, /<formula1>"open,paid,cancelled"<\/formula1>/);
+  assert.match(xml, /operator="between"/);
+});
+
+test("rejects invalid data validation rules", () => {
+  const invalid = [
+    () => writeXlsx({ sheets: [{ name: "S", rows: [], dataValidations: [{ range: "nope", type: "list", values: ["a"] }] }] }),
+    () => writeXlsx({ sheets: [{ name: "S", rows: [], dataValidations: [{ range: "A1", type: "list", values: ["a,b"] }] }] }),
+    () => writeXlsx({ sheets: [{ name: "S", rows: [], dataValidations: [{ range: "A1", type: "list", values: ["a"], formula1: "=$A$1:$A$2" }] }] }),
+    () => writeXlsx({ sheets: [{ name: "S", rows: [], dataValidations: [{ range: "A1", type: "whole", formula1: "1" }] }] }),
+    () => writeXlsx({ sheets: [{ name: "S", rows: [], dataValidations: [{ range: "A1", type: "nope", formula1: "1" }] }] })
+  ];
+  for (const run of invalid) {
+    assert.throws(run, (error) => error instanceof XlsxError && error.code === "XLSX_INVALID_INPUT");
+  }
+});
+
 test("keeps zero fit-to-page values explicit", async () => {
   const bytes = writeXlsx({
     sheets: [{ name: "S", rows: [[1]], pageSetup: { fitToWidth: 0, fitToHeight: 0 } }]

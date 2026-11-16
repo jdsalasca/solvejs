@@ -3,7 +3,7 @@
 [![npm](https://img.shields.io/npm/v/@jdsalasc/solvejs-xlsx)](https://www.npmjs.com/package/@jdsalasc/solvejs-xlsx)
 [![node](https://img.shields.io/node/v/@jdsalasc/solvejs-xlsx)](https://www.npmjs.com/package/@jdsalasc/solvejs-xlsx)
 
-Zero-dependency modern XLSX reader and writer built from scratch in TypeScript: ZIP, CRC-32, XML, OOXML, shared strings, dates, formulas, hyperlinks, PNG/JPEG images, styles, merged cells, print setup, defined names, CSV and a declarative component API. No SheetJS, no ExcelJS, no unzip library, no React.
+Zero-dependency modern XLSX reader and writer built from scratch in TypeScript: ZIP, CRC-32, XML, OOXML, shared strings, dates, formulas, hyperlinks, PNG/JPEG images, styles, merged cells, print setup, defined names, data validation, CSV and a declarative component API. No SheetJS, no ExcelJS, no unzip library, no React.
 
 ## When to use this package
 
@@ -107,6 +107,58 @@ const bytes = writeXlsx({
 ```
 
 `pageSetup` supports `orientation`, `paperSize` (OOXML paper code, `9` is A4), `fitToWidth` and `fitToHeight`. The writer adds `<pageMargins>` defaults and the `fitToPage` flag that Excel and LibreOffice need. `definedNames` writes global workbook names and the reader returns them in `workbook.definedNames`. Sheet-scoped names from imported files are skipped instead of being flattened into the wrong scope.
+
+### Data validation
+
+Dropdowns and range checks turn a spreadsheet into a usable form instead of a grid that accepts anything.
+
+```ts
+import { writeXlsx } from "@jdsalasc/solvejs-xlsx";
+
+const bytes = writeXlsx({
+  sheets: [
+    {
+      name: "Orders",
+      columns: [
+        { header: "Status", width: 18 },
+        { header: "Qty", width: 10 },
+        { header: "Due", width: 14 }
+      ],
+      rows: [["open", 2, "2026-12-01"]],
+      dataValidations: [
+        {
+          range: "A2:A500",
+          type: "list",
+          values: ["open", "paid", "cancelled"],
+          allowBlank: true,
+          showErrorMessage: true,
+          errorTitle: "Pick a status",
+          error: "Choose open, paid or cancelled."
+        },
+        {
+          range: "B2:B500",
+          type: "whole",
+          operator: "between",
+          formula1: "1",
+          formula2: "999",
+          showErrorMessage: true,
+          error: "Quantity must be between 1 and 999."
+        },
+        {
+          range: "D2:D500",
+          type: "list",
+          formula1: "=Statuses!$A$2:$A$4",
+          promptTitle: "Import status",
+          prompt: "Choose a value from the Statuses sheet.",
+          showInputMessage: true
+        }
+      ]
+    }
+  ]
+});
+```
+
+The reader returns the same rules in `sheet.dataValidations`, including inline list items, formulas, prompts and error messages. Supported types are `list`, `whole`, `decimal`, `date`, `time`, `textLength` and `custom`; `between` and `notBetween` need `formula2`. A validation covers one rectangular `range` (`A1` or `A1:B20`); space-separated multi-ranges are not accepted.
 
 ### CSV and TSV
 
@@ -272,6 +324,7 @@ Each sheet keeps `rows` as primitive values and adds optional metadata when pres
 | `freeze` | Frozen rows and columns |
 | `autoFilter` | Auto-filter reference |
 | `pageSetup` | Orientation, paper size and fit-to-page values from `<pageSetup>` |
+| `dataValidations` | Dropdowns, numeric/date/text bounds, prompts and error messages |
 | `links` | `A1` to external URL |
 | `formulas` | `A1` to formula text (without `=`) |
 | `styles` | `A1` to font, fill, border, alignment and number format |
@@ -308,7 +361,7 @@ The formatter covers common number, currency, percentage, scientific, date and t
 | `isCellObject(value)` | Detects `{ value, formula, href }` cells. |
 | `Colors`, `XlsxCellStyle`, `XlsxBorder`, ... | Styling types and palette. |
 | `XlsxError` | Stable codes: `XLSX_INVALID_INPUT`, `XLSX_INVALID_ZIP`, `XLSX_INVALID_XML`, `XLSX_UNSUPPORTED`, `XLSX_LIMIT_EXCEEDED`. |
-| `XLSX_LIMITS` | Entries, bytes, rows, columns, cells, sheets, merges and defined-name limits. |
+| `XLSX_LIMITS` | Entries, bytes, rows, columns, cells, sheets, merges, defined names and data validation limits. |
 
 ## What is supported
 
@@ -317,6 +370,7 @@ The formatter covers common number, currency, percentage, scientific, date and t
 - Bold, italic, underline, strike, font name/size/color, solid fills, borders per side, horizontal/vertical alignment and wrap.
 - Number formats, including custom formats.
 - Global defined names on write and read.
+- Data validation on write and read: inline lists, formula lists, whole/decimal/date/time/text-length bounds, custom rules, prompts and error messages.
 - Merged cells on write (`colSpan`/`rowSpan`), validated against overlaps and worksheet bounds; merged ranges read back.
 - Styled blank cells, column default styles and row default styles.
 - Formulas with cached values, including shared formulas with relative references; hyperlinks with worksheet relationships.
@@ -331,7 +385,7 @@ The formatter covers common number, currency, percentage, scientific, date and t
 ## What is not supported
 
 - Formula evaluation. The writer stores formula text and a cached result; the package never calculates expressions.
-- Charts, pivot tables, comments, data validation, conditional formatting, macros or VBA.
+- Charts, pivot tables, comments, conditional formatting, macros or VBA.
 - External workbook links, shapes, 3D images or SVG/WebP/GIF images. Images are limited to PNG and JPEG.
 - Sheet-scoped defined names on read; only global names are returned.
 - XLS, XLSB, ODS and DBF containers. This package is XLSX-first.
@@ -441,7 +495,7 @@ This is the honest gap list from the November 2026 audit. ExcelJS is a full work
 | PNG/JPEG images | Yes | Yes | Partial / Pro |
 | Page setup and print areas | Basic page setup | Full | Partial |
 | Defined names | Global names | Yes | Yes |
-| Data validation | Not yet | Yes | Partial / Pro |
+| Data validation | Lists and numeric/date/text/custom bounds | Yes | Partial / Pro |
 | Conditional formatting | Not yet | Yes | Partial / Pro |
 | Comments | Not yet | Yes | Partial |
 | Charts, pivots, macros | No | Charts | No in the community build |
@@ -487,10 +541,11 @@ The compatibility check converts a generated workbook to CSV and reads a LibreOf
 - Column widths are character units, not pixels.
 - `pageSetup` covers orientation, paper size and fit-to-page. Print areas, repeating title rows and manual page breaks are not exposed yet.
 - Only global defined names are read; sheet-scoped names are skipped.
+- Data validation covers one rectangular range per rule; space-separated `sqref` lists are not accepted. Inline lists are limited to 255 characters and cannot contain commas.
 - Shared formulas are translated with a quote-aware tokenizer for cell ranges and quoted sheet names. Unsupported constructs are returned as-is rather than guessed.
 - The stored writer is larger than a compressed workbook; use the compressed variants for large exports.
 - The `Xlsx.name` prop is workbook metadata, not a browser download filename.
-- XLS/XLSB/ODS/DBF, charts, pivot tables, comments, data validation, conditional formatting, encryption and macros are out of scope.
+- XLS/XLSB/ODS/DBF, charts, pivot tables, comments, conditional formatting, encryption and macros are out of scope.
 
 ## License
 

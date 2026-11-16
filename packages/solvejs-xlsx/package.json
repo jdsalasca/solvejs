@@ -1,6 +1,6 @@
 {
   "name": "@jdsalasc/solvejs-xlsx",
-  "version": "0.2.3",
+  "version": "0.2.4",
   "description": "Zero-dependency TypeScript XLSX reader and writer built from scratch, with declarative JSX components, rich styling, formulas, images, CSV and a metadata-rich reader.",
   "license": "MIT",
   "type": "module",

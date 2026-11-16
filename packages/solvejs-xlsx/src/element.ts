@@ -1,5 +1,13 @@
 import { failXlsx } from "./errors.js";
-import { XLSX_LIMITS, cellReference, isCellObject, type XlsxCell, type XlsxImageInput } from "./shared.js";
+import {
+  XLSX_LIMITS,
+  cellReference,
+  isCellObject,
+  type XlsxCell,
+  type XlsxDataValidation,
+  type XlsxImageInput,
+  type XlsxPageSetup
+} from "./shared.js";
 import type { XlsxCellStyle, XlsxColor } from "./style.js";
 import type { CellModel, ColumnModel, FreezeModel, RowModel, SheetModel, WorkbookModel } from "./xlsx/model.js";
 import { writeWorkbook, writeWorkbookCompressed } from "./xlsx/write.js";
@@ -54,6 +62,8 @@ export type SheetProps = {
   freeze?: FreezeModel;
   autoFilter?: boolean | string;
   tabColor?: XlsxColor;
+  pageSetup?: XlsxPageSetup;
+  dataValidations?: readonly XlsxDataValidation[];
   images?: readonly XlsxImageInput[];
   children?: Children;
 };
@@ -405,6 +415,8 @@ function buildSheet(node: XlsxElement): SheetModel {
     freeze: sheet.props.freeze as FreezeModel | undefined,
     autoFilter: autoFilterRef(sheet, rows),
     tabColor: sheet.props.tabColor as XlsxColor | undefined,
+    pageSetup: sheet.props.pageSetup as XlsxPageSetup | undefined,
+    dataValidations: sheet.props.dataValidations as XlsxDataValidation[] | undefined,
     images: Array.isArray(sheet.props.images)
       ? (sheet.props.images as XlsxImageInput[]).map(imageModel)
       : undefined

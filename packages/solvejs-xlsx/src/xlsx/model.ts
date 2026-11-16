@@ -1,4 +1,4 @@
-import type { XlsxCellValue, XlsxPageSetup } from "../shared.js";
+import type { XlsxCellValue, XlsxDataValidation, XlsxPageSetup } from "../shared.js";
 import type { XlsxCellStyle, XlsxColor } from "../style.js";
 
 /** One image anchored on a worksheet. */
@@ -50,6 +50,7 @@ export type SheetModel = {
   autoFilter?: string;
   tabColor?: XlsxColor;
   pageSetup?: XlsxPageSetup;
+  dataValidations?: readonly XlsxDataValidation[];
   images?: ImageModel[];
 };
 

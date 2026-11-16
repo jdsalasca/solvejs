@@ -48,6 +48,49 @@ export type XlsxPageSetup = {
   fitToHeight?: number;
 };
 
+export type XlsxDataValidationType =
+  | "list"
+  | "whole"
+  | "decimal"
+  | "date"
+  | "time"
+  | "textLength"
+  | "custom";
+
+export type XlsxDataValidationOperator =
+  | "between"
+  | "notBetween"
+  | "equal"
+  | "notEqual"
+  | "greaterThan"
+  | "lessThan"
+  | "greaterThanOrEqual"
+  | "lessThanOrEqual";
+
+/** A dropdown, range check or custom rule applied to a worksheet range. */
+export type XlsxDataValidation = {
+  /** A1 or A1:B2 range. */
+  range: string;
+  type: XlsxDataValidationType;
+  operator?: XlsxDataValidationOperator;
+  /** List items for `type: "list"`; joined into an inline list formula. */
+  values?: readonly string[];
+  /** Raw formula, for example `$A$1:$A$5`, `1`, `DATE(2026,1,1)` or `AND(A1>0,A1<10)`. */
+  formula1?: string;
+  /** Second formula for `between` and `notBetween`. */
+  formula2?: string;
+  allowBlank?: boolean;
+  /** Hide the dropdown arrow for list validation. */
+  hideDropDown?: boolean;
+  showInputMessage?: boolean;
+  showErrorMessage?: boolean;
+  errorStyle?: "stop" | "warning" | "information";
+  errorTitle?: string;
+  error?: string;
+  promptTitle?: string;
+  prompt?: string;
+};
+
 /** A worksheet accepted by the writer. */
 export type XlsxSheetInput = {
   name: string;
@@ -57,6 +100,7 @@ export type XlsxSheetInput = {
   autoFilter?: boolean | string;
   tabColor?: XlsxColor;
   pageSetup?: XlsxPageSetup;
+  dataValidations?: readonly XlsxDataValidation[];
   images?: readonly XlsxImageInput[];
 };
 
@@ -82,6 +126,7 @@ export type XlsxSheetData = {
   freeze?: { rows: number; columns: number };
   autoFilter?: string;
   pageSetup?: XlsxPageSetup;
+  dataValidations?: XlsxDataValidation[];
   links?: Record<string, string>;
   formulas?: Record<string, string>;
   styles?: Record<string, XlsxReadStyle>;
@@ -129,7 +174,8 @@ export const XLSX_LIMITS = {
   maxImagePixels: 40_000_000,
   maxImageDisplay: 10_000,
   maxMerges: 10_000,
-  maxDefinedNames: 1_000
+  maxDefinedNames: 1_000,
+  maxDataValidations: 1_000
 } as const;
 
 const INVALID_SHEET_CHARS = /[\\/?*[\]:]/;
