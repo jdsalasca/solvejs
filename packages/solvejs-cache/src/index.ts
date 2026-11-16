@@ -66,39 +66,61 @@ function defaultNow(): number {
  * @returns Deterministic string key.
  * @throws {CacheError} `CACHE_INVALID_OPTION` if the value contains a cycle.
  */
+type KeyPrimitive = { handled: true; text: string } | { handled: false };
+
+const JSON_KEY_TYPES = new Set(["boolean", "string"]);
+const UNSERIALISABLE_KEY_TYPES = new Set(["function", "symbol"]);
+
+function stableNumberKey(value: number): string {
+  return Number.isFinite(value) ? String(value) : `!${String(value)}`;
+}
+
+function keyPrimitive(input: unknown): KeyPrimitive {
+  if (input === undefined) return { handled: true, text: "undefined" };
+  if (input === null) return { handled: true, text: "null" };
+
+  const type = typeof input;
+  if (type === "number") return { handled: true, text: stableNumberKey(input as number) };
+  if (JSON_KEY_TYPES.has(type)) return { handled: true, text: JSON.stringify(input) };
+  if (type === "bigint") return { handled: true, text: `!${(input as bigint).toString()}n` };
+  if (UNSERIALISABLE_KEY_TYPES.has(type)) {
+    fail("CACHE_INVALID_OPTION", "Expected a value that can be serialised to a cache key.", { received: type });
+  }
+  return { handled: false };
+}
+
+function assertKeyNotCircular(input: object, seen: WeakSet<object>): void {
+  if (seen.has(input)) {
+    fail("CACHE_INVALID_OPTION", "Expected a value without circular references.", { received: "circular" });
+  }
+  seen.add(input);
+}
+
+function serialiseKeyObject(input: object, walk: (value: unknown) => string): string {
+  if (Array.isArray(input)) return `[${input.map(walk).join(",")}]`;
+
+  const entries = Object.entries(input as Record<string, unknown>)
+    .filter(([, entryValue]) => entryValue !== undefined)
+    // Keys of one entry set are unique, so a tie cannot happen and 0 is never needed.
+    .sort(([a], [b]) => (a < b ? -1 : 1));
+
+  return `{${entries.map(([key, entryValue]) => `${JSON.stringify(key)}:${walk(entryValue)}`).join(",")}}`;
+}
+
 export function stableKey(value: unknown): string {
-  const seen = new WeakSet();
+  const seen = new WeakSet<object>();
 
   const walk = (input: unknown): string => {
-    if (input === undefined) return "undefined";
-    if (input === null) return "null";
-    // A non-finite number is emitted with a leading "!" so it can never collide with
-// the string "NaN" or "Infinity", which JSON.stringify would render identically.
-if (typeof input === "number") return Number.isFinite(input) ? String(input) : `!${String(input)}`;
-    if (typeof input === "boolean" || typeof input === "string") return JSON.stringify(input);
-    if (typeof input === "bigint") return `!${input.toString()}n`;
-    if (typeof input === "function" || typeof input === "symbol") {
-      fail("CACHE_INVALID_OPTION", "Expected a value that can be serialised to a cache key.", {
-        received: typeof input
-      });
-    }
+    const primitive = keyPrimitive(input);
+    if (primitive.handled) return primitive.text;
 
-    if (seen.has(input as object)) {
-      fail("CACHE_INVALID_OPTION", "Expected a value without circular references.", { received: "circular" });
-    }
-    seen.add(input as object);
+    const target = input as object;
+    assertKeyNotCircular(target, seen);
 
     try {
-      if (Array.isArray(input)) {
-        return `[${input.map(walk).join(",")}]`;
-      }
-      const entries = Object.entries(input as Record<string, unknown>)
-        .filter(([, entryValue]) => entryValue !== undefined)
-        // Keys of one entry set are unique, so a tie cannot happen and 0 is never needed.
-  .sort(([a], [b]) => (a < b ? -1 : 1));
-      return `{${entries.map(([key, entryValue]) => `${JSON.stringify(key)}:${walk(entryValue)}`).join(",")}}`;
+      return serialiseKeyObject(target, walk);
     } finally {
-      seen.delete(input as object);
+      seen.delete(target);
     }
   };
 
@@ -141,25 +163,27 @@ export interface TtlCache<T = unknown> {
  * cache.set("token", "abc");
  * cache.get("token"); // "abc"
  */
+type CacheEntry<T> = { value: T; expiresAt: number };
+
+function readTtlEntry<T>(entries: Map<string, CacheEntry<T>>, key: string, now: () => number): CacheEntry<T> | undefined {
+  const entry = entries.get(key);
+  if (!entry) return undefined;
+  if (entry.expiresAt <= now()) {
+    entries.delete(key);
+    return undefined;
+  }
+  return entry;
+}
+
 export function createTtlCache<T = unknown>(options: TtlCacheOptions): TtlCache<T> {
   assertPositiveNumber(options?.ttlMs, "ttlMs");
   const now = options.now ?? defaultNow;
-  const entries = new Map<string, { value: T; expiresAt: number }>();
-
-  const read = (key: string) => {
-    const entry = entries.get(key);
-    if (!entry) return undefined;
-    if (entry.expiresAt <= now()) {
-      entries.delete(key);
-      return undefined;
-    }
-    return entry;
-  };
+  const entries = new Map<string, CacheEntry<T>>();
 
   return {
     get(key) {
       assertKey(key);
-      return read(key)?.value;
+      return readTtlEntry(entries, key, now)?.value;
     },
     set(key, value, setOptions) {
       assertKey(key);
@@ -170,7 +194,7 @@ export function createTtlCache<T = unknown>(options: TtlCacheOptions): TtlCache<
     },
     has(key) {
       assertKey(key);
-      return read(key) !== undefined;
+      return readTtlEntry(entries, key, now) !== undefined;
     },
     delete(key) {
       assertKey(key);
@@ -180,7 +204,7 @@ export function createTtlCache<T = unknown>(options: TtlCacheOptions): TtlCache<
       entries.clear();
     },
     keys() {
-      for (const key of [...entries.keys()]) read(key);
+      for (const key of [...entries.keys()]) readTtlEntry(entries, key, now);
       return [...entries.keys()];
     },
     size() {
@@ -216,51 +240,55 @@ export type LruCacheOptions = {
  * cache.set("a", 1);
  * cache.get("a");
  */
+function dropExpiredEntry<T>(entries: Map<string, CacheEntry<T>>, key: string, now: () => number): boolean {
+  const entry = entries.get(key);
+  if (entry && entry.expiresAt <= now()) {
+    entries.delete(key);
+    return true;
+  }
+  return false;
+}
+
+function touchEntry<T>(entries: Map<string, CacheEntry<T>>, key: string): CacheEntry<T> | undefined {
+  const entry = entries.get(key);
+  if (!entry) return undefined;
+  entries.delete(key);
+  entries.set(key, entry);
+  return entry;
+}
+
+function evictOldest<T>(entries: Map<string, CacheEntry<T>>, maxSize: number): void {
+  while (entries.size > maxSize) {
+    // maxSize is at least 1 and the loop only runs while entries is larger, so the
+    // oldest key always exists.
+    const oldest = entries.keys().next();
+    entries.delete(oldest.value as string);
+  }
+}
+
 export function createLruCache<T = unknown>(options: LruCacheOptions): TtlCache<T> {
   assertPositiveInteger(options?.maxSize, "maxSize");
   if (options.ttlMs !== undefined) assertPositiveNumber(options.ttlMs, "ttlMs");
 
   const now = options.now ?? defaultNow;
-  const entries = new Map<string, { value: T; expiresAt: number }>();
-
-  const dropExpired = (key: string) => {
-    const entry = entries.get(key);
-    if (entry && entry.expiresAt <= now()) {
-      entries.delete(key);
-      return true;
-    }
-    return false;
-  };
-
-  const touch = (key: string) => {
-    const entry = entries.get(key);
-    if (!entry) return undefined;
-    entries.delete(key);
-    entries.set(key, entry);
-    return entry;
-  };
+  const entries = new Map<string, CacheEntry<T>>();
 
   const cache: TtlCache<T> = {
     get(key) {
       assertKey(key);
-      if (dropExpired(key)) return undefined;
-      return touch(key)?.value;
+      if (dropExpiredEntry(entries, key, now)) return undefined;
+      return touchEntry(entries, key)?.value;
     },
     set(key, value) {
       assertKey(key);
       const ttlMs = options.ttlMs ?? Number.POSITIVE_INFINITY;
       entries.delete(key);
       entries.set(key, { value, expiresAt: now() + ttlMs });
-      while (entries.size > options.maxSize) {
-        // maxSize is at least 1 and the loop only runs while entries is larger, so the
-        // oldest key always exists.
-        const oldest = entries.keys().next();
-        entries.delete(oldest.value as string);
-      }
+      evictOldest(entries, options.maxSize);
     },
     has(key) {
       assertKey(key);
-      if (dropExpired(key)) return false;
+      if (dropExpiredEntry(entries, key, now)) return false;
       return entries.has(key);
     },
     delete(key) {
@@ -271,7 +299,7 @@ export function createLruCache<T = unknown>(options: LruCacheOptions): TtlCache<
       entries.clear();
     },
     keys() {
-      for (const key of [...entries.keys()]) dropExpired(key);
+      for (const key of [...entries.keys()]) dropExpiredEntry(entries, key, now);
       return [...entries.keys()];
     },
     size() {
@@ -317,6 +345,13 @@ export type MemoizedAsync<TArgs extends unknown[], TResult> = ((...args: TArgs) 
  * await loadUser("u1"); // one request
  * await loadUser("u1"); // served from memory
  */
+function assertMemoizeOptions(options: MemoizeAsyncOptions): void {
+  if (options.ttlMs !== undefined) assertPositiveNumber(options.ttlMs, "ttlMs");
+  if (options.key !== undefined && typeof options.key !== "function") {
+    fail("CACHE_INVALID_OPTION", "Expected key to be a function.", { received: typeof options.key });
+  }
+}
+
 export function memoizeAsync<TArgs extends unknown[], TResult>(
   factory: (...args: TArgs) => Promise<TResult> | TResult,
   options: MemoizeAsyncOptions = {}
@@ -324,10 +359,7 @@ export function memoizeAsync<TArgs extends unknown[], TResult>(
   if (typeof factory !== "function") {
     fail("CACHE_INVALID_OPTION", "Expected factory to be a function.", { received: typeof factory });
   }
-  if (options.ttlMs !== undefined) assertPositiveNumber(options.ttlMs, "ttlMs");
-  if (options.key !== undefined && typeof options.key !== "function") {
-    fail("CACHE_INVALID_OPTION", "Expected key to be a function.", { received: typeof options.key });
-  }
+  assertMemoizeOptions(options);
 
   const now = options.now ?? defaultNow;
   const ttlMs = options.ttlMs ?? Number.POSITIVE_INFINITY;
@@ -397,13 +429,7 @@ export type StaleWhileRevalidate<T> = () => Promise<T>;
  * await read(); // first call loads
  * await read(); // fresh, no reload
  */
-export function createStaleWhileRevalidate<T>(
-  loader: () => Promise<T>,
-  options: StaleWhileRevalidateOptions
-): StaleWhileRevalidate<T> {
-  if (typeof loader !== "function") {
-    fail("CACHE_INVALID_OPTION", "Expected loader to be a function.", { received: typeof loader });
-  }
+function assertStaleWhileRevalidateOptions(options: StaleWhileRevalidateOptions): void {
   assertPositiveNumber(options?.freshMs, "freshMs");
   assertPositiveNumber(options?.staleMs, "staleMs");
   if (options.staleMs < options.freshMs) {
@@ -412,6 +438,16 @@ export function createStaleWhileRevalidate<T>(
       staleMs: options.staleMs
     });
   }
+}
+
+export function createStaleWhileRevalidate<T>(
+  loader: () => Promise<T>,
+  options: StaleWhileRevalidateOptions
+): StaleWhileRevalidate<T> {
+  if (typeof loader !== "function") {
+    fail("CACHE_INVALID_OPTION", "Expected loader to be a function.", { received: typeof loader });
+  }
+  assertStaleWhileRevalidateOptions(options);
 
   const now = options.now ?? defaultNow;
   let entry: { value: T; storedAt: number } | undefined;
