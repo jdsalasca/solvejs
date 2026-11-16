@@ -294,6 +294,18 @@ test("writes and reads page setup and defined names", async () => {
   assert.deepEqual({ ...workbook.definedNames }, { InvoiceTotal: "Invoice!$F$12", TaxRate: "Invoice!$B$2" });
 });
 
+test("keeps zero fit-to-page values explicit", async () => {
+  const bytes = writeXlsx({
+    sheets: [{ name: "S", rows: [[1]], pageSetup: { fitToWidth: 0, fitToHeight: 0 } }]
+  });
+  const sheet = (await readXlsx(bytes)).sheets[0];
+  assert.deepEqual(sheet.pageSetup, { fitToWidth: 0, fitToHeight: 0 });
+  const files = await readZip(bytes);
+  const xml = new TextDecoder().decode(files.get("xl/worksheets/sheet1.xml"));
+  assert.match(xml, /fitToWidth="0" fitToHeight="0"/);
+  assert.match(xml, /fitToPage="1"/);
+});
+
 test("rejects invalid page setup and defined names", () => {
   const invalid = [
     () => writeXlsx({ sheets: [{ name: "S", rows: [], pageSetup: { paperSize: 0 } }] }),

@@ -65,7 +65,7 @@ export function parseJpeg(data: Uint8Array): PdfImage {
     offset += 1;
     if (marker === 0xd9) {
       if (!frame) failPdf("PDF_INVALID_INPUT", "JPEG ended before its frame header.");
-      return frame;
+      failPdf("PDF_INVALID_INPUT", "JPEG ended before its scan data.");
     }
     if (marker === 0x00 || marker === 0xd8 || (marker >= 0xd0 && marker <= 0xd7)) {
       failPdf("PDF_INVALID_INPUT", "Unexpected JPEG marker outside scan data.", { marker });

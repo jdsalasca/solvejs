@@ -260,6 +260,25 @@ test("rejects progressive frames and extra scans in JPEG data", () => {
   );
 });
 
+test("rejects a frame header without scan data", () => {
+  const jpeg = readFileSync(new URL("./fixtures/tiny.jpg", import.meta.url));
+  const sofEnd = (() => {
+    for (let index = 0; index + 4 < jpeg.length; index += 1) {
+      if (jpeg[index] !== 0xff || jpeg[index + 1] !== 0xc0) continue;
+      return index + 4 + ((jpeg[index + 2] << 8) | jpeg[index + 3]);
+    }
+    return -1;
+  })();
+  assert.notEqual(sofEnd, -1);
+  const noScan = new Uint8Array(sofEnd + 2);
+  noScan.set(jpeg.subarray(0, sofEnd), 0);
+  noScan.set([0xff, 0xd9], sofEnd);
+  assert.throws(
+    () => buildPdfDocument(Pdf({ children: Image({ src: noScan }) })),
+    (error) => error.code === "PDF_INVALID_INPUT"
+  );
+});
+
 test("rejects truncated JPEG data", () => {
   assert.throws(
     () => renderPdf(Pdf({ children: Image({ src: new Uint8Array([0xff, 0xd8, 0xff, 0xd9]) }) })),

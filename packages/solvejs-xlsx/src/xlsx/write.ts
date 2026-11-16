@@ -328,7 +328,7 @@ function renderPageSetup(setup: XlsxPageSetup | undefined): string {
   const orientation = setup.orientation === "landscape" ? ' orientation="landscape"' : "";
   const paper = setup.paperSize ? ` paperSize="${setup.paperSize}"` : "";
   const fit =
-    setup.fitToWidth || setup.fitToHeight
+    setup.fitToWidth !== undefined || setup.fitToHeight !== undefined
       ? ` fitToWidth="${setup.fitToWidth ?? 0}" fitToHeight="${setup.fitToHeight ?? 0}"`
       : "";
   return `<pageMargins left="0.7" right="0.7" top="0.75" bottom="0.75" header="0.3" footer="0.3"/><pageSetup${orientation}${paper}${fit}/>`;

@@ -59,6 +59,7 @@ export {
   type XlsxCellValue,
   type XlsxColumn,
   type XlsxImageInput,
+  type XlsxPageSetup,
   type XlsxReadStyle,
   type XlsxSheetData,
   type XlsxSheetInput,
