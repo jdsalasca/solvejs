@@ -52,6 +52,9 @@ const STYLE_KEYS = [
   "italic",
   "align",
   "lineHeight",
+  "textTransform",
+  "underline",
+  "strike",
   "padding",
   "paddingX",
   "paddingY",
@@ -124,6 +127,15 @@ function valueText(value: unknown): string {
     failPdf("PDF_INVALID_INPUT", "Text value must be a string, number, boolean or Date.");
   }
   return primitiveText(value as string | number | boolean | Date);
+}
+
+function transformText(text: string, transform: "none" | "uppercase" | "lowercase" | "capitalize"): string {
+  if (transform === "uppercase") return text.toUpperCase();
+  if (transform === "lowercase") return text.toLowerCase();
+  if (transform === "capitalize") {
+    return text.replace(/\b\p{L}/gu, (letter) => letter.toUpperCase());
+  }
+  return text;
 }
 
 function childText(child: PdfNode): string {
@@ -220,7 +232,7 @@ function layoutTextNode(node: PdfElement, available: number, defaults: Partial<P
   const width = resolveWidth(style.width, available);
   const font = resolveFontKey(style.fontFamily, style.bold, style.italic);
   const contentWidth = innerWidth(style, width);
-  const text = textOf(node);
+  const text = transformText(textOf(node), style.textTransform);
   if (text.length > PDF_LIMITS.maxTextLength) {
     failPdf("PDF_LIMIT_EXCEEDED", "Text exceeds the configured length limit.", { length: text.length });
   }

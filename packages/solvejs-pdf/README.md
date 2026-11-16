@@ -99,7 +99,7 @@ const bytes = renderPdf(
 | `PdfPage` | Forces a new page; its children flow on that page |
 | `View` | Vertical container: `padding`, `background`, `border`, `radius`, `width`, `height`, `gap`, plus style props |
 | `Row` | Horizontal container; children without a width share the remaining space |
-| `Text` | `value` or primitive children, `href`, plus style props |
+| `Text` | `value` or primitive children, `href`, plus style props; supports `bold`, `italic`, `fontFamily`, `textTransform`, `underline`, `strike` |
 | `Heading` | `level` (`1`, `2`, `3`), plus text props |
 | `Paragraph` | Body text with a comfortable line height |
 | `Table` | `columns`, `rows`, `header`, `zebra`, `cellPadding`, `headerBackground`, `headerColor`, `zebraColor`, `fontSize` |
@@ -143,7 +143,55 @@ const table = (
 | `fontSize` | number in points (1–400) |
 | `bold`, `italic` | boolean |
 | `align` | `"left"`, `"center"`, `"right"` |
-| `lineHeight` | multiplier (0–4) |
+| `lineHeight` | multiplier (0-4) |
+| `textTransform` | `"none"`, `"uppercase"`, `"lowercase"`, `"capitalize"` |
+| `underline`, `strike` | boolean text decorations |
+
+## Typography and footers
+
+Use the standard PDF families (`helvetica`, `times`, `courier`) with real bold and italic faces. `times` + `italic` gives an editorial, calligraphic look without embedding a font file.
+
+```tsx
+import { Bookmark, Pdf, PdfPage, Text, PdfColors } from "@jdsalasc/solvejs-pdf";
+
+const elegant = Pdf({
+  title: "Certificate",
+  footer: ({ page, total }) => Text({
+    value: `SolveJS · ${page} / ${total}`,
+    fontFamily: "times",
+    italic: true,
+    fontSize: 8,
+    color: PdfColors.Gray,
+    align: "center"
+  }),
+  children: PdfPage({
+    children: [
+      Bookmark({ title: "Award" }),
+      Text({
+        value: "Certificate of completion",
+        fontFamily: "times",
+        bold: true,
+        italic: true,
+        fontSize: 30,
+        textTransform: "capitalize",
+        underline: true,
+        color: PdfColors.DarkBlue
+      }),
+      Text({
+        value: "Awarded to Ada Lovelace",
+        fontFamily: "times",
+        italic: true,
+        fontSize: 16,
+        marginTop: 18
+      })
+    ]
+  })
+});
+```
+
+`underline` and `strike` draw thin rules that follow the measured line width, so centered and right-aligned text stay aligned. Footers are ordinary decorators: they receive `{ page, total }`, support the same typography and are measured before pagination so they never overlap body text.
+
+Custom TTF/OTF embedding is not part of this release. The standard fonts keep the package zero-dependency and browser-first; choose `times` italic for a classical feel or `courier` for a typewriter look.
 | `padding`, `paddingX`, `paddingY` | points |
 | `margin`, `marginTop`, `marginBottom` | points |
 | `border` | border width in points |
@@ -324,6 +372,7 @@ export const InvoiceViewer = dynamic(
 - PDF 1.7 with classic xref, UTF-16 metadata and clickable links.
 - Standard Type 1 fonts with WinAnsi encoding (accented Spanish characters, curly quotes, dashes and the euro sign).
 - Text wrapping, alignment, line height, colors, backgrounds, borders, rounded corners, padding and margins.
+- Bold/italic standard faces, text transforms (`uppercase`, `lowercase`, `capitalize`) and underline/strike decorations.
 - Nested `View` and `Row` layouts with numeric or percentage widths.
 - Automatic pagination, forced pages, split text/views, split tables with repeated headers, repeated headers/footers with page numbers.
 - Nested PDF bookmarks/outlines with page destinations.
@@ -444,6 +493,7 @@ Pick pdf-lib to edit or merge existing documents, PDFKit for streaming Node pipe
 ## Limits and fidelity
 
 - Standard Type 1 fonts only; unsupported Unicode characters become `?` and repeated whitespace is collapsed during wrapping. Supply text your chosen font can represent.
+- Custom TTF/OTF embedding is not supported yet; use `helvetica`, `times` or `courier` with bold/italic for typographic contrast.
 - Tables cannot split a single row taller than the page; keep individual rows within the printable height.
 - Table cells are limited to 200,000 characters each, and a document to 200,000 table cells.
 - Bookmarks are limited to 1,000 entries and 300 characters per title; nesting is capped at level 6.

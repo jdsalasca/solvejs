@@ -25,6 +25,12 @@ export type PdfStyle = {
   italic?: boolean;
   align?: PdfAlign;
   lineHeight?: number;
+  /** Transform text before measuring: uppercase, lowercase or title case. */
+  textTransform?: "none" | "uppercase" | "lowercase" | "capitalize";
+  /** Draw a thin rule under each line. */
+  underline?: boolean;
+  /** Draw a thin rule through each line. */
+  strike?: boolean;
   padding?: number;
   paddingX?: number;
   paddingY?: number;

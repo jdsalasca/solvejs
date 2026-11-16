@@ -11,6 +11,9 @@ export type ResolvedStyle = {
   italic: boolean;
   align: PdfAlign;
   lineHeight: number;
+  textTransform: "none" | "uppercase" | "lowercase" | "capitalize";
+  underline: boolean;
+  strike: boolean;
   paddingTop: number;
   paddingRight: number;
   paddingBottom: number;
@@ -27,6 +30,7 @@ export type ResolvedStyle = {
 
 const ALIGNS = new Set<PdfAlign>(["left", "center", "right"]);
 const FAMILIES = new Set<PdfFontFamily>(["helvetica", "times", "courier"]);
+const TRANSFORMS = new Set(["none", "uppercase", "lowercase", "capitalize"]);
 
 function oneOf<T>(value: T, allowed: Set<T>, label: string): T {
   if (!allowed.has(value)) failPdf("PDF_INVALID_INPUT", `Unsupported ${label}: ${String(value)}.`, { [label]: value });
@@ -67,13 +71,23 @@ function fontSizeOf(value: number | undefined): number {
   return fontSize;
 }
 
-function fontOf(props: PdfStyle): Pick<ResolvedStyle, "fontSize" | "fontFamily" | "bold" | "italic" | "lineHeight"> {
+function fontOf(props: PdfStyle): Pick<
+  ResolvedStyle,
+  "fontSize" | "fontFamily" | "bold" | "italic" | "lineHeight" | "textTransform" | "underline" | "strike"
+> {
+  const textTransform = props.textTransform ?? "none";
+  if (!TRANSFORMS.has(textTransform)) {
+    failPdf("PDF_INVALID_INPUT", "Unsupported textTransform.", { textTransform });
+  }
   return {
     fontSize: fontSizeOf(props.fontSize),
     fontFamily: oneOf(props.fontFamily ?? "helvetica", FAMILIES, "fontFamily"),
     bold: props.bold === true,
     italic: props.italic === true,
-    lineHeight: lineHeightOf(props.lineHeight)
+    lineHeight: lineHeightOf(props.lineHeight),
+    textTransform: textTransform as ResolvedStyle["textTransform"],
+    underline: props.underline === true,
+    strike: props.strike === true
   };
 }
 

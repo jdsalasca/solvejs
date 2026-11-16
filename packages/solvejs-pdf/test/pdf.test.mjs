@@ -110,6 +110,28 @@ test("preserves existing percent escapes in link targets", () => {
   assert.doesNotMatch(text, /%2520/);
 });
 
+test("transforms text and draws underline and strike rules", () => {
+  const element = Pdf({
+    children: Text({
+      value: "editorial typography",
+      fontFamily: "times",
+      bold: true,
+      italic: true,
+      textTransform: "uppercase",
+      underline: true,
+      strike: true
+    })
+  });
+  const document = buildPdfDocument(element);
+  const text = document.pages[0].ops.find((op) => op.kind === "text");
+  assert.equal(text.text, "EDITORIAL TYPOGRAPHY");
+  assert.equal(text.font, "times-bold-italic");
+  assert.ok(document.pages[0].ops.filter((op) => op.kind === "line").length >= 2);
+
+  const text2 = latin1(renderPdf(element));
+  assert.match(text2, /\(EDITORIAL TYPOGRAPHY\) Tj/);
+});
+
 test("builds nested bookmarks with page destinations", () => {
   const element = Pdf({
     children: [

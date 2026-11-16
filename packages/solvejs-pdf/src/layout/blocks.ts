@@ -57,19 +57,45 @@ function lineX(block: TextBlock, line: MeasuredLine, x: number, width: number): 
 
 type TextDraw = { block: TextBlock; target: DrawTarget; x: number; y: number; width: number };
 
+// eslint-disable-next-line max-lines-per-function -- text, decoration and link drawing stay together
 function drawTextBlock(context: TextDraw): void {
   const { block, target, x, y, width } = context;
   drawBox(target, { x, y, width, height: block.height }, block.style);
   block.lines.forEach((line, index) => {
+    const lineY = y + block.style.paddingTop + index * block.lineHeight + block.size * 0.8;
     target.page.ops.push({
       kind: "text",
       x: lineX(block, line, x, width),
-      y: y + block.style.paddingTop + index * block.lineHeight + block.size * 0.8,
+      y: lineY,
       text: line.text,
       font: block.font,
       size: block.size,
       color: block.style.color
     });
+    if (block.style.underline || block.style.strike) {
+      const lineXStart = lineX(block, line, x, width);
+      const rule = { color: block.style.color, width: Math.max(0.5, block.size * 0.05) };
+      if (block.style.underline) {
+        target.page.ops.push({
+          kind: "line",
+          x1: lineXStart,
+          y1: lineY + block.size * 0.12,
+          x2: lineXStart + line.width,
+          y2: lineY + block.size * 0.12,
+          ...rule
+        });
+      }
+      if (block.style.strike) {
+        target.page.ops.push({
+          kind: "line",
+          x1: lineXStart,
+          y1: lineY - block.size * 0.28,
+          x2: lineXStart + line.width,
+          y2: lineY - block.size * 0.28,
+          ...rule
+        });
+      }
+    }
   });
   if (block.href) target.addLink({ x, y, width, height: block.height, href: block.href });
 }
