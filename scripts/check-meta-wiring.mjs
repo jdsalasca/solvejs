@@ -70,6 +70,7 @@ for (const [name, declaredVersion] of Object.entries(metaPkg.dependencies ?? {})
 const namedExportsOf = (file) => {
   const source = readFileSync(file, "utf8");
   const names = new Set();
+  // eslint-disable-next-line security/detect-unsafe-regex -- anchored declaration prefix, no nested quantifier
   for (const match of source.matchAll(/^export\s+(?:declare\s+)?(?:const|function|class|let|var)\s+([A-Za-z_$][\w$]*)/gm)) {
     names.add(match[1]);
   }

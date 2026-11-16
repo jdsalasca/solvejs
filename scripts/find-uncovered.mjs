@@ -37,18 +37,21 @@ const lineOf = (offset) => {
 };
 
 const hits = [];
+
+const collectRanges = (fn) => {
+  for (const range of fn.ranges) {
+    if (range.count > 0) continue;
+    const line = lineOf(range.startOffset);
+    hits.push({ line, col: range.startOffset - lineStarts[line - 1] + 1, count: range.count });
+  }
+};
+
 for (const file of readdirSync(out)) {
   if (!file.endsWith(".json")) continue;
   const report = JSON.parse(readFileSync(join(out, file), "utf8"));
   for (const script of report.result ?? []) {
     if (!script.url.endsWith(target.replaceAll("\\", "/"))) continue;
-    for (const fn of script.functions) {
-      for (const range of fn.ranges) {
-        if (range.count > 0) continue;
-        const line = lineOf(range.startOffset);
-        hits.push({ line, col: range.startOffset - lineStarts[line - 1] + 1, count: range.count });
-      }
-    }
+    for (const fn of script.functions) collectRanges(fn);
   }
 }
 

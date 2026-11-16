@@ -28,6 +28,16 @@ const end = start + source.split("\n")[want - 1].length;
 console.log(`${pkg} line ${want}: ${JSON.stringify(source.split("\n")[want - 1])}`);
 console.log(`  offsets ${start}..${end}`);
 
+const logRanges = (fn) => {
+  for (const range of fn.ranges) {
+    const overlaps = range.startOffset < end && range.endOffset > start;
+    if (!overlaps) continue;
+    const kind = range.count > 0 ? "COVERED" : "UNCOVERED";
+    const text = source.slice(range.startOffset, range.endOffset).replace(/\n/g, "\\n").slice(0, 70);
+    console.log(`  ${kind} count=${range.count} ${range.startOffset}..${range.endOffset} | ${text}`);
+  }
+};
+
 let scripts = 0;
 for (const file of readdirSync(out)) {
   if (!file.endsWith(".json")) continue;
@@ -35,15 +45,7 @@ for (const file of readdirSync(out)) {
   for (const script of report.result ?? []) {
     if (!script.url.endsWith(target)) continue;
     scripts++;
-    for (const fn of script.functions) {
-      for (const range of fn.ranges) {
-        const overlaps = range.startOffset < end && range.endOffset > start;
-        if (!overlaps) continue;
-        const kind = range.count > 0 ? "COVERED" : "UNCOVERED";
-        const text = source.slice(range.startOffset, range.endOffset).replace(/\n/g, "\\n").slice(0, 70);
-        console.log(`  ${kind} count=${range.count} ${range.startOffset}..${range.endOffset} | ${text}`);
-      }
-    }
+    for (const fn of script.functions) logRanges(fn);
   }
 }
 console.log(`  scripts matched: ${scripts}`);

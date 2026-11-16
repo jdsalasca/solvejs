@@ -29,24 +29,33 @@ function formatNumber(value) {
   return Number(value || 0).toLocaleString("en-US");
 }
 
-async function run() {
-  const date = new Date().toISOString().slice(0, 10);
-  const repo = await fetchJson("https://api.github.com/repos/jdsalasca/solvejs");
+const HTML_HEAD = `<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="SolveJS community metrics snapshot from GitHub and npm public APIs." />
+  <title>Community Metrics | SolveJS</title>
+  <link rel="stylesheet" href="../styles.css" />
+</head>
+<body data-root="..">`;
 
-  const downloadRows = [];
-  let totalDownloads = 0;
+async function collectDownloads() {
+  const rows = [];
+  let total = 0;
   for (const pkg of PACKAGES) {
     const data = await fetchJson(`https://api.npmjs.org/downloads/point/last-month/${encodeURIComponent(pkg)}`);
     const downloads = Number(data.downloads || 0);
-    totalDownloads += downloads;
-    downloadRows.push({ pkg, downloads });
+    total += downloads;
+    rows.push({ pkg, downloads });
   }
+  return { rows, total };
+}
 
-  const mdRows = downloadRows
-    .map((row) => `| ${row.pkg} | ${formatNumber(row.downloads)} |`)
-    .join("\n");
+function renderMarkdown(date, repo, totalDownloads, downloadRows) {
+  const rows = downloadRows.map((row) => `| ${row.pkg} | ${formatNumber(row.downloads)} |`).join("\n");
 
-  const markdown = `# SolveJS Community Metrics
+  return `# SolveJS Community Metrics
 
 Generated on ${date}.
 
@@ -63,28 +72,31 @@ Total across tracked packages: **${formatNumber(totalDownloads)}**
 
 | Package | Downloads (last month) |
 |---|---:|
-${mdRows}
+${rows}
 
 ## Notes
 
 - Source: GitHub public REST API + npm downloads API.
 - Regenerate with \`npm run metrics:community\`.
 `;
+}
 
-  const htmlRows = downloadRows
+function renderStats(repo) {
+  return [
+    `<li>Stars: <strong>${formatNumber(repo.stargazers_count)}</strong></li>`,
+    `<li>Forks: <strong>${formatNumber(repo.forks_count)}</strong></li>`,
+    `<li>Open issues: <strong>${formatNumber(repo.open_issues_count)}</strong></li>`,
+    `<li>Watchers: <strong>${formatNumber(repo.subscribers_count || repo.watchers_count)}</strong></li>`
+  ].join("\n          ");
+}
+
+function renderHtml(date, repo, totalDownloads, downloadRows) {
+  const rows = downloadRows
     .map((row) => `<tr><td><code>${row.pkg}</code></td><td>${formatNumber(row.downloads)}</td></tr>`)
     .join("\n");
+  const stats = renderStats(repo);
 
-  const html = `<!doctype html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="description" content="SolveJS community metrics snapshot from GitHub and npm public APIs." />
-  <title>Community Metrics | SolveJS</title>
-  <link rel="stylesheet" href="../styles.css" />
-</head>
-<body data-root="..">
+  return `${HTML_HEAD}
   <main class="page">
     <section class="hero">
       <h1>Community Metrics</h1>
@@ -98,10 +110,7 @@ ${mdRows}
       <section class="panel">
         <h2>GitHub Snapshot</h2>
         <ul class="topic-list">
-          <li>Stars: <strong>${formatNumber(repo.stargazers_count)}</strong></li>
-          <li>Forks: <strong>${formatNumber(repo.forks_count)}</strong></li>
-          <li>Open issues: <strong>${formatNumber(repo.open_issues_count)}</strong></li>
-          <li>Watchers: <strong>${formatNumber(repo.subscribers_count || repo.watchers_count)}</strong></li>
+          ${stats}
         </ul>
         <h2>npm Last-Month Downloads</h2>
         <p>Total: <strong>${formatNumber(totalDownloads)}</strong></p>
@@ -109,7 +118,7 @@ ${mdRows}
           <table style="width:100%; border-collapse: collapse;">
             <thead><tr><th align="left">Package</th><th align="left">Downloads</th></tr></thead>
             <tbody>
-              ${htmlRows}
+              ${rows}
             </tbody>
           </table>
         </div>
@@ -121,9 +130,15 @@ ${mdRows}
 </body>
 </html>
 `;
+}
 
-  writeFileSync(join("docs", "guides", "community-metrics.md"), markdown, "utf8");
-  writeFileSync(join("docs", "guides", "community-metrics.html"), html, "utf8");
+async function run() {
+  const date = new Date().toISOString().slice(0, 10);
+  const repo = await fetchJson("https://api.github.com/repos/jdsalasca/solvejs");
+  const { rows, total } = await collectDownloads();
+
+  writeFileSync(join("docs", "guides", "community-metrics.md"), renderMarkdown(date, repo, total, rows), "utf8");
+  writeFileSync(join("docs", "guides", "community-metrics.html"), renderHtml(date, repo, total, rows), "utf8");
   console.log("Updated docs/guides/community-metrics.md and docs/guides/community-metrics.html");
 }
 

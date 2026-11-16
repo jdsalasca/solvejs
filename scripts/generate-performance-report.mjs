@@ -40,7 +40,7 @@ function runCoverage() {
     if (!isWorkspace) return null;
 
     const dir = join("packages", name);
-    let raw = "";
+    let raw;
     try {
       raw = run("node --test --experimental-test-coverage test/*.test.mjs", dir);
     } catch {
@@ -119,6 +119,69 @@ ${packRows}
 `;
 }
 
+function renderHtmlHead() {
+  return `<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="SolveJS benchmark and package size snapshot." />
+  <title>Performance and Size Report | SolveJS</title>
+  <link rel="stylesheet" href="../styles.css" />
+</head>
+<body data-root="..">`;
+}
+
+function renderCoverageTable(rows) {
+  return `<h2>Test Coverage</h2>
+        <div style="overflow:auto">
+          <table style="width:100%; border-collapse: collapse;">
+            <thead>
+              <tr><th align="left">Package</th><th align="left">Lines</th><th align="left">Branches</th><th align="left">Functions</th></tr>
+            </thead>
+            <tbody>${rows}</tbody>
+          </table>
+        </div>`;
+}
+
+function renderPackTable(rows) {
+  return `<h2>Package Size Snapshot</h2>
+        <div style="overflow:auto">
+          <table style="width:100%; border-collapse: collapse;">
+            <thead>
+              <tr><th align="left">Package</th><th align="left">Version</th><th align="left">Tarball Size</th><th align="left">Unpacked Size</th><th align="left">Files</th></tr>
+            </thead>
+            <tbody>${rows}</tbody>
+          </table>
+        </div>`;
+}
+
+function renderHtmlBody(date, benchmarkItems, coverageRows, packRows) {
+  return `  <main class="page">
+    <section class="hero">
+      <h1>Performance and Size Report</h1>
+      <p>Generated on ${date}. Local benchmark and package-size snapshot.</p>
+    </section>
+    <section class="layout">
+      <aside class="panel">
+        <h2>Cookbook Navigation</h2>
+        <nav data-cookbook-nav aria-label="Cookbook pages"></nav>
+      </aside>
+      <section class="panel">
+        <h2>Benchmark Snapshot</h2>
+        <ul class="topic-list">${benchmarkItems}</ul>
+        ${renderCoverageTable(coverageRows)}
+        ${renderPackTable(packRows)}
+      </section>
+    </section>
+    <p class="back-link"><a class="inline-link" href="../index.html">Back to docs home</a></p>
+  </main>
+  <script src="../app.js"></script>
+</body>
+</html>
+`;
+}
+
 function toHtml(date, benchmarks, packs, coverage) {
   const packRows = packs
     .map(
@@ -138,55 +201,8 @@ function toHtml(date, benchmarks, packs, coverage) {
     )
     .join("\n");
 
-  return `<!doctype html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="description" content="SolveJS benchmark and package size snapshot." />
-  <title>Performance and Size Report | SolveJS</title>
-  <link rel="stylesheet" href="../styles.css" />
-</head>
-<body data-root="..">
-  <main class="page">
-    <section class="hero">
-      <h1>Performance and Size Report</h1>
-      <p>Generated on ${date}. Local benchmark and package-size snapshot.</p>
-    </section>
-    <section class="layout">
-      <aside class="panel">
-        <h2>Cookbook Navigation</h2>
-        <nav data-cookbook-nav aria-label="Cookbook pages"></nav>
-      </aside>
-      <section class="panel">
-        <h2>Benchmark Snapshot</h2>
-        <ul class="topic-list">${benchmarkItems}</ul>
-        <h2>Test Coverage</h2>
-        <div style="overflow:auto">
-          <table style="width:100%; border-collapse: collapse;">
-            <thead>
-              <tr><th align="left">Package</th><th align="left">Lines</th><th align="left">Branches</th><th align="left">Functions</th></tr>
-            </thead>
-            <tbody>${coverageRows}</tbody>
-          </table>
-        </div>
-        <h2>Package Size Snapshot</h2>
-        <div style="overflow:auto">
-          <table style="width:100%; border-collapse: collapse;">
-            <thead>
-              <tr><th align="left">Package</th><th align="left">Version</th><th align="left">Tarball Size</th><th align="left">Unpacked Size</th><th align="left">Files</th></tr>
-            </thead>
-            <tbody>${packRows}</tbody>
-          </table>
-        </div>
-      </section>
-    </section>
-    <p class="back-link"><a class="inline-link" href="../index.html">Back to docs home</a></p>
-  </main>
-  <script src="../app.js"></script>
-</body>
-</html>
-`;
+  return `${renderHtmlHead()}
+${renderHtmlBody(date, benchmarkItems, coverageRows, packRows)}`;
 }
 
 function runAll() {

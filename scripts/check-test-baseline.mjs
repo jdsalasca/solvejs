@@ -22,6 +22,7 @@ function countTests(testDir) {
 function countFunctionExports(sourcePath) {
   if (!existsSync(sourcePath)) return 0;
   const source = readFileSync(sourcePath, "utf8");
+  // eslint-disable-next-line security/detect-unsafe-regex -- anchored function signature prefix
   return (source.match(/export\s+(?:async\s+)?function\s+\w+/g) || []).length;
 }
 

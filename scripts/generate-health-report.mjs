@@ -8,51 +8,70 @@ const md = readFileSync(mdPath, "utf8").replace(/\r\n/g, "\n");
 
 // Measured, never hand-maintained. The same two counters the CI gate uses, so the
 // report and the gate can never disagree.
+function countTests(dir) {
+  const testDir = join("packages", dir, "test");
+  if (!existsSync(testDir)) return 0;
+
+  let tests = 0;
+  for (const file of readdirSync(testDir).filter((name) => name.endsWith(".mjs"))) {
+    tests += (readFileSync(join(testDir, file), "utf8").match(/test\(/g) ?? []).length;
+  }
+  return tests;
+}
+
+function measurePackage(dir, overrides, config) {
+  const pkg = JSON.parse(readFileSync(join("packages", dir, "package.json"), "utf8"));
+  const sourcePath = join("packages", dir, "src", "index.ts");
+  const source = existsSync(sourcePath) ? readFileSync(sourcePath, "utf8") : "";
+  // eslint-disable-next-line security/detect-unsafe-regex -- anchored function signature prefix
+  const exported = (source.match(/export\s+(?:async\s+)?function\s+\w+/g) ?? []).length;
+  const tests = countTests(dir);
+
+  const minimum = Number(overrides[pkg.name] ?? (exported > 0 ? exported : config.defaultMinimum ?? 1));
+  return { name: pkg.name, exported, tests, minimum };
+}
+
 function measureTrust() {
   const config = JSON.parse(readFileSync(join("scripts", "test-baseline.json"), "utf8"));
   const overrides = config.packageMinimums ?? {};
 
   return readdirSync("packages")
     .filter((dir) => existsSync(join("packages", dir, "package.json")))
-    .map((dir) => {
-      const pkg = JSON.parse(readFileSync(join("packages", dir, "package.json"), "utf8"));
-      const sourcePath = join("packages", dir, "src", "index.ts");
-      const source = existsSync(sourcePath) ? readFileSync(sourcePath, "utf8") : "";
-      const exported = (source.match(/export\s+(?:async\s+)?function\s+\w+/g) ?? []).length;
-
-      let tests = 0;
-      const testDir = join("packages", dir, "test");
-      if (existsSync(testDir)) {
-        for (const file of readdirSync(testDir).filter((name) => name.endsWith(".mjs"))) {
-          tests += (readFileSync(join(testDir, file), "utf8").match(/test\(/g) ?? []).length;
-        }
-      }
-
-      const minimum = Number(overrides[pkg.name] ?? (exported > 0 ? exported : config.defaultMinimum ?? 1));
-      return { name: pkg.name, exported, tests, minimum };
-    })
+    .map((dir) => measurePackage(dir, overrides, config))
     .sort((a, b) => a.name.localeCompare(b.name));
 }
 
 // Coverage is measured by report:perf and published in performance-and-size.md.
 // Read it back rather than recomputing, so the two reports cannot disagree.
-function readCoverage() {
-  const perfPath = "docs/guides/performance-and-size.md";
-  if (!existsSync(perfPath)) return new Map();
+function parseCoverageLine(line) {
+  const cells = line.trim().replace(/^\|/, "").replace(/\|$/, "").split("|").map((cell) => cell.trim());
+  return cells[0]?.startsWith("@jdsalasc/") ? [cells[0], cells[1]] : null;
+}
 
-  const map = new Map();
+function coverageLines(source) {
+  const lines = [];
   let inCoverage = false;
 
-  for (const line of readFileSync(perfPath, "utf8").replace(/\r\n/g, "\n").split("\n")) {
+  for (const line of source.split("\n")) {
     if (line.startsWith("## Test Coverage")) {
       inCoverage = true;
       continue;
     }
     if (inCoverage && line.startsWith("## ")) break;
-    if (!inCoverage || !line.trim().startsWith("|")) continue;
+    if (inCoverage && line.trim().startsWith("|")) lines.push(line);
+  }
 
-    const cells = line.trim().replace(/^\|/, "").replace(/\|$/, "").split("|").map((cell) => cell.trim());
-    if (cells[0]?.startsWith("@jdsalasc/")) map.set(cells[0], cells[1]);
+  return lines;
+}
+
+function readCoverage() {
+  const perfPath = "docs/guides/performance-and-size.md";
+  if (!existsSync(perfPath)) return new Map();
+
+  const map = new Map();
+  for (const line of coverageLines(readFileSync(perfPath, "utf8").replace(/\r\n/g, "\n"))) {
+    const entry = parseCoverageLine(line);
+    if (entry) map.set(entry[0], entry[1]);
   }
 
   return map;

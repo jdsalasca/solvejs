@@ -43,6 +43,7 @@ for (const path of packages) {
 
   let loaded;
   try {
+    // eslint-disable-next-line security/detect-non-literal-require -- entry path comes from the workspace manifest
     loaded = require(join(process.cwd(), entryPath));
   } catch (error) {
     problems.push(`${manifest.name}: require() failed with ${error.message}`);
