@@ -1,3 +1,4 @@
+/* eslint-disable security/detect-unsafe-regex -- fixed query-string rewrite patterns */
 import { readFileSync, readdirSync, statSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 

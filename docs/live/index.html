@@ -10,13 +10,28 @@
   <script type="importmap">
     {
       "imports": {
+        "@jdsalasc/solvejs": "../vendor/solvejs/index.js",
+        "@jdsalasc/solvejs-async": "../vendor/solvejs-async/index.js",
+        "@jdsalasc/solvejs-cache": "../vendor/solvejs-cache/index.js",
+        "@jdsalasc/solvejs-constants": "../vendor/solvejs-constants/index.js",
         "@jdsalasc/solvejs-date": "../vendor/solvejs-date/index.js",
-        "@jdsalasc/solvejs-validators": "../vendor/solvejs-validators/index.js",
-        "@jdsalasc/solvejs-money": "../vendor/solvejs-money/index.js",
+        "@jdsalasc/solvejs-env": "../vendor/solvejs-env/index.js",
+        "@jdsalasc/solvejs-errors": "../vendor/solvejs-errors/index.js",
+        "@jdsalasc/solvejs-http": "../vendor/solvejs-http/index.js",
         "@jdsalasc/solvejs-json": "../vendor/solvejs-json/index.js",
-        "@jdsalasc/solvejs-url": "../vendor/solvejs-url/index.js",
-        "@jdsalasc/solvejs-xlsx": "../vendor/solvejs-xlsx/index.js",
+        "@jdsalasc/solvejs-list": "../vendor/solvejs-list/index.js",
+        "@jdsalasc/solvejs-money": "../vendor/solvejs-money/index.js",
+        "@jdsalasc/solvejs-numbers": "../vendor/solvejs-numbers/index.js",
+        "@jdsalasc/solvejs-objects": "../vendor/solvejs-objects/index.js",
+        "@jdsalasc/solvejs-pagination": "../vendor/solvejs-pagination/index.js",
         "@jdsalasc/solvejs-pdf": "../vendor/solvejs-pdf/index.js",
+        "@jdsalasc/solvejs-regex": "../vendor/solvejs-regex/index.js",
+        "@jdsalasc/solvejs-schema": "../vendor/solvejs-schema/index.js",
+        "@jdsalasc/solvejs-semver": "../vendor/solvejs-semver/index.js",
+        "@jdsalasc/solvejs-string": "../vendor/solvejs-string/index.js",
+        "@jdsalasc/solvejs-url": "../vendor/solvejs-url/index.js",
+        "@jdsalasc/solvejs-validators": "../vendor/solvejs-validators/index.js",
+        "@jdsalasc/solvejs-xlsx": "../vendor/solvejs-xlsx/index.js",
         "@jdsalasc/solvejs-pdf/viewer": "../vendor/solvejs-pdf/viewer.js"
       }
     }
@@ -179,11 +194,34 @@
       </article>
     </section>
 
+    <section class="panel explorer-panel" id="package-explorer">
+      <div class="panel-kicker">07 · PACKAGE EXPLORER</div>
+      <div class="explorer-head">
+        <div>
+          <h2>Every package. One tap away.</h2>
+          <p class="live-caption">Pick a package to run a real example from the workspace build. No mock data, no CDN drift.</p>
+        </div>
+        <span class="mini-pill" id="package-count">0 packages</span>
+      </div>
+      <div id="package-tabs" class="package-tabs" role="tablist" aria-label="SolveJS packages"></div>
+      <div class="package-panel">
+        <div class="package-code">
+          <div class="package-code-head"><span id="package-name">Package</span><span id="package-level">Example</span></div>
+          <pre><code id="package-code"></code></pre>
+        </div>
+        <div class="package-result">
+          <div class="package-result-head">Live result</div>
+          <pre id="package-output" class="live-output"></pre>
+        </div>
+      </div>
+    </section>
+
     <footer class="lab-footer">
       <span>SolveJS Live Lab</span>
       <span>Runs the workspace build · no CDN, no tracking, no runtime dependencies</span>
     </footer>
   </main>
   <script type="module" src="./live.js"></script>
+  <script type="module" src="./packages.js"></script>
 </body>
 </html>

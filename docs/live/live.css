@@ -629,6 +629,115 @@ solvejs-pdf-viewer {
   font-size: 0.72rem;
 }
 
+.explorer-panel {
+  margin-top: 18px;
+  border-radius: 22px;
+  padding: 22px;
+}
+
+.explorer-head {
+  display: flex;
+  align-items: start;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.explorer-head h2 {
+  margin: 0;
+  color: var(--text);
+  font-size: 1.35rem;
+  letter-spacing: -0.035em;
+  text-transform: none;
+}
+
+.package-tabs {
+  display: flex;
+  gap: 6px;
+  margin: 18px 0 14px;
+  padding-bottom: 4px;
+  overflow-x: auto;
+  scrollbar-width: thin;
+}
+
+.package-tab {
+  flex: 0 0 auto;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--muted);
+  padding: 6px 10px;
+  cursor: pointer;
+  font: inherit;
+  font-size: 0.68rem;
+  font-weight: 650;
+  white-space: nowrap;
+  transition: color 160ms ease, border-color 160ms ease, background 160ms ease;
+}
+
+.package-tab:hover {
+  border-color: rgba(34, 211, 238, 0.35);
+  color: var(--text);
+}
+
+.package-tab[aria-selected="true"] {
+  border-color: rgba(34, 211, 238, 0.45);
+  background: rgba(34, 211, 238, 0.12);
+  color: var(--cyan);
+}
+
+.package-panel {
+  display: grid;
+  grid-template-columns: minmax(0, 1.1fr) minmax(0, 0.9fr);
+  gap: 14px;
+}
+
+.package-code,
+.package-result {
+  min-width: 0;
+  overflow: hidden;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: rgba(5, 8, 13, 0.72);
+}
+
+.package-code-head,
+.package-result-head {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  border-bottom: 1px solid var(--line);
+  color: var(--muted);
+  padding: 9px 12px;
+  font-size: 0.62rem;
+  font-weight: 750;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.package-code pre {
+  min-height: 190px;
+  margin: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  padding: 14px;
+  font-size: 0.7rem;
+}
+
+.package-result .live-output {
+  min-height: 190px;
+  margin: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+}
+
+@media (max-width: 980px) {
+  .package-panel {
+    grid-template-columns: 1fr;
+  }
+}
+
 .lab-footer span:first-child {
   color: var(--text);
   font-weight: 750;

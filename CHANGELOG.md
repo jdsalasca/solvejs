@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.12.5 - 2026-11-16
+
+- Extended `@jdsalasc/solvejs-pdf@0.1.5` typography: `textTransform` (`uppercase`, `lowercase`, `capitalize`) is applied before measurement, and `underline`/`strike` draw rules that follow the measured line width. Bold/italic faces work across `helvetica`, `times` and `courier`; `times` + italic is the documented editorial/calligraphic look. Footers can use the same styles because they are ordinary decorators measured before pagination. Custom TTF/OTF embedding remains explicitly out of scope. Migration impact: none; additive style props.
+
+- Expanded the live documentation with a **package explorer**: one tab per leaf package and the meta package, each running a real example against the workspace build. The Live Lab is deployed at `solvejs-documentation.eridu.top`.
+
+- Bumped the meta package to `1.12.5`. Migration impact: none.
+
 ## 1.12.4 - 2026-11-16
 
 - Added data validation to `@jdsalasc/solvejs-xlsx@0.2.4`: inline dropdown lists, formula-backed lists, whole/decimal/date/time/text-length bounds, custom rules, prompts and error messages. The writer emits `<dataValidations>` and the reader returns `sheet.dataValidations`, so validation survives a round trip. The component API now exposes `pageSetup` and `dataValidations` on `<Sheet>`. Migration impact: none; additive API.

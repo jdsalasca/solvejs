@@ -188,6 +188,12 @@ Competitor study:
 - PDF gaps ranked: PNG with transparency, page templates/watermarks, outlines/bookmarks and custom TTF fonts. Reading/editing existing PDFs stays out of scope.
 - Both package READMEs now include a capability matrix with the honest gaps and use-case guidance.
 
+## Round 12: Typography and package explorer - done
+
+- PDF `0.1.5`: `textTransform`, `underline` and `strike` style props; transforms run before measurement, decorations use the measured line width. Documented bold/italic faces and the `times` italic editorial look. Custom TTF/OTF embedding remains out of scope rather than half-implemented.
+- Live docs: package explorer with one tab per package (21 leaves + meta), running real examples from the workspace build. All 22 examples executed successfully in a headless browser.
+- Visual redesign with the Tech Innovation theme, responsive desktop/mobile checks and versioned asset URLs to bypass stale CDN CSS.
+
 ## Round 11: Modern document features - done
 
 Added the two features that most often force teams to reach for a heavier library:

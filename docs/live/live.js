@@ -112,7 +112,7 @@ function pdfDocument() {
       Row({
         children: [
           Text({ value: `${state.company} · hello@acme.studio`, fontSize: 8, color: PdfColors.Gray }),
-          Text({ value: `Page ${page} of ${pages}`, fontSize: 8, color: PdfColors.Gray, align: "right" })
+          Text({ value: `Page ${page} of ${pages}`, fontSize: 8, color: PdfColors.Gray, align: "right", fontFamily: "times", italic: true })
         ]
       }),
     children: PdfPage({
@@ -133,7 +133,7 @@ function pdfDocument() {
               View({
                 width: 180,
                 children: [
-                  Text({ value: "INVOICE", color: PdfColors.White, bold: true, fontSize: 24, align: "right" }),
+                  Text({ value: "INVOICE", color: PdfColors.White, bold: true, fontSize: 24, align: "right", fontFamily: "times", italic: true }),
                   Text({ value: `#${state.number}`, color: PdfColors.LightBlue, fontSize: 9, align: "right" })
                 ]
               })
