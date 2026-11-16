@@ -58,20 +58,25 @@ Verification: the probe reports no unstructured `TypeError` for the `solvejs-val
 Verification: `npm run check:snippets` and `npm run docs:check-links` pass; every README has the
 section.
 
-## Round 4: Structural quality (P2, non-blocking)
+## Round 4: Structural quality — DONE
 
-The `teachers` audit still reports complexity above 8 and functions above 40 lines. Chasing every
-threshold would fragment parsers and state machines that are clearer as one function today. Adopt a
-repo-owned ESLint baseline instead of a one-off external run, with thresholds this codebase can
-hold: `complexity: 12`, `max-lines-per-function: 60`, `max-depth: 4`, plus the correctness rules
-(`no-unused-vars`, `no-loss-of-precision`, `no-useless-escape`).
+Adopted the external audit's portable baseline as a repo-owned ESLint config (`eslint.config.mjs`),
+wired into `npm run quality` as `lint:quality` with `--max-warnings 0`: complexity 8,
+max-lines-per-function 40, max-depth 3, max-params 4, the correctness rules, and the security
+plugin. Tests are exempt from the size thresholds, as in the portable baseline.
 
-Refactor only the outliers first: `solvejs-semver` (`satisfies`, `comparePrerelease`),
-`solvejs-json` (`deepEqual`), `solvejs-async` (`retry`, `createTokenBucketLimiter`) and
-`solvejs-cache` (`createLruCache`).
+The first run reported 77 problems (58 errors, 19 warnings) across 12 packages and the scripts.
+All were resolved:
 
-Verification: the new lint script is wired into `npm run quality`, and the refactors keep the
-behavioral suite green.
+- extracted validation, parsing, serialization, comparison, cache-entry and bucket-state helpers
+  from the functions the rule flagged; behavior is unchanged and every package suite stayed green;
+- deleted untracked compiled artifacts that had reappeared inside six `src` directories;
+- documented the verified false positives from `security/detect-unsafe-regex`,
+  `detect-non-literal-regexp` and `detect-non-literal-require` with per-line disables and a reason;
+- split the report generators so no function exceeds the line limit.
+
+Verification: `npm run lint:quality` exits 0 with no warnings; the external `teachers` audit exits 0
+with `sin hallazgos`; `npm run quality` stays green.
 
 ## Risks and Rollback
 
