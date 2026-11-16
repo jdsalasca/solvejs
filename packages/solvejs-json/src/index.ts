@@ -79,29 +79,68 @@ export function safeJsonParse<T = unknown>(
  * @returns A result object, or the string / fallback when `fallback` is supplied.
  * @throws {JsonError} Never directly; a cycle is reported through the result object.
  */
-export function safeJsonStringify(
-  value: unknown,
-  options: SafeStringifyOptions = {}
-): { ok: true; value: string | undefined } | { ok: false; error: JsonError } | string | undefined {
-  const hasFallback = "fallback" in options;
+type StringifyResult = { ok: true; value: string | undefined } | { ok: false; error: JsonError };
 
-  let text: string | undefined;
+function stringifyResult(value: unknown): StringifyResult {
   try {
-    text = stableStringify(value);
+    return { ok: true, value: stableStringify(value) };
   } catch (error) {
-    if (error instanceof JsonError && error.code === "JSON_CIRCULAR") {
-      if (hasFallback) return options.fallback;
-      return { ok: false, error };
-    }
-    if (hasFallback) return options.fallback;
+    if (error instanceof JsonError && error.code === "JSON_CIRCULAR") return { ok: false, error };
     return {
       ok: false,
       error: new JsonError("JSON_UNSERIALISABLE", (error as Error).message, { received: typeof value })
     };
   }
+}
 
-  if (hasFallback) return text === undefined ? options.fallback : text;
-  return { ok: true, value: text };
+export function safeJsonStringify(
+  value: unknown,
+  options: SafeStringifyOptions = {}
+): { ok: true; value: string | undefined } | { ok: false; error: JsonError } | string | undefined {
+  const hasFallback = "fallback" in options;
+  const result = stringifyResult(value);
+
+  if (hasFallback) return result.ok && result.value !== undefined ? result.value : options.fallback;
+  return result;
+}
+
+type PrimitiveResult = { handled: true; text: string | undefined } | { handled: false };
+
+function serialiseNumber(value: number): string {
+  return Number.isFinite(value) ? String(value) : "null";
+}
+
+function serialisePrimitive(input: unknown): PrimitiveResult {
+  if (input === null) return { handled: true, text: "null" };
+  if (input === undefined) return { handled: true, text: undefined };
+
+  const type = typeof input;
+  if (type === "number") return { handled: true, text: serialiseNumber(input as number) };
+  if (type === "boolean") return { handled: true, text: String(input) };
+  if (type === "string") return { handled: true, text: JSON.stringify(input) };
+  if (type === "bigint") return { handled: true, text: JSON.stringify((input as bigint).toString()) };
+  if (type !== "object") return { handled: true, text: undefined };
+  return { handled: false };
+}
+
+function serialiseArray(input: unknown[], walk: (value: unknown) => string | undefined): string | undefined {
+  const items = input.map(walk);
+  return items.some((item) => item === undefined) ? undefined : `[${items.join(",")}]`;
+}
+
+function serialiseObject(input: Record<string, unknown>, walk: (value: unknown) => string | undefined): string {
+  const entries = Object.entries(input)
+    .filter(([, entryValue]) => entryValue !== undefined)
+    // Object keys are unique, so the two compared names are never equal and a tie cannot happen.
+    .sort(([a], [b]) => (a < b ? -1 : 1));
+
+  const parts: string[] = [];
+  for (const [key, entryValue] of entries) {
+    const serialised = walk(entryValue);
+    if (serialised === undefined) continue;
+    parts.push(`${JSON.stringify(key)}:${serialised}`);
+  }
+  return `{${parts.join(",")}}`;
 }
 
 /**
@@ -118,15 +157,8 @@ export function stableStringify(value: unknown): string | undefined {
   const ancestors: unknown[] = [];
 
   const walk = (input: unknown): string | undefined => {
-    if (input === null) return "null";
-    if (input === undefined) return undefined;
-
-    const type = typeof input;
-    if (type === "number") return Number.isFinite(input as number) ? String(input) : "null";
-    if (type === "boolean") return String(input);
-    if (type === "string") return JSON.stringify(input);
-    if (type === "bigint") return JSON.stringify((input as bigint).toString());
-    if (type !== "object") return undefined;
+    const primitive = serialisePrimitive(input);
+    if (primitive.handled) return primitive.text;
 
     if (ancestors.includes(input)) {
       fail("JSON_CIRCULAR", "Expected a value without circular references.", { received: "circular" });
@@ -134,25 +166,9 @@ export function stableStringify(value: unknown): string | undefined {
     ancestors.push(input);
 
     try {
-      if (Array.isArray(input)) {
-        const items = input.map(walk);
-        return items.some((item) => item === undefined) ? undefined : `[${items.join(",")}]`;
-      }
-
+      if (Array.isArray(input)) return serialiseArray(input, walk);
       if (input instanceof Date) return JSON.stringify(input.toISOString());
-
-      const entries = Object.entries(input as Record<string, unknown>)
-        .filter(([, entryValue]) => entryValue !== undefined)
-        // Object keys are unique, so the two compared names are never equal and a tie cannot happen.
-  .sort(([a], [b]) => (a < b ? -1 : 1));
-
-      const parts: string[] = [];
-      for (const [key, entryValue] of entries) {
-        const serialised = walk(entryValue);
-        if (serialised === undefined) continue;
-        parts.push(`${JSON.stringify(key)}:${serialised}`);
-      }
-      return `{${parts.join(",")}}`;
+      return serialiseObject(input as Record<string, unknown>, walk);
     } finally {
       ancestors.pop();
     }
@@ -161,21 +177,14 @@ export function stableStringify(value: unknown): string | undefined {
   return walk(value);
 }
 
-function cloneValue(value: unknown, seen: WeakMap<object, unknown>): unknown {
-  if (value === null || typeof value !== "object") return value;
-  if (value instanceof Date) return new Date(value.getTime());
-  if (value instanceof RegExp) return new RegExp(value.source, value.flags);
+function cloneArray(value: unknown[], seen: WeakMap<object, unknown>): unknown[] {
+  const copy: unknown[] = [];
+  seen.set(value, copy);
+  for (const item of value) copy.push(cloneValue(item, seen));
+  return copy;
+}
 
-  const existing = seen.get(value);
-  if (existing !== undefined) return existing;
-
-  if (Array.isArray(value)) {
-    const copy: unknown[] = [];
-    seen.set(value, copy);
-    for (const item of value) copy.push(cloneValue(item, seen));
-    return copy;
-  }
-
+function cloneObject(value: object, seen: WeakMap<object, unknown>): Record<string, unknown> {
   const copy: Record<string, unknown> = {};
   seen.set(value, copy);
   for (const [key, entryValue] of Object.entries(value as Record<string, unknown>)) {
@@ -183,6 +192,18 @@ function cloneValue(value: unknown, seen: WeakMap<object, unknown>): unknown {
     copy[key] = cloneValue(entryValue, seen);
   }
   return copy;
+}
+
+function cloneValue(value: unknown, seen: WeakMap<object, unknown>): unknown {
+  if (value === null || typeof value !== "object") return value;
+  if (value instanceof Date) return new Date(value.getTime());
+  // eslint-disable-next-line security/detect-non-literal-regexp -- source and flags come from an existing RegExp
+  if (value instanceof RegExp) return new RegExp(value.source, value.flags);
+
+  const existing = seen.get(value);
+  if (existing !== undefined) return existing;
+
+  return Array.isArray(value) ? cloneArray(value, seen) : cloneObject(value, seen);
 }
 
 /**
@@ -198,45 +219,66 @@ export function deepClone<T>(value: T): T {
   return cloneValue(value, new WeakMap()) as T;
 }
 
-function equalValue(left: unknown, right: unknown, seen: WeakMap<object, unknown>): boolean {
-  if (Object.is(left, right)) return true;
-  // Object.is separates 0 and -0, which are the same value for comparison purposes.
-  if (left === 0 && right === 0) return true;
-  if (left === null || right === null || typeof left !== "object" || typeof right !== "object") return false;
+function isComparableObject(value: unknown): value is object {
+  return value !== null && typeof value === "object";
+}
 
-  if (left instanceof Date || right instanceof Date) {
-    return left instanceof Date && right instanceof Date && left.getTime() === right.getTime();
-  }
-  if (left instanceof RegExp || right instanceof RegExp) {
-    return left instanceof RegExp && right instanceof RegExp && left.source === right.source && left.flags === right.flags;
-  }
+function bothObjects(left: unknown, right: unknown): boolean {
+  return isComparableObject(left) && isComparableObject(right);
+}
+
+function equalDates(left: unknown, right: unknown): boolean {
+  return left instanceof Date && right instanceof Date && left.getTime() === right.getTime();
+}
+
+function equalRegExps(left: unknown, right: unknown): boolean {
+  return left instanceof RegExp && right instanceof RegExp && left.source === right.source && left.flags === right.flags;
+}
+
+function equalSpecialObjects(left: object, right: unknown, seen: WeakMap<object, unknown>): boolean | undefined {
+  if (left instanceof Date || right instanceof Date) return equalDates(left, right);
+  if (left instanceof RegExp || right instanceof RegExp) return equalRegExps(left, right);
 
   const known = seen.get(left);
   if (known !== undefined) return known === right;
   seen.set(left, right);
+  return undefined;
+}
 
-  const leftArray = Array.isArray(left);
-  if (leftArray !== Array.isArray(right)) return false;
+function equalArrays(left: unknown[], right: unknown[], seen: WeakMap<object, unknown>): boolean {
+  if (left.length !== right.length) return false;
+  return left.every((item, index) => equalValue(item, right[index], seen));
+}
 
-  if (leftArray) {
-    const leftList = left as unknown[];
-    const rightList = right as unknown[];
-    if (leftList.length !== rightList.length) return false;
-    return leftList.every((item, index) => equalValue(item, rightList[index], seen));
-  }
-
+function equalObjects(
+  left: Record<string, unknown>,
+  right: Record<string, unknown>,
+  seen: WeakMap<object, unknown>
+): boolean {
   const leftKeys = Object.keys(left).sort();
   const rightKeys = Object.keys(right).sort();
   if (leftKeys.length !== rightKeys.length) return false;
   if (!leftKeys.every((key, index) => key === rightKeys[index])) return false;
+  return leftKeys.every((key) => equalValue(left[key], right[key], seen));
+}
 
-  return leftKeys.every((key) =>
-    equalValue(
-      (left as Record<string, unknown>)[key],
-      (right as Record<string, unknown>)[key],
-      seen
-    )
-  );
+function equalContainers(left: object, right: object, seen: WeakMap<object, unknown>): boolean {
+  const leftIsArray = Array.isArray(left);
+  if (leftIsArray !== Array.isArray(right)) return false;
+  return leftIsArray
+    ? equalArrays(left as unknown[], right as unknown[], seen)
+    : equalObjects(left as Record<string, unknown>, right as Record<string, unknown>, seen);
+}
+
+function equalValue(left: unknown, right: unknown, seen: WeakMap<object, unknown>): boolean {
+  if (Object.is(left, right)) return true;
+  // Object.is separates 0 and -0, which are the same value for comparison purposes.
+  if (left === 0 && right === 0) return true;
+  if (!bothObjects(left, right)) return false;
+
+  const special = equalSpecialObjects(left as object, right, seen);
+  if (special !== undefined) return special;
+  return equalContainers(left as object, right as object, seen);
 }
 
 /**
@@ -267,6 +309,15 @@ export function deepEqual(left: unknown, right: unknown): boolean {
  * @param sources - Objects merged over the base, left to right.
  * @returns A new merged object.
  */
+function isPlainObject(value: unknown): value is Record<string, unknown> {
+  return value !== null && typeof value === "object" && !Array.isArray(value);
+}
+
+function mergeEntry(existing: unknown, value: unknown): unknown {
+  if (isPlainObject(existing) && isPlainObject(value)) return jsonMerge(existing, value);
+  return value;
+}
+
 export function jsonMerge<T extends Record<string, unknown>>(
   target: T,
   ...sources: ReadonlyArray<Record<string, unknown>>
@@ -278,19 +329,7 @@ export function jsonMerge<T extends Record<string, unknown>>(
 
     for (const [key, value] of Object.entries(source)) {
       if (UNSAFE_KEYS.has(key)) continue;
-
-      const existing = output[key];
-      const bothPlainObjects =
-        existing !== null &&
-        typeof existing === "object" &&
-        !Array.isArray(existing) &&
-        value !== null &&
-        typeof value === "object" &&
-        !Array.isArray(value);
-
-      output[key] = bothPlainObjects
-        ? jsonMerge(existing as Record<string, unknown>, value as Record<string, unknown>)
-        : value;
+      output[key] = mergeEntry(output[key], value);
     }
   }
 
