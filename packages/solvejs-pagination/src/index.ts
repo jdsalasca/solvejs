@@ -169,6 +169,27 @@ export type Page<T> = {
   hasNext: boolean;
 };
 
+function assertPerPage(perPage: unknown, maxPerPage: number): asserts perPage is number {
+  assertPositiveInteger(perPage, "PAGINATION_INVALID_PER_PAGE", "perPage");
+  if (maxPerPage > 0 && perPage > maxPerPage) {
+    fail("PAGINATION_INVALID_PER_PAGE", `Expected perPage to be at most ${maxPerPage}.`, {
+      perPage,
+      maxPerPage
+    });
+  }
+}
+
+function resolvePage(page: number, lastPage: number, clamp: boolean | undefined): number {
+  if (!Number.isInteger(page)) {
+    fail("PAGINATION_INVALID_PAGE", "Expected page to be a positive integer.", { page });
+  }
+  if (page >= 1 && page <= lastPage) return page;
+  if (clamp === false) {
+    fail("PAGINATION_INVALID_PAGE", `Expected page to be between 1 and ${lastPage}.`, { page, lastPage });
+  }
+  return Math.min(Math.max(1, page), lastPage);
+}
+
 /**
  * Slices a collection into a page and reports the navigation numbers.
  *
@@ -186,32 +207,13 @@ export function paginate<T>(items: readonly T[], options: PaginateOptions): Page
     fail("PAGINATION_INVALID_TOTAL", "Expected items to be an array.", { received: typeof items });
   }
 
-  assertPositiveInteger(options?.perPage, "PAGINATION_INVALID_PER_PAGE", "perPage");
-
   const maxPerPage = options.maxPerPage ?? 0;
-  if (maxPerPage > 0 && options.perPage > maxPerPage) {
-    fail("PAGINATION_INVALID_PER_PAGE", `Expected perPage to be at most ${maxPerPage}.`, {
-      perPage: options.perPage,
-      maxPerPage
-    });
-  }
+  assertPerPage(options?.perPage, maxPerPage);
 
   const total = items.length;
   const totalPages = pageCount(total, options.perPage);
   const lastPage = Math.max(1, totalPages);
-
-  let page = options.page;
-  if (!Number.isInteger(page)) {
-    fail("PAGINATION_INVALID_PAGE", "Expected page to be a positive integer.", { page });
-  }
-
-  if (page < 1 || page > lastPage) {
-    if (options.clamp === false) {
-      fail("PAGINATION_INVALID_PAGE", `Expected page to be between 1 and ${lastPage}.`, { page, lastPage });
-    }
-    page = Math.min(Math.max(1, page), lastPage);
-  }
-
+  const page = resolvePage(options.page, lastPage, options.clamp);
   const offset = pageToOffset(page, options.perPage);
 
   return {

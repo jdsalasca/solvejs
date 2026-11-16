@@ -188,20 +188,24 @@ export function getErrorCode(value: unknown): ErrorCode {
  * @example
  * catch (error) { throw normalizeError(error, { code: "SERVICE_UNAVAILABLE" }); }
  */
+function messageOf(value: unknown): string {
+  if (value instanceof Error) return value.message;
+  return typeof value === "string" ? value : "An unexpected error occurred.";
+}
+
+function causeOf(value: unknown, options: NormalizeOptions): unknown {
+  if (value instanceof Error && !(value instanceof AppError)) return value;
+  return options.cause;
+}
+
 export function normalizeError(value: unknown, options: NormalizeOptions = {}): AppError {
-  if (isAppError(value) && options.code === undefined) return value;
+  const existing = isAppError(value) ? value : undefined;
+  if (existing && options.code === undefined) return existing;
 
-  const message =
-    value instanceof Error ? value.message : typeof value === "string" ? value : "An unexpected error occurred.";
-
-  // An AppError with no code override returned above, so this line only ever sees a non-AppError.
-  const code = options.code ?? "INTERNAL";
-  const cause = value instanceof Error && !(value instanceof AppError) ? value : options.cause;
-
-  return new AppError(code, message, {
-    status: options.status ?? (isAppError(value) ? value.status : undefined),
-    details: options.details ?? (isAppError(value) ? value.details : undefined),
-    cause: options.cause ?? cause
+  return new AppError(options.code ?? "INTERNAL", messageOf(value), {
+    status: options.status ?? existing?.status,
+    details: options.details ?? existing?.details,
+    cause: options.cause ?? causeOf(value, options)
   });
 }
 

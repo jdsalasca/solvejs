@@ -319,6 +319,15 @@ export function toPercent(
  * @param options.allowThousandsSeparator - Whether commas are accepted as thousands separators.
  * @returns Parsed finite number, or `null` when parsing fails.
  */
+function hasValidGrouping(value: string): boolean {
+  // eslint-disable-next-line security/detect-unsafe-regex -- anchored, comma-delimited, no nested wildcard
+  return /^[+-]?(?:\d{1,3}(?:,\d{3})+)(?:\.\d+)?$/.test(value);
+}
+
+function isPlainNumber(value: string): boolean {
+  return /^[+-]?(?:\d+\.?\d*|\.\d+)$/.test(value);
+}
+
 export function toNumber(
   value: string,
   options: { allowThousandsSeparator?: boolean } = {}
@@ -329,15 +338,13 @@ export function toNumber(
   }
 
   const allowThousandsSeparator = options.allowThousandsSeparator ?? true;
-  if (allowThousandsSeparator && normalized.includes(",")) {
-    if (!/^[+-]?(?:\d{1,3}(?:,\d{3})+)(?:\.\d+)?$/.test(normalized)) {
-      return null;
-    }
+  if (allowThousandsSeparator && normalized.includes(",") && !hasValidGrouping(normalized)) {
+    return null;
   }
 
   const candidate = allowThousandsSeparator ? normalized.replace(/,/g, "") : normalized;
 
-  if (!/^[+-]?(?:\d+\.?\d*|\.\d+)$/.test(candidate)) {
+  if (!isPlainNumber(candidate)) {
     return null;
   }
 
