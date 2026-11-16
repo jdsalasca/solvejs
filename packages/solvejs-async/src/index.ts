@@ -83,12 +83,7 @@ export type RetryOptions = {
  * @returns Successful operation result.
  * @throws Error from final failed attempt.
  */
-export async function retry<T>(operation: () => Promise<T> | T, options: RetryOptions = {}): Promise<T> {
-  const retries = options.retries ?? 3;
-  const delayMs = options.delayMs ?? 0;
-  const backoffFactor = options.backoffFactor ?? 1;
-  const shouldRetry = options.shouldRetry ?? (() => true);
-
+function assertRetrySettings(retries: number, delayMs: number, backoffFactor: number): void {
   if (!Number.isInteger(retries) || retries < 0) {
     throw new TypeError("Expected retries to be a non-negative integer.");
   }
@@ -96,6 +91,24 @@ export async function retry<T>(operation: () => Promise<T> | T, options: RetryOp
   if (!Number.isFinite(backoffFactor) || backoffFactor < 1) {
     throw new TypeError("Expected backoffFactor to be a finite number greater than or equal to 1.");
   }
+}
+
+function resolveRetryOptions(options: RetryOptions): {
+  retries: number;
+  delayMs: number;
+  backoffFactor: number;
+  shouldRetry: (error: unknown, failedAttempts: number) => boolean;
+} {
+  const retries = options.retries ?? 3;
+  const delayMs = options.delayMs ?? 0;
+  const backoffFactor = options.backoffFactor ?? 1;
+  const shouldRetry = options.shouldRetry ?? (() => true);
+  assertRetrySettings(retries, delayMs, backoffFactor);
+  return { retries, delayMs, backoffFactor, shouldRetry };
+}
+
+export async function retry<T>(operation: () => Promise<T> | T, options: RetryOptions = {}): Promise<T> {
+  const { retries, delayMs, backoffFactor, shouldRetry } = resolveRetryOptions(options);
 
   let attempt = 0;
   let currentDelay = delayMs;
@@ -105,8 +118,7 @@ export async function retry<T>(operation: () => Promise<T> | T, options: RetryOp
       return await operation();
     } catch (error) {
       attempt += 1;
-      const canRetry = attempt <= retries && shouldRetry(error, attempt);
-      if (!canRetry) {
+      if (!(attempt <= retries && shouldRetry(error, attempt))) {
         throw error;
       }
       if (currentDelay > 0) {
@@ -373,9 +385,29 @@ export type TokenBucketLimiterOptions = {
  * @param options.initialTokens - Initial token count. Defaults to `capacity`.
  * @returns Function that schedules work when enough tokens are available.
  */
-export function createTokenBucketLimiter(
-  options: TokenBucketLimiterOptions
-): <T>(task: () => Promise<T> | T, tokenCost?: number) => Promise<T> {
+type TokenBucketConfig = {
+  capacity: number;
+  refillTokens: number;
+  refillIntervalMs: number;
+  initialTokens: number;
+};
+
+type PendingTask = {
+  tokenCost: number;
+  task: () => Promise<unknown> | unknown;
+  resolve: (value: unknown) => void;
+  reject: (reason?: unknown) => void;
+};
+
+type TokenBucket = {
+  config: TokenBucketConfig;
+  queue: PendingTask[];
+  availableTokens: number;
+  lastRefillAt: number;
+  drainTimer?: ReturnType<typeof setTimeout>;
+};
+
+function resolveBucketConfig(options: TokenBucketLimiterOptions): TokenBucketConfig {
   const { capacity, refillTokens, refillIntervalMs } = options;
   const initialTokens = options.initialTokens ?? capacity;
 
@@ -388,86 +420,95 @@ export function createTokenBucketLimiter(
     throw new TypeError("Expected initialTokens to be less than or equal to capacity.");
   }
 
-  type PendingTask<T> = {
-    tokenCost: number;
-    task: () => Promise<T> | T;
-    resolve: (value: T | PromiseLike<T>) => void;
-    reject: (reason?: unknown) => void;
-  };
+  return { capacity, refillTokens, refillIntervalMs, initialTokens };
+}
 
-  const queue: Array<PendingTask<unknown>> = [];
-  let availableTokens = initialTokens;
-  let lastRefillAt = Date.now();
-  let drainTimer: ReturnType<typeof setTimeout> | undefined;
+function refillBucket(bucket: TokenBucket): void {
+  const { capacity, refillTokens, refillIntervalMs } = bucket.config;
+  const now = Date.now();
+  const elapsed = now - bucket.lastRefillAt;
+  if (elapsed < refillIntervalMs) {
+    return;
+  }
 
-  const refill = () => {
-    const now = Date.now();
-    const elapsed = now - lastRefillAt;
-    if (elapsed < refillIntervalMs) {
-      return;
+  const intervals = Math.floor(elapsed / refillIntervalMs);
+  bucket.availableTokens = Math.min(capacity, bucket.availableTokens + intervals * refillTokens);
+  bucket.lastRefillAt += intervals * refillIntervalMs;
+}
+
+function scheduleBucketDrain(bucket: TokenBucket): void {
+  if (bucket.queue.length === 0 || bucket.drainTimer) {
+    return;
+  }
+
+  const { refillTokens, refillIntervalMs } = bucket.config;
+  const next = bucket.queue[0];
+  if (!next) return;
+
+  // The caller only reaches here after the drain loop broke on an unaffordable
+  // head, so `missingTokens` is always greater than zero.
+  const missingTokens = next.tokenCost - bucket.availableTokens;
+  const intervalsNeeded = Math.ceil(missingTokens / refillTokens);
+  const nextReadyAt = bucket.lastRefillAt + intervalsNeeded * refillIntervalMs;
+  const waitMs = Math.max(1, nextReadyAt - Date.now());
+
+  bucket.drainTimer = setTimeout(() => {
+    bucket.drainTimer = undefined;
+    drainBucket(bucket);
+  }, waitMs);
+}
+
+function drainBucket(bucket: TokenBucket): void {
+  refillBucket(bucket);
+
+  while (bucket.queue.length > 0) {
+    const next = bucket.queue[0];
+    if (!next || next.tokenCost > bucket.availableTokens) {
+      break;
     }
 
-    const intervals = Math.floor(elapsed / refillIntervalMs);
-    availableTokens = Math.min(capacity, availableTokens + intervals * refillTokens);
-    lastRefillAt += intervals * refillIntervalMs;
-  };
+    bucket.queue.shift();
+    bucket.availableTokens -= next.tokenCost;
 
-  const scheduleDrain = () => {
-    if (queue.length === 0 || drainTimer) {
-      return;
-    }
-
-const next = queue[0];
-    // The caller only reaches here after the drain loop broke on an unaffordable
-    // head, so `missingTokens` is always greater than zero.
-    const missingTokens = next.tokenCost - availableTokens;
-
-    const intervalsNeeded = Math.ceil(missingTokens / refillTokens);
-    const nextReadyAt = lastRefillAt + intervalsNeeded * refillIntervalMs;
-    const waitMs = Math.max(1, nextReadyAt - Date.now());
-    drainTimer = setTimeout(() => {
-      drainTimer = undefined;
-      runQueue();
-    }, waitMs);
-  };
-
-  const runQueue = () => {
-    refill();
-
-    while (queue.length > 0) {
-      const next = queue[0];
-      if (next.tokenCost > availableTokens) {
-        break;
-      }
-
-      queue.shift();
-      availableTokens -= next.tokenCost;
-
-      Promise.resolve()
-        .then(next.task)
-        .then(next.resolve, next.reject)
-        .finally(() => {
-          runQueue();
-        });
-    }
-
-    scheduleDrain();
-  };
-
-  return <T>(task: () => Promise<T> | T, tokenCost = 1): Promise<T> => {
-    assertPositiveInteger(tokenCost, "tokenCost");
-    if (tokenCost > capacity) {
-      throw new TypeError("Expected tokenCost to be less than or equal to capacity.");
-    }
-
-    return new Promise<T>((resolve, reject) => {
-      queue.push({
-        tokenCost,
-        task,
-        resolve: resolve as (value: unknown) => void,
-        reject
+    Promise.resolve()
+      .then(next.task)
+      .then(next.resolve, next.reject)
+      .finally(() => {
+        drainBucket(bucket);
       });
-      runQueue();
+  }
+
+  scheduleBucketDrain(bucket);
+}
+
+function enqueueBucketTask<T>(bucket: TokenBucket, task: () => Promise<T> | T, tokenCost: number): Promise<T> {
+  assertPositiveInteger(tokenCost, "tokenCost");
+  if (tokenCost > bucket.config.capacity) {
+    throw new TypeError("Expected tokenCost to be less than or equal to capacity.");
+  }
+
+  return new Promise<T>((resolve, reject) => {
+    bucket.queue.push({
+      tokenCost,
+      task,
+      resolve: resolve as (value: unknown) => void,
+      reject
     });
+    drainBucket(bucket);
+  });
+}
+
+export function createTokenBucketLimiter(
+  options: TokenBucketLimiterOptions
+): <T>(task: () => Promise<T> | T, tokenCost?: number) => Promise<T> {
+  const config = resolveBucketConfig(options);
+  const bucket: TokenBucket = {
+    config,
+    queue: [],
+    availableTokens: config.initialTokens,
+    lastRefillAt: Date.now()
   };
+
+  return <T>(task: () => Promise<T> | T, tokenCost = 1): Promise<T> =>
+    enqueueBucketTask(bucket, task, tokenCost);
 }
