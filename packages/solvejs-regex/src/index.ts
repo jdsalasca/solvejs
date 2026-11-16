@@ -2,9 +2,11 @@ export const REGEX_PATTERNS = {
   email: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
   phoneE164: /^\+[1-9]\d{1,14}$/,
   urlHttp: /^https?:\/\/.+/i,
+  // eslint-disable-next-line security/detect-unsafe-regex -- bounded repetition, anchored
   hexColor: /^#(?:[0-9a-fA-F]{3}){1,2}$/,
   username: /^[a-zA-Z0-9_]{3,30}$/,
   uuidV4: /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i,
+  // eslint-disable-next-line security/detect-unsafe-regex -- four bounded octet groups, anchored
   ipv4: /^(?:25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(?:\.(?:25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3}$/,
   isoDate: /^\d{4}-\d{2}-\d{2}$/
 } as const;
@@ -70,5 +72,6 @@ export function escapeRegex(value: string): string {
  * @returns RegExp that matches the provided text literally.
  */
 export function literalRegex(value: string, flags?: string): RegExp {
+  // eslint-disable-next-line security/detect-non-literal-regexp -- escaping the input is the purpose of this function
   return new RegExp(escapeRegex(value), flags);
 }

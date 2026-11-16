@@ -79,7 +79,9 @@ test("escapeRegex", () => {
 
   for (const literal of ["a.b*c", "[a-z]", "1+1=2", "C:\\Users", "(x)", "a|b"]) {
     const escaped = escapeRegex(literal);
+    // eslint-disable-next-line security/detect-non-literal-regexp -- the escaped value is the input under test
     assert.equal(new RegExp(`^${escaped}$`).test(literal), true, `round trip failed for ${literal}`);
+    // eslint-disable-next-line security/detect-non-literal-regexp -- the escaped value is the input under test
     assert.equal(new RegExp(`^${escaped}$`).test("zzz"), false, `escaped form must not over-match ${literal}`);
   }
 });
