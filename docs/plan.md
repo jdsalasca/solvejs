@@ -112,6 +112,22 @@ Built `@jdsalasc/solvejs-pdf@0.1.0` from scratch, browser-first and with no runt
 
 Limitations for this slice: no PDF reading, no custom font embedding, no PNG images, no charts or forms. Next: PNG support, custom TTF embedding and an optional page-thumbnail renderer.
 
+## Round 7: Modern XLSX parity — done
+
+Reviewed the archived SheetJS repository, its README and open issues. The recurring complaints cluster around security (prototype pollution/ReDoS), CSV fidelity, dates and number formats, large workbooks, column styles, formulas with cached values, hyperlinks, images and external-link preservation. This round closes the XLSX/CSV subset instead of cloning legacy binary formats.
+
+Delivered in `@jdsalasc/solvejs-xlsx@0.2.0`:
+
+1. Security: null-prototype XML attributes and JSON records block prototype pollution; CSV formula-injection protection; strict hyperlink schemes; image/type limits; adversarial tests.
+2. CSV/TSV: quoted fields, embedded newlines, CRLF/BOM, explicit blank-line handling, leading-zero preservation, `sheetToJson`/`jsonToRows`.
+3. Rich cells: formula writing with cached values, hyperlinks (external and internal `#Sheet!A1`), read-side formulas and links.
+4. Read metadata: merged ranges, column widths/styles, row heights, frozen panes, auto-filter, formulas, links, images and cell styles; `sheets`, `includeStyles` and `includeFormulas` options.
+5. Write parity: column/row styles, data-first `freeze`, `autoFilter`, `tabColor`, formulas, links and PNG/JPEG images with DrawingML one-cell anchors.
+6. Formatting: `formatCellValue`, `formatExcelNumber` and `formatExcelDate` for the common Excel number/date patterns.
+7. 57 tests, LibreOffice formula/image round-trips, PNG visual review and metadata checks.
+
+Explicit non-goals: XLS/XLSB/ODS/DBF, charts, pivot tables, comments, data validation, conditional formatting, macros, encryption, formula evaluation and external workbook links. Formula values are cached results; the package does not calculate them.
+
 ## Risks and Rollback
 
 - Publishing eight `0.1.0` packages for the first time is irreversible: npm does not allow

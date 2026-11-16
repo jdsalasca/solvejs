@@ -2,22 +2,27 @@ import { failXlsx } from "../errors.js";
 import {
   XLSX_LIMITS,
   type XlsxCell,
+  type XlsxCellValue,
   type XlsxSheetInput,
   type XlsxWorkbookInput,
   assertSheetName,
   cellReference,
   excelSerial,
+  isCellObject,
   sanitizeXmlText
 } from "../shared.js";
-import { normalizeColor } from "../style.js";
+import { normalizeColor, type XlsxCellStyle } from "../style.js";
 import { escapeXmlAttribute, escapeXmlText } from "../xml/escape.js";
 import { writeZip, writeZipDeflated, type ZipEntry } from "../zip/write.js";
-import type { CellModel, ColumnModel, FreezeModel, RowModel, SheetModel, WorkbookModel } from "./model.js";
+import type { CellModel, ColumnModel, FreezeModel, ImageModel, RowModel, SheetModel, WorkbookModel } from "./model.js";
+import { imageModel, pixelsToEmu, utf8 } from "./media.js";
 import { StyleRegistry } from "./styles.js";
 
 const MAX_COLUMN_WIDTH = 255;
 const DEFAULT_COLUMN_WIDTH = 12;
 const XML_HEADER = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>';
+
+type LinkRef = { reference: string; href: string };
 
 function hasHeaders(sheet: XlsxSheetInput): boolean {
   return sheet.columns?.some((column) => column.header !== undefined) ?? false;
@@ -40,28 +45,83 @@ function renderStringCell(value: string, reference: string, style: string): stri
   return `<c r="${reference}"${style} t="inlineStr"><is><t${preserve}>${escapeXmlText(text)}</t></is></c>`;
 }
 
-function renderCellValue(value: string | number | boolean | Date, reference: string, style: string): string {
+function renderCellValue(value: Exclude<XlsxCellValue, null>, reference: string, style: string): string {
   if (value instanceof Date) return renderDateCell(value, reference, style);
   if (typeof value === "number") return renderNumberCell(value, reference, style);
   if (typeof value === "boolean") return `<c r="${reference}"${style} t="b"><v>${value ? 1 : 0}</v></c>`;
   return renderStringCell(value, reference, style);
 }
 
-function renderCell(value: XlsxCell, reference: string, styleId: number): string {
-  const style = styleId === 0 ? "" : ` s="${styleId}"`;
-  if (value === null || value === undefined) return styleId === 0 ? "" : `<c r="${reference}"${style}/>`;
-  return renderCellValue(value, reference, style);
+function hasControlCharacters(value: string): boolean {
+  for (const character of value) {
+    if ((character.codePointAt(0) ?? 0) < 0x20) return true;
+  }
+  return false;
 }
 
-function renderRow(row: RowModel, rowNumber: number, styles: StyleRegistry, merges: string[]): string {
+function formulaText(formula: string): string {
+  const normalized = formula.startsWith("=") ? formula.slice(1) : formula;
+  const text = normalized.trim();
+  if (text.length === 0) failXlsx("XLSX_INVALID_INPUT", "Formula cannot be empty.");
+  if (text.length > 8192) failXlsx("XLSX_LIMIT_EXCEEDED", "Formula is too long.", { length: text.length });
+  if (hasControlCharacters(text)) {
+    failXlsx("XLSX_INVALID_INPUT", "Formula contains control characters.");
+  }
+  return text;
+}
+
+function cachedFormulaValue(value: XlsxCellValue): { type: string; value: string } | undefined {
+  if (value === null) return undefined;
+  if (value instanceof Date) return { type: "", value: String(excelSerial(value)) };
+  if (typeof value === "boolean") return { type: ' t="b"', value: value ? "1" : "0" };
+  if (typeof value === "number") {
+    if (!Number.isFinite(value)) failXlsx("XLSX_INVALID_INPUT", "Expected a finite formula result.");
+    return { type: "", value: String(value) };
+  }
+  return { type: ' t="str"', value: sanitizeXmlText(value) };
+}
+
+function renderFormulaCell(cell: CellModel, reference: string, style: string): string {
+  const formula = escapeXmlText(formulaText(cell.formula ?? ""));
+  const cached = cachedFormulaValue(cell.value);
+  const value = cached ? `<v>${escapeXmlText(cached.value)}</v>` : "";
+  return `<c r="${reference}"${cached?.type ?? ""}${style}><f>${formula}</f>${value}</c>`;
+}
+
+function renderCell(cell: CellModel, reference: string, styleId: number): string {
+  const style = styleId === 0 ? "" : ` s="${styleId}"`;
+  if (cell.formula !== undefined) return renderFormulaCell(cell, reference, style);
+  if (cell.value === null || cell.value === undefined) return styleId === 0 ? "" : `<c r="${reference}"${style}/>`;
+  return renderCellValue(cell.value, reference, style);
+}
+
+function mergedStyle(rowStyle: XlsxCellStyle | undefined, cellStyle: XlsxCellStyle | undefined): XlsxCellStyle {
+  if (!rowStyle) return cellStyle ?? {};
+  if (!cellStyle) return rowStyle;
+  return { ...rowStyle, ...cellStyle };
+}
+
+type RowRender = {
+  row: RowModel;
+  rowNumber: number;
+  styles: StyleRegistry;
+  merges: string[];
+  links: LinkRef[];
+};
+
+function renderRow(input: RowRender): string {
+  const { row, rowNumber, styles, merges, links } = input;
   const rendered: string[] = [];
+  const rowStyleId = row.style ? styles.register(row.style, false) : 0;
+  const rowStyle = rowStyleId === 0 ? "" : ` s="${rowStyleId}" customFormat="1"`;
 
   row.cells.forEach((cell, index) => {
     if (!cell) return;
     const column = index + 1;
-    const styleId = styles.register(cell.style ?? {}, cell.value instanceof Date);
+    const styleId = styles.register(mergedStyle(row.style, cell.style), cell.value instanceof Date);
     const reference = cellReference(rowNumber, column);
-    rendered.push(renderCell(cell.value, reference, styleId));
+    rendered.push(renderCell(cell, reference, styleId));
+    if (cell.href) links.push({ reference, href: cell.href });
 
     const colSpan = cell.colSpan ?? 1;
     const rowSpan = cell.rowSpan ?? 1;
@@ -71,17 +131,19 @@ function renderRow(row: RowModel, rowNumber: number, styles: StyleRegistry, merg
   });
 
   const height = row.height !== undefined ? ` ht="${row.height}" customHeight="1"` : "";
-  return `<row r="${rowNumber}"${height}>${rendered.join("")}</row>`;
+  return `<row r="${rowNumber}"${height}${rowStyle}>${rendered.join("")}</row>`;
 }
 
-function renderColumns(columns: readonly ColumnModel[] | undefined): string {
+function renderColumns(columns: readonly ColumnModel[] | undefined, styles: StyleRegistry): string {
   if (!columns || columns.length === 0) return "";
   const rendered = columns.map((column, index) => {
     const width = column.width ?? DEFAULT_COLUMN_WIDTH;
     if (!Number.isFinite(width) || width <= 0 || width > MAX_COLUMN_WIDTH) {
       failXlsx("XLSX_INVALID_INPUT", "Expected column widths between 0 and 255.", { column: index + 1, width });
     }
-    return `<col min="${index + 1}" max="${index + 1}" width="${width}" customWidth="1"/>`;
+    const styleId = column.style ? styles.register(column.style, false) : 0;
+    const style = styleId === 0 ? "" : ` style="${styleId}"`;
+    return `<col min="${index + 1}" max="${index + 1}" width="${width}" customWidth="1"${style}/>`;
   });
   return `<cols>${rendered.join("")}</cols>`;
 }
@@ -149,8 +211,15 @@ function renderAutoFilter(reference: string | undefined): string {
   return `<autoFilter ref="${escapeXmlAttribute(reference)}"/>`;
 }
 
-function renderSheetData(sheet: SheetModel, styles: StyleRegistry, merges: string[]): string {
-  const rows = sheet.rows.map((row, index) => renderRow(row, index + 1, styles, merges)).join("");
+function renderSheetData(
+  sheet: SheetModel,
+  styles: StyleRegistry,
+  merges: string[],
+  links: LinkRef[]
+): string {
+  const rows = sheet.rows
+    .map((row, index) => renderRow({ row, rowNumber: index + 1, styles, merges, links }))
+    .join("");
   return `<sheetData>${rows}</sheetData>`;
 }
 
@@ -161,14 +230,72 @@ function renderMerges(merges: readonly string[]): string {
     .join("")}</mergeCells>`;
 }
 
-function renderSheet(sheet: SheetModel, styles: StyleRegistry): string {
+function externalLinkCount(links: readonly LinkRef[]): number {
+  return links.filter((link) => !link.href.startsWith("#")).length;
+}
+
+function renderHyperlinks(links: readonly LinkRef[]): string {
+  if (links.length === 0) return "";
+  let relationship = 0;
+  const entries = links.map((link) => {
+    if (link.href.startsWith("#")) {
+      return `<hyperlink ref="${link.reference}" location="${escapeXmlAttribute(link.href.slice(1))}"/>`;
+    }
+    relationship += 1;
+    return `<hyperlink ref="${link.reference}" r:id="rId${relationship}"/>`;
+  });
+  return `<hyperlinks>${entries.join("")}</hyperlinks>`;
+}
+
+function renderDrawing(images: readonly ImageModel[], mediaStart: number): { xml: string; rels: string } {
+  const anchors = images.map((image, index) => {
+    const width = pixelsToEmu(image.width);
+    const height = pixelsToEmu(image.height);
+    const description = image.alt ? ` descr="${escapeXmlAttribute(image.alt)}"` : "";
+    return `<xdr:oneCellAnchor><xdr:from><xdr:col>${image.anchorColumn}</xdr:col><xdr:colOff>0</xdr:colOff><xdr:row>${image.anchorRow}</xdr:row><xdr:rowOff>0</xdr:rowOff></xdr:from><xdr:ext cx="${width}" cy="${height}"/><xdr:pic><xdr:nvPicPr><xdr:cNvPr id="${index + 1}" name="Picture ${index + 1}"${description}/><xdr:cNvPicPr><a:picLocks noChangeAspect="1"/></xdr:cNvPicPr></xdr:nvPicPr><xdr:blipFill><a:blip r:embed="rId${index + 1}"/><a:stretch><a:fillRect/></a:stretch></xdr:blipFill><xdr:spPr><a:xfrm><a:off x="0" y="0"/><a:ext cx="${width}" cy="${height}"/></a:xfrm><a:prstGeom prst="rect"><a:avLst/></a:prstGeom></xdr:spPr></xdr:pic><xdr:clientData/></xdr:oneCellAnchor>`;
+  });
+  const relationships = images
+    .map(
+      (image, index) =>
+        `<Relationship Id="rId${index + 1}" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/image" Target="../media/image${
+          mediaStart + index
+        }.${image.format === "png" ? "png" : "jpeg"}"/>`
+    )
+    .join("");
+  return {
+    xml: `${XML_HEADER}<xdr:wsDr xmlns:xdr="http://schemas.openxmlformats.org/drawingml/2006/spreadsheetDrawing" xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships">${anchors.join("")}</xdr:wsDr>`,
+    rels: `${XML_HEADER}<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">${relationships}</Relationships>`
+  };
+}
+
+function renderSheet(sheet: SheetModel, styles: StyleRegistry): { xml: string; links: LinkRef[]; hasImages: boolean } {
   const merges: string[] = [];
-  const data = renderSheetData(sheet, styles, merges);
-  return `${XML_HEADER}<worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">${renderTabColor(
+  const links: LinkRef[] = [];
+  const data = renderSheetData(sheet, styles, merges, links);
+  const hasImages = (sheet.images?.length ?? 0) > 0;
+  const drawing = hasImages ? `<drawing r:id="rId${externalLinkCount(links) + 1}"/>` : "";
+  const xml = `${XML_HEADER}<worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships">${renderTabColor(
     sheet.tabColor
-  )}${renderFreeze(sheet.freeze)}${renderColumns(sheet.columns)}${data}${renderAutoFilter(
+  )}${renderFreeze(sheet.freeze)}${renderColumns(sheet.columns, styles)}${data}${renderAutoFilter(
     sheet.autoFilter
-  )}${renderMerges(merges)}</worksheet>`;
+  )}${renderMerges(merges)}${renderHyperlinks(links)}${drawing}</worksheet>`;
+  return { xml, links, hasImages };
+}
+
+function renderSheetRels(links: readonly LinkRef[], drawingNumber: number): string {
+  const external = links.filter((link) => !link.href.startsWith("#"));
+  const relationships = external
+    .map(
+      (link, index) =>
+        `<Relationship Id="rId${index + 1}" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/hyperlink" Target="${escapeXmlAttribute(
+          link.href
+        )}" TargetMode="External"/>`
+    )
+    .join("");
+  const drawing = drawingNumber
+    ? `<Relationship Id="rId${external.length + 1}" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/drawing" Target="../drawings/drawing${drawingNumber}.xml"/>`
+    : "";
+  return `${XML_HEADER}<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">${relationships}${drawing}</Relationships>`;
 }
 
 function renderWorkbook(sheets: readonly SheetModel[]): string {
@@ -199,16 +326,30 @@ function renderRootRels(hasCore: boolean): string {
   return `${XML_HEADER}<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="xl/workbook.xml"/>${core}</Relationships>`;
 }
 
-function renderContentTypes(sheetCount: number, hasCore: boolean): string {
+function renderContentTypes(
+  sheetCount: number,
+  hasCore: boolean,
+  imageFormats: ReadonlySet<"png" | "jpeg">,
+  drawingCount: number
+): string {
   const sheets = Array.from(
     { length: sheetCount },
     (_, index) =>
       `<Override PartName="/xl/worksheets/sheet${index + 1}.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/>`
   ).join("");
+  const drawings = Array.from(
+    { length: drawingCount },
+    (_, index) =>
+      `<Override PartName="/xl/drawings/drawing${index + 1}.xml" ContentType="application/vnd.openxmlformats-officedocument.drawing+xml"/>`
+  ).join("");
+  const images = [
+    imageFormats.has("png") ? '<Default Extension="png" ContentType="image/png"/>' : "",
+    imageFormats.has("jpeg") ? '<Default Extension="jpeg" ContentType="image/jpeg"/>' : ""
+  ].join("");
   const core = hasCore
     ? '<Override PartName="/docProps/core.xml" ContentType="application/vnd.openxmlformats-package.core-properties+xml"/>'
     : "";
-  return `${XML_HEADER}<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/>${sheets}<Override PartName="/xl/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.styles+xml"/>${core}</Types>`;
+  return `${XML_HEADER}<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/>${images}<Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/>${sheets}<Override PartName="/xl/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.styles+xml"/>${drawings}${core}</Types>`;
 }
 
 function renderCore(title: string | undefined, creator: string | undefined): string {
@@ -229,6 +370,21 @@ function assertSpan(value: number | undefined, label: string, max: number, sheet
 function validateCellModel(cell: CellModel, sheet: SheetModel): void {
   assertSpan(cell.colSpan, "colSpan", XLSX_LIMITS.maxColumns, sheet);
   assertSpan(cell.rowSpan, "rowSpan", XLSX_LIMITS.maxRows, sheet);
+  if (cell.formula !== undefined) formulaText(cell.formula);
+  if (cell.href !== undefined) {
+    if (
+      typeof cell.href !== "string" ||
+      cell.href.length === 0 ||
+      cell.href.length > 2083 ||
+      !/^(https?:\/\/|mailto:|tel:|#)/i.test(cell.href) ||
+      hasControlCharacters(cell.href)
+    ) {
+      failXlsx("XLSX_INVALID_INPUT", "Expected a safe http(s), mailto, tel or internal hyperlink.", {
+        sheet: sheet.name,
+        href: cell.href
+      });
+    }
+  }
 }
 
 function validateRowModel(row: RowModel, sheet: SheetModel): void {
@@ -362,48 +518,120 @@ function validateWorkbook(input: XlsxWorkbookInput): void {
   for (const sheet of input.sheets) validateSimpleSheet(sheet, names);
 }
 
+function toCell(value: XlsxCell): CellModel {
+  if (isCellObject(value)) {
+    return { value: value.value ?? null, formula: value.formula, href: value.href };
+  }
+  return { value: value ?? null };
+}
+
+function computedFilterRange(sheet: XlsxSheetInput): string | undefined {
+  const rows = sheet.rows.length + (hasHeaders(sheet) ? 1 : 0);
+  const columns = sheet.rows.reduce((max, row) => Math.max(max, row.length), sheet.columns?.length ?? 0);
+  return rows > 0 && columns > 0 ? `A1:${cellReference(rows, columns)}` : undefined;
+}
+
+function filterRange(sheet: XlsxSheetInput): string | undefined {
+  const filter = sheet.autoFilter;
+  if (filter === false || filter === undefined) return undefined;
+  return typeof filter === "string" ? filter : computedFilterRange(sheet);
+}
+
 function toModel(input: XlsxWorkbookInput): WorkbookModel {
   validateWorkbook(input);
   return {
     sheets: input.sheets.map((sheet) => {
-      const columns = (sheet.columns ?? []).map((column) => ({ width: column.width }));
+      const columns = (sheet.columns ?? []).map((column) => ({ width: column.width, style: column.style }));
       const rows: RowModel[] = [];
       if (hasHeaders(sheet)) {
         rows.push({
           cells: (sheet.columns ?? []).map((column) => ({ value: column.header ?? "", style: { bold: true } }))
         });
       }
-      for (const row of sheet.rows) rows.push({ cells: row.map((value) => ({ value })) });
-      return { name: sheet.name, columns, rows };
-    })
+      for (const row of sheet.rows) rows.push({ cells: row.map(toCell) });
+      return {
+        name: sheet.name,
+        columns,
+        rows,
+        freeze: sheet.freeze,
+        autoFilter: filterRange(sheet),
+        tabColor: sheet.tabColor,
+        images: sheet.images ? sheet.images.map(imageModel) : undefined
+      };
+    }),
+    title: input.title,
+    creator: input.creator
   };
+}
+
+function mediaEntries(sheet: SheetModel, drawingNumber: number, mediaStart: number): ZipEntry[] {
+  const images = sheet.images ?? [];
+  const entries: ZipEntry[] = [];
+  images.forEach((image, index) => {
+    entries.push({
+      name: `xl/media/image${mediaStart + index}.${image.format === "png" ? "png" : "jpeg"}`,
+      data: image.data
+    });
+  });
+  const drawing = renderDrawing(images, mediaStart);
+  entries.push({ name: `xl/drawings/drawing${drawingNumber}.xml`, data: utf8(drawing.xml) });
+  entries.push({
+    name: `xl/drawings/_rels/drawing${drawingNumber}.xml.rels`,
+    data: utf8(drawing.rels)
+  });
+  return entries;
+}
+
+function buildSheetEntries(model: WorkbookModel, styles: StyleRegistry): {
+  entries: ZipEntry[];
+  formats: Set<"png" | "jpeg">;
+  drawingCount: number;
+} {
+  const entries: ZipEntry[] = [];
+  const formats = new Set<"png" | "jpeg">();
+  let mediaIndex = 0;
+  let drawingIndex = 0;
+  model.sheets.forEach((sheet, index) => {
+    const rendered = renderSheet(sheet, styles);
+    entries.push({ name: `xl/worksheets/sheet${index + 1}.xml`, data: utf8(rendered.xml) });
+    const images = sheet.images ?? [];
+    for (const image of images) formats.add(image.format);
+    const drawingNumber = images.length > 0 ? ++drawingIndex : 0;
+    if (drawingNumber > 0) {
+      entries.push(...mediaEntries(sheet, drawingNumber, mediaIndex + 1));
+      mediaIndex += images.length;
+    }
+    if (rendered.links.some((link) => !link.href.startsWith("#")) || drawingNumber > 0) {
+      entries.push({
+        name: `xl/worksheets/_rels/sheet${index + 1}.xml.rels`,
+        data: utf8(renderSheetRels(rendered.links, drawingNumber))
+      });
+    }
+  });
+  return { entries, formats, drawingCount: drawingIndex };
+}
+
+function baseEntries(model: WorkbookModel, formats: ReadonlySet<"png" | "jpeg">, drawingCount: number): ZipEntry[] {
+  const hasCore = Boolean(model.title || model.creator);
+  return [
+    {
+      name: "[Content_Types].xml",
+      data: utf8(renderContentTypes(model.sheets.length, hasCore, formats, drawingCount))
+    },
+    { name: "_rels/.rels", data: utf8(renderRootRels(hasCore)) },
+    { name: "xl/workbook.xml", data: utf8(renderWorkbook(model.sheets)) },
+    { name: "xl/_rels/workbook.xml.rels", data: utf8(renderWorkbookRels(model.sheets.length)) }
+  ];
 }
 
 function buildEntries(model: WorkbookModel): ZipEntry[] {
   const styles = new StyleRegistry();
-  const hasCore = Boolean(model.title || model.creator);
-  const entries: ZipEntry[] = [
-    { name: "[Content_Types].xml", data: new TextEncoder().encode(renderContentTypes(model.sheets.length, hasCore)) },
-    { name: "_rels/.rels", data: new TextEncoder().encode(renderRootRels(hasCore)) },
-    { name: "xl/workbook.xml", data: new TextEncoder().encode(renderWorkbook(model.sheets)) },
-    {
-      name: "xl/_rels/workbook.xml.rels",
-      data: new TextEncoder().encode(renderWorkbookRels(model.sheets.length))
-    }
-  ];
-
-  model.sheets.forEach((sheet, index) => {
-    entries.push({
-      name: `xl/worksheets/sheet${index + 1}.xml`,
-      data: new TextEncoder().encode(renderSheet(sheet, styles))
-    });
-  });
-  entries.push({ name: "xl/styles.xml", data: new TextEncoder().encode(styles.toXml()) });
-  if (hasCore) {
-    entries.push({
-      name: "docProps/core.xml",
-      data: new TextEncoder().encode(renderCore(model.title, model.creator))
-    });
+  const sheets = buildSheetEntries(model, styles);
+  const entries = baseEntries(model, sheets.formats, sheets.drawingCount);
+  entries.push(...sheets.entries);
+  entries.push({ name: "xl/styles.xml", data: utf8(styles.toXml()) });
+  if (model.title || model.creator) {
+    entries.push({ name: "docProps/core.xml", data: utf8(renderCore(model.title, model.creator)) });
   }
   return entries;
 }

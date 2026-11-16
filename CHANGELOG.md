@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.12.0 - 2026-11-16
+
+- Rebuilt `@jdsalasc/solvejs-xlsx@0.2.0` around the pain points in the SheetJS issue tracker. The package now includes a zero-dependency CSV/TSV parser and writer, `sheetToJson`/`jsonToRows`, formula writing with cached values, hyperlinks, PNG/JPEG images with DrawingML anchors, column and row styles, number/date formatting (`formatCellValue`, `formatExcelNumber`, `formatExcelDate`), and a metadata-rich reader: merged ranges, column widths/styles, row heights, frozen panes, auto-filter, formulas, links, images and cell styles. `readXlsx` gained `sheets`, `includeStyles` and `includeFormulas` options for large workbooks and lightweight reads. Security hardening: null-prototype XML attributes and JSON records to block prototype pollution, CSV formula-injection protection, strict hyperlink schemes, image/type limits, and new adversarial tests. Migration impact: additive; existing `rows` remain arrays of primitive values, while formulas, links and styles live in new optional sheet maps.
+
+- Bumped the meta package to `1.12.0` so it depends on and re-exports `@jdsalasc/solvejs-xlsx@0.2.0`. Migration impact: none; `npm i @jdsalasc/solvejs@1.12.0` includes the richer XLSX API.
+
 ## 1.11.0 - 2026-11-16
 
 - Added `@jdsalasc/solvejs-pdf@0.1.0`, a browser-first, zero-dependency PDF generator and viewer. The declarative API (`Pdf`, `PdfPage`, `View`, `Row`, `Text`, `Heading`, `Paragraph`, `Table`, `Image`, `Link`, `Divider`, `Spacer`) supports automatic text wrapping, page breaks, repeated headers and footers with page numbers, rich colors, borders, radius, padding, alignment, standard fonts, JPEG images, links and metadata. The companion viewer (`@jdsalasc/solvejs-pdf/viewer`) renders a toolbar with open/download actions, an iframe or compact preview, light/dark themes, and a `render` callback that replaces the whole UI. Ships ESM, CommonJS, TypeScript declarations, JSX runtimes for `react-jsx`/`react-jsxdev`, and works in vanilla JS, React + Vite and Next.js client components. Migration impact: none, new package.

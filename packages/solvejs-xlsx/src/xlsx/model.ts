@@ -1,9 +1,22 @@
-import type { XlsxCell } from "../shared.js";
+import type { XlsxCellValue } from "../shared.js";
 import type { XlsxCellStyle, XlsxColor } from "../style.js";
+
+/** One image anchored on a worksheet. */
+export type ImageModel = {
+  data: Uint8Array;
+  format: "png" | "jpeg";
+  anchorRow: number;
+  anchorColumn: number;
+  width: number;
+  height: number;
+  alt?: string;
+};
 
 /** One cell in the internal workbook model. */
 export type CellModel = {
-  value: XlsxCell;
+  value: XlsxCellValue;
+  formula?: string;
+  href?: string;
   style?: XlsxCellStyle;
   colSpan?: number;
   rowSpan?: number;
@@ -13,11 +26,13 @@ export type CellModel = {
 export type RowModel = {
   cells: Array<CellModel | null>;
   height?: number;
+  style?: XlsxCellStyle;
 };
 
-/** A column width in Excel character units. */
+/** A column width and default style in Excel character units. */
 export type ColumnModel = {
   width?: number;
+  style?: XlsxCellStyle;
 };
 
 /** Frozen rows or columns. */
@@ -34,6 +49,7 @@ export type SheetModel = {
   freeze?: FreezeModel;
   autoFilter?: string;
   tabColor?: XlsxColor;
+  images?: ImageModel[];
 };
 
 /** The internal workbook model shared by the data-first and component-first APIs. */

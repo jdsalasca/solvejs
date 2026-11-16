@@ -2,6 +2,16 @@ export { XlsxError, type XlsxErrorCode } from "./errors.js";
 export { readXlsx } from "./xlsx/read.js";
 export { writeWorkbook, writeWorkbookCompressed, writeXlsx, writeXlsxCompressed } from "./xlsx/write.js";
 export {
+  jsonToRows,
+  readCsv,
+  sheetToJson,
+  writeCsv,
+  type CsvOptions,
+  type JsonToRowsOptions,
+  type SheetToJsonOptions
+} from "./csv.js";
+export { formatCellValue, formatExcelDate, formatExcelNumber } from "./format.js";
+export {
   Cell,
   Column,
   Fragment,
@@ -35,15 +45,21 @@ export type {
   CellModel,
   ColumnModel,
   FreezeModel,
+  ImageModel,
   RowModel,
   SheetModel,
   WorkbookModel
 } from "./xlsx/model.js";
 export {
   XLSX_LIMITS,
+  isCellObject,
+  type ReadXlsxOptions,
   type XlsxCell,
+  type XlsxCellObject,
   type XlsxCellValue,
   type XlsxColumn,
+  type XlsxImageInput,
+  type XlsxReadStyle,
   type XlsxSheetData,
   type XlsxSheetInput,
   type XlsxWorkbookData,

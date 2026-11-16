@@ -1,8 +1,9 @@
 import { failXlsx } from "./errors.js";
-import { XLSX_LIMITS, cellReference, type XlsxCell } from "./shared.js";
+import { XLSX_LIMITS, cellReference, isCellObject, type XlsxCell, type XlsxImageInput } from "./shared.js";
 import type { XlsxCellStyle, XlsxColor } from "./style.js";
 import type { CellModel, ColumnModel, FreezeModel, RowModel, SheetModel, WorkbookModel } from "./xlsx/model.js";
 import { writeWorkbook, writeWorkbookCompressed } from "./xlsx/write.js";
+import { imageModel } from "./xlsx/media.js";
 
 const MAX_COLUMN_WIDTH = 255;
 const MAX_ROW_HEIGHT = 409;
@@ -53,13 +54,16 @@ export type SheetProps = {
   freeze?: FreezeModel;
   autoFilter?: boolean | string;
   tabColor?: XlsxColor;
+  images?: readonly XlsxImageInput[];
   children?: Children;
 };
-export type RowProps = { row?: number; height?: number; children?: Children };
-export type ColumnProps = { width?: number };
+export type RowProps = { row?: number; height?: number; style?: XlsxCellStyle; children?: Children };
+export type ColumnProps = { width?: number; style?: XlsxCellStyle };
 export type CellProps = XlsxCellStyle & {
   value?: XlsxCell;
   content?: XlsxCell;
+  formula?: string;
+  href?: string;
   row?: number;
   column?: number;
   column_number?: number;
@@ -139,7 +143,7 @@ function isPrimitive(value: XlsxNode): value is string | number | boolean | Date
   return typeof value === "string" || typeof value === "number" || typeof value === "boolean" || value instanceof Date;
 }
 
-function firstPrimitive(children: XlsxNode[]): XlsxCell | undefined {
+function firstPrimitive(children: readonly XlsxNode[]): XlsxCell | undefined {
   for (const child of children) {
     if (!isPrimitive(child) || isIgnored(child)) continue;
     return child;
@@ -196,6 +200,32 @@ function pickStyle(props: Record<string, unknown>): XlsxCellStyle | undefined {
   return Object.keys(style).length > 0 ? (style as XlsxCellStyle) : undefined;
 }
 
+function stringProp(value: unknown): string | undefined {
+  return typeof value === "string" ? value : undefined;
+}
+
+function rawCellValue(node: XlsxElement, children: readonly XlsxNode[]): XlsxCell {
+  return (node.props.value ?? node.props.content ?? firstPrimitive(children)) as XlsxCell;
+}
+
+function cellFormula(node: XlsxElement, object: { formula?: string } | undefined): string | undefined {
+  return stringProp(node.props.formula) ?? object?.formula;
+}
+
+function cellHref(node: XlsxElement, object: { href?: string } | undefined): string | undefined {
+  return stringProp(node.props.href) ?? object?.href;
+}
+
+function cellParts(node: XlsxElement, children: readonly XlsxNode[]): Pick<CellModel, "value" | "formula" | "href"> {
+  const raw = rawCellValue(node, children);
+  const object = isCellObject(raw) ? raw : undefined;
+  return {
+    value: (object ? (object.value ?? null) : (raw ?? null)) as CellModel["value"],
+    formula: cellFormula(node, object),
+    href: cellHref(node, object)
+  };
+}
+
 function buildCell(node: XlsxElement, sheet: string): { cell: CellModel; column?: number } {
   const cell = resolve(node);
   if (cell.type !== "cell") failXlsx("XLSX_INVALID_INPUT", "Expected a Cell element.", { sheet });
@@ -203,11 +233,10 @@ function buildCell(node: XlsxElement, sheet: string): { cell: CellModel; column?
   for (const child of children) {
     if (isElement(child)) failXlsx("XLSX_INVALID_INPUT", "Cell children must be primitive values.", { sheet });
   }
-  const value = (cell.props.value ?? cell.props.content ?? firstPrimitive(children)) as XlsxCell;
   const column = integerProp(cell.props.column ?? cell.props.column_number, "column", XLSX_LIMITS.maxColumns);
   return {
     cell: {
-      value,
+      ...cellParts(cell, children),
       style: pickStyle(cell.props),
       colSpan: integerProp(cell.props.colSpan, "colSpan", XLSX_LIMITS.maxColumns),
       rowSpan: integerProp(cell.props.rowSpan, "rowSpan", XLSX_LIMITS.maxRows)
@@ -267,26 +296,29 @@ function buildRow(node: XlsxElement, sheet: string, budget: Budget): { row: RowM
 
   spend(budget, cursor.cells.length + 1, sheet);
   return {
-    row: { cells: cursor.cells, height: dimensionProp(row.props.height, "height", MAX_ROW_HEIGHT) },
+    row: {
+      cells: cursor.cells,
+      height: dimensionProp(row.props.height, "height", MAX_ROW_HEIGHT),
+      style: row.props.style as XlsxCellStyle | undefined
+    },
     directRow: integerProp(row.props.row, "row", XLSX_LIMITS.maxRows)
   };
-}
-
-function declaredWidth(column: number | ColumnProps): unknown {
-  if (typeof column === "number") return column;
-  if (typeof column === "object" && column !== null) return column.width;
-  return failXlsx("XLSX_INVALID_INPUT", "Expected every column to be a width number or a { width } object.");
 }
 
 function buildColumns(sheet: XlsxElement, children: readonly XlsxElement[]): ColumnModel[] {
   const columns: ColumnModel[] = [];
   const declared = Array.isArray(sheet.props.columns) ? (sheet.props.columns as Array<number | ColumnProps>) : [];
   for (const column of declared) {
-    columns.push({ width: dimensionProp(declaredWidth(column), "width", MAX_COLUMN_WIDTH) });
+    const width = typeof column === "number" ? column : column.width;
+    const style = typeof column === "number" ? undefined : column.style;
+    columns.push({ width: dimensionProp(width, "width", MAX_COLUMN_WIDTH), style });
   }
   for (const node of children) {
     if (node.type !== "column") continue;
-    columns.push({ width: dimensionProp(node.props.width, "width", MAX_COLUMN_WIDTH) });
+    columns.push({
+      width: dimensionProp(node.props.width, "width", MAX_COLUMN_WIDTH),
+      style: node.props.style as XlsxCellStyle | undefined
+    });
   }
   return columns;
 }
@@ -372,7 +404,10 @@ function buildSheet(node: XlsxElement): SheetModel {
     rows,
     freeze: sheet.props.freeze as FreezeModel | undefined,
     autoFilter: autoFilterRef(sheet, rows),
-    tabColor: sheet.props.tabColor as XlsxColor | undefined
+    tabColor: sheet.props.tabColor as XlsxColor | undefined,
+    images: Array.isArray(sheet.props.images)
+      ? (sheet.props.images as XlsxImageInput[]).map(imageModel)
+      : undefined
   };
 }
 

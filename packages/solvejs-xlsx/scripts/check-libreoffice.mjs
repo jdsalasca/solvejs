@@ -49,7 +49,9 @@ try {
           columns: [{ header: "ID" }, { header: "Customer", width: 24 }, { header: "Total" }, { header: "Date" }],
           rows: [
             [1, "Ada & Co", 1999, new Date(Date.UTC(2026, 10, 16))],
-            [2, "=SUM(A1:A2)", true, null]
+            [2, "Grace Hopper", 2500, null],
+            [3, "Total", { value: 4499, formula: "SUM(C2:C3)" }, null],
+            [4, "=SUM(A1:A2)", true, null]
           ]
         }
       ]
@@ -58,7 +60,7 @@ try {
 
   run(["--convert-to", "csv", "--outdir", dir, xlsxPath]);
   const csv = readFileSync(join(dir, "sample.csv"), "utf8");
-  if (!csv.includes("Ada & Co") || !csv.includes("1999") || !csv.includes("2026")) {
+  if (!csv.includes("Ada & Co") || !csv.includes("1999") || !csv.includes("2026") || !csv.includes("4499")) {
     throw new Error(`LibreOffice did not preserve the expected values:\n${csv}`);
   }
   console.log("LibreOffice opened the generated workbook and preserved its values.");

@@ -1,12 +1,44 @@
 import { failXlsx } from "./errors.js";
+import type { XlsxCellStyle, XlsxColor } from "./style.js";
 
-/** A cell accepted by the writer. `null` and `undefined` render as an empty cell. */
-export type XlsxCell = string | number | boolean | Date | null | undefined;
+/** A primitive cell value. `null` and `undefined` render as an empty cell. */
+export type XlsxCellValue = string | number | boolean | Date | null;
 
-/** A column definition: optional header and width in Excel character units. */
+/**
+ * A cell with a formula, a hyperlink, or both. `value` is the cached result written next to the
+ * formula; the package does not calculate formulas.
+ */
+export type XlsxCellObject = {
+  value?: XlsxCellValue;
+  formula?: string;
+  href?: string;
+};
+
+/** A cell accepted by the writer. */
+export type XlsxCell = XlsxCellValue | undefined | XlsxCellObject;
+
+/** Returns true when a cell carries formula or hyperlink metadata. */
+export function isCellObject(value: unknown): value is XlsxCellObject {
+  return typeof value === "object" && value !== null && !(value instanceof Date);
+}
+
+/** A column definition: optional header, width and default style. */
 export type XlsxColumn = {
   header?: string;
   width?: number;
+  style?: XlsxCellStyle;
+};
+
+/** An image anchored to a worksheet cell. */
+export type XlsxImageInput = {
+  data: Uint8Array | string;
+  format?: "png" | "jpeg";
+  /** Top-left anchor in A1 notation; defaults to A1. */
+  anchor?: string;
+  /** Display size in CSS pixels. Defaults to the intrinsic size at 96 DPI. */
+  width?: number;
+  height?: number;
+  alt?: string;
 };
 
 /** A worksheet accepted by the writer. */
@@ -14,25 +46,58 @@ export type XlsxSheetInput = {
   name: string;
   columns?: readonly XlsxColumn[];
   rows: readonly (readonly XlsxCell[])[];
+  freeze?: { rows?: number; columns?: number };
+  autoFilter?: boolean | string;
+  tabColor?: XlsxColor;
+  images?: readonly XlsxImageInput[];
 };
 
 /** A workbook accepted by the writer. */
 export type XlsxWorkbookInput = {
   sheets: readonly XlsxSheetInput[];
+  title?: string;
+  creator?: string;
 };
 
-/** A cell returned by the reader. Dates are returned as `Date` in UTC. */
-export type XlsxCellValue = string | number | boolean | Date | null;
+/** A cell style returned by the reader, including the raw number format when present. */
+export type XlsxReadStyle = XlsxCellStyle & { numberFormatCode?: string };
 
 /** A worksheet returned by the reader. */
 export type XlsxSheetData = {
   name: string;
   rows: XlsxCellValue[][];
+  merges?: string[];
+  columns?: Array<{ width?: number; style?: XlsxReadStyle }>;
+  rowHeights?: Record<number, number>;
+  freeze?: { rows: number; columns: number };
+  autoFilter?: string;
+  links?: Record<string, string>;
+  formulas?: Record<string, string>;
+  styles?: Record<string, XlsxReadStyle>;
+  images?: Array<{
+    anchor: string;
+    width: number;
+    height: number;
+    format: "png" | "jpeg";
+    data: Uint8Array;
+  }>;
+};
+
+/** Options for {@link readXlsx}. */
+export type ReadXlsxOptions = {
+  /** Only parse these sheet names, in workbook order. */
+  sheets?: readonly string[];
+  /** Include cell and column styles in the result. */
+  includeStyles?: boolean;
+  /** Include formulas in the result. Defaults to true. */
+  includeFormulas?: boolean;
 };
 
 /** A workbook returned by the reader. */
 export type XlsxWorkbookData = {
   sheets: XlsxSheetData[];
+  date1904?: boolean;
+  properties?: { title?: string; creator?: string };
 };
 
 /** Hard limits that keep a malformed file from exhausting memory. */

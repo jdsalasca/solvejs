@@ -15,7 +15,7 @@ const MAX_DEPTH = 256;
 const MAX_NODES = 1_000_000;
 
 function createNode(name: string): XmlNode {
-  return { name, attributes: {}, children: [], content: [], text: "" };
+  return { name, attributes: Object.create(null) as Record<string, string>, children: [], content: [], text: "" };
 }
 
 function failXml(message: string, details: Record<string, unknown> = {}): never {

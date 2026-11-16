@@ -26,11 +26,15 @@ export const bytes = renderXlsx(
   <Xlsx name="Fixture" creator="SolveJS">
     <Sheet name="One" autoFilter freeze={{ rows: 1 }} tabColor={Colors.DarkBlue}>
       <Column width={12.5} />
-      <Column width={24} />
+      <Column width={24} style={{ bold: true }} />
       <Row height={22}>
         <Cell value="Header" bold fill="#1F4E78" fontColor={Colors.White} colSpan={2} />
       </Row>
       {summary}
+      <Row>
+        <Cell value={0} formula="SUM(B2:B3)" />
+        <Cell value="Docs" href="https://example.com" />
+      </Row>
     </Sheet>
   </Xlsx>
 );

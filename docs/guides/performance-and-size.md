@@ -4,54 +4,54 @@ Generated on 2026-11-16.
 
 ## Benchmark Snapshot
 
-- date.formatDate: 25.28ms for 100.000 iterations
-- string.toKebabCase: 73.46ms for 100.000 iterations
-- list.unique: 7.48ms for 100.000 iterations
-- numbers.percent: 2.37ms for 100.000 iterations
-- validators.isCellphoneNumber: 11.58ms for 100.000 iterations
-- url.buildUrl: 206.13ms for 100.000 iterations
-- url.stringifyQuery: 53.74ms for 100.000 iterations
-- url.parseQuery: 45.63ms for 100.000 iterations
-- cache.stableKey: 181.85ms for 100.000 iterations
-- json.stableStringify: 142.41ms for 100.000 iterations
-- json.safeJsonParse: 33.11ms for 100.000 iterations
-- json.deepClone: 41.41ms for 100.000 iterations
-- json.deepEqual: 49.18ms for 100.000 iterations
-- pagination.offsetToCursor: 0.93ms for 100.000 iterations
-- semver.parseVersion: 83.09ms for 100.000 iterations
-- semver.satisfies: 136.86ms for 100.000 iterations
-- semver.compareVersions: 42.58ms for 100.000 iterations
-- errors.createError: 664.26ms for 100.000 iterations
-- errors.normalizeError: 1212.11ms for 100.000 iterations
-- errors.serializeError: 1488.97ms for 100.000 iterations
-- money.fromDecimal: 12.49ms for 100.000 iterations
-- money.addMoney: 23.63ms for 100.000 iterations
-- money.percentageOf: 16.83ms for 100.000 iterations
-- http.calculateBackoffDelay: 24.89ms for 100.000 iterations
-- http.parseContentType: 43.32ms for 100.000 iterations
-- http.negotiateContentType: 47.06ms for 100.000 iterations
-- cache.createLruCache.get (10000): 0.11ms for 1 iterations
+- date.formatDate: 19.43ms for 100.000 iterations
+- string.toKebabCase: 41.15ms for 100.000 iterations
+- list.unique: 6.79ms for 100.000 iterations
+- numbers.percent: 1.79ms for 100.000 iterations
+- validators.isCellphoneNumber: 8.05ms for 100.000 iterations
+- url.buildUrl: 116.28ms for 100.000 iterations
+- url.stringifyQuery: 38.14ms for 100.000 iterations
+- url.parseQuery: 36.57ms for 100.000 iterations
+- cache.stableKey: 142.10ms for 100.000 iterations
+- json.stableStringify: 99.71ms for 100.000 iterations
+- json.safeJsonParse: 22.02ms for 100.000 iterations
+- json.deepClone: 31.49ms for 100.000 iterations
+- json.deepEqual: 33.42ms for 100.000 iterations
+- pagination.offsetToCursor: 2.22ms for 100.000 iterations
+- semver.parseVersion: 46.25ms for 100.000 iterations
+- semver.satisfies: 114.12ms for 100.000 iterations
+- semver.compareVersions: 36.84ms for 100.000 iterations
+- errors.createError: 554.48ms for 100.000 iterations
+- errors.normalizeError: 903.79ms for 100.000 iterations
+- errors.serializeError: 1044.63ms for 100.000 iterations
+- money.fromDecimal: 10.49ms for 100.000 iterations
+- money.addMoney: 16.63ms for 100.000 iterations
+- money.percentageOf: 13.03ms for 100.000 iterations
+- http.calculateBackoffDelay: 16.28ms for 100.000 iterations
+- http.parseContentType: 28.06ms for 100.000 iterations
+- http.negotiateContentType: 35.29ms for 100.000 iterations
+- cache.createLruCache.get (10000): 0.10ms for 1 iterations
 - cache.createTtlCache.get (10000): 0.03ms for 1 iterations
-- cache.createLruCache.get (100000): 0.02ms for 1 iterations
-- cache.createTtlCache.get (100000): 0.01ms for 1 iterations
-- list.uniqueBy (10000): 1.63ms for 1 iterations
-- list.groupBy (10000): 1.47ms for 1 iterations
-- list.sortBy (10000): 0.58ms for 1 iterations
-- list.uniqueBy (100000): 9.63ms for 1 iterations
-- list.groupBy (100000): 13.30ms for 1 iterations
-- list.sortBy (100000): 7.94ms for 1 iterations
-- list.uniqueBy high-cardinality (100000): 49.44ms for 1 iterations
-- list.groupBy high-cardinality (100000): 47.35ms for 1 iterations
-- list.sortBy high-cardinality (100000): 10.85ms for 1 iterations
-- list.uniqueBy high-cardinality (250000): 195.47ms for 1 iterations
-- list.groupBy high-cardinality (250000): 104.15ms for 1 iterations
-- list.sortBy high-cardinality (250000): 51.17ms for 1 iterations
+- cache.createLruCache.get (100000): 0.01ms for 1 iterations
+- cache.createTtlCache.get (100000): 0.00ms for 1 iterations
+- list.uniqueBy (10000): 0.95ms for 1 iterations
+- list.groupBy (10000): 0.73ms for 1 iterations
+- list.sortBy (10000): 0.40ms for 1 iterations
+- list.uniqueBy (100000): 5.36ms for 1 iterations
+- list.groupBy (100000): 8.26ms for 1 iterations
+- list.sortBy (100000): 1.95ms for 1 iterations
+- list.uniqueBy high-cardinality (100000): 13.10ms for 1 iterations
+- list.groupBy high-cardinality (100000): 12.10ms for 1 iterations
+- list.sortBy high-cardinality (100000): 7.45ms for 1 iterations
+- list.uniqueBy high-cardinality (250000): 37.21ms for 1 iterations
+- list.groupBy high-cardinality (250000): 23.50ms for 1 iterations
+- list.sortBy high-cardinality (250000): 22.18ms for 1 iterations
 
 ## Test Coverage (`node --test --experimental-test-coverage`)
 
 | Package | Lines | Branches | Functions |
 |---|---:|---:|---:|
-| @jdsalasc/solvejs | 49.78% | 56.12% | 35.03% |
+| @jdsalasc/solvejs | 48.44% | 52.67% | 34.64% |
 | @jdsalasc/solvejs-async | 100.00% | 99.05% | 100.00% |
 | @jdsalasc/solvejs-cache | 100.00% | 100.00% | 100.00% |
 | @jdsalasc/solvejs-constants | 100.00% | 100.00% | 100.00% |
@@ -72,13 +72,13 @@ Generated on 2026-11-16.
 | @jdsalasc/solvejs-string | 100.00% | 100.00% | 100.00% |
 | @jdsalasc/solvejs-url | 100.00% | 100.00% | 100.00% |
 | @jdsalasc/solvejs-validators | 100.00% | 100.00% | 100.00% |
-| @jdsalasc/solvejs-xlsx | 90.95% | 80.12% | 96.65% |
+| @jdsalasc/solvejs-xlsx | 92.23% | 80.19% | 95.57% |
 
 ## Package Size Snapshot (`npm pack --workspaces --dry-run`)
 
 | Package | Version | Tarball Size | Unpacked Size | Files |
 |---|---:|---:|---:|---:|
-| @jdsalasc/solvejs | 1.11.0 | 3.88 KB | 14.76 KB | 7 |
+| @jdsalasc/solvejs | 1.12.0 | 3.88 KB | 14.76 KB | 7 |
 | @jdsalasc/solvejs-async | 1.10.0 | 9.56 KB | 56.80 KB | 7 |
 | @jdsalasc/solvejs-cache | 0.2.0 | 10.31 KB | 59.87 KB | 7 |
 | @jdsalasc/solvejs-constants | 1.10.0 | 3.41 KB | 12.35 KB | 7 |
@@ -92,14 +92,14 @@ Generated on 2026-11-16.
 | @jdsalasc/solvejs-numbers | 1.10.0 | 7.25 KB | 46.78 KB | 7 |
 | @jdsalasc/solvejs-objects | 1.10.0 | 5.14 KB | 24.76 KB | 7 |
 | @jdsalasc/solvejs-pagination | 0.2.0 | 7.02 KB | 40.85 KB | 7 |
-| @jdsalasc/solvejs-pdf | 0.1.0 | 78.86 KB | 490.54 KB | 87 |
+| @jdsalasc/solvejs-pdf | 0.1.0 | 78.91 KB | 491.00 KB | 87 |
 | @jdsalasc/solvejs-regex | 1.10.0 | 3.33 KB | 12.89 KB | 7 |
 | @jdsalasc/solvejs-schema | 1.10.0 | 9.24 KB | 58.50 KB | 7 |
 | @jdsalasc/solvejs-semver | 0.2.0 | 12.03 KB | 75.60 KB | 7 |
 | @jdsalasc/solvejs-string | 1.10.0 | 4.04 KB | 18.85 KB | 7 |
 | @jdsalasc/solvejs-url | 0.2.0 | 7.56 KB | 37.97 KB | 7 |
 | @jdsalasc/solvejs-validators | 1.10.0 | 13.64 KB | 98.40 KB | 7 |
-| @jdsalasc/solvejs-xlsx | 0.1.0 | 68.03 KB | 374.01 KB | 82 |
+| @jdsalasc/solvejs-xlsx | 0.2.0 | 114.51 KB | 593.83 KB | 102 |
 
 ## Notes
 
