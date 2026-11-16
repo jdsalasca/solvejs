@@ -294,6 +294,31 @@ test("writes and reads page setup and defined names", async () => {
   assert.deepEqual({ ...workbook.definedNames }, { InvoiceTotal: "Invoice!$F$12", TaxRate: "Invoice!$B$2" });
 });
 
+test("styles data-first rows, merges cells and fills empty values", async () => {
+  const bytes = writeXlsx({
+    sheets: [
+      {
+        name: "Report",
+        emptyCells: "zero",
+        columns: [{ header: "Item", width: 24 }, { header: "Amount", width: 14 }],
+        rows: [
+          [{ value: "Summary", style: { bold: true, fill: Colors.Blue, align: "center" }, colSpan: 2 }],
+          { cells: [1, undefined], style: { fill: Colors.LightGray }, height: 24 },
+          [{ value: 5, formula: "A3*2" }]
+        ]
+      }
+    ]
+  });
+  const workbook = await readXlsx(bytes, { includeStyles: true, includeFormulas: true });
+  const sheet = workbook.sheets[0];
+  assert.deepEqual(sheet.merges, ["A2:B2"]);
+  assert.deepEqual(sheet.rows[2], [1, 0], "undefined becomes zero when emptyCells is zero");
+  assert.equal(sheet.formulas?.A4, "A3*2");
+  assert.equal(sheet.rowHeights?.[3], 24);
+  assert.equal(sheet.styles?.A2?.bold, true);
+  assert.equal(sheet.styles?.A2?.align, "center");
+});
+
 test("writes and reads data validation rules", async () => {
   const bytes = writeXlsx({
     sheets: [
@@ -397,3 +422,4 @@ test("does not pollute Object.prototype through XML attributes or JSON headers",
   assert.equal({}.polluted, undefined);
   assert.equal(root.children[0].attributes.__proto__, "polluted");
 });
+

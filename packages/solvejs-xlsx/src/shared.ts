@@ -12,6 +12,19 @@ export type XlsxCellObject = {
   value?: XlsxCellValue;
   formula?: string;
   href?: string;
+  /** Per-cell style; overrides the row and column defaults. */
+  style?: XlsxCellStyle;
+  /** Merge this cell across columns. */
+  colSpan?: number;
+  /** Merge this cell across rows. */
+  rowSpan?: number;
+};
+
+/** One data-first row: a plain array or a styled/height-aware row object. */
+export type XlsxRowInput = {
+  cells: readonly XlsxCell[];
+  style?: XlsxCellStyle;
+  height?: number;
 };
 
 /** A cell accepted by the writer. */
@@ -95,12 +108,14 @@ export type XlsxDataValidation = {
 export type XlsxSheetInput = {
   name: string;
   columns?: readonly XlsxColumn[];
-  rows: readonly (readonly XlsxCell[])[];
+  rows: readonly (readonly XlsxCell[] | XlsxRowInput)[];
   freeze?: { rows?: number; columns?: number };
   autoFilter?: boolean | string;
   tabColor?: XlsxColor;
   pageSetup?: XlsxPageSetup;
   dataValidations?: readonly XlsxDataValidation[];
+  /** Render null/undefined cells as blanks (default) or numeric zeroes. */
+  emptyCells?: "blank" | "zero";
   images?: readonly XlsxImageInput[];
 };
 

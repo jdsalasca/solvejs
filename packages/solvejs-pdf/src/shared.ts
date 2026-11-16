@@ -12,6 +12,48 @@ export const PDF_LIMITS = {
   maxOutlineItems: 1_000
 } as const;
 
+/** A page-number format for the built-in footer. */
+export type PdfPageNumberFormat = "number" | "page-of-total";
+
+/** Built-in footer page-number styles. */
+export type PdfPageNumberPreset = "minimal" | "classic" | "editorial";
+
+export type PdfPageNumberOptions = {
+  preset?: PdfPageNumberPreset;
+  format?: PdfPageNumberFormat;
+  align?: PdfAlign;
+  italic?: boolean;
+  bold?: boolean;
+  fontSize?: number;
+  color?: PdfColor;
+  /** Draw a thin rule below the number. */
+  rule?: boolean;
+  prefix?: string;
+  separator?: string;
+};
+
+export const PDF_PAGE_NUMBER_PRESETS = {
+  minimal: { format: "number", align: "right", fontSize: 8, color: "#64748B" },
+  classic: {
+    format: "page-of-total",
+    align: "center",
+    italic: true,
+    fontSize: 8,
+    color: "#64748B",
+    rule: true,
+    separator: " / "
+  },
+  editorial: {
+    format: "page-of-total",
+    align: "right",
+    italic: true,
+    fontSize: 8,
+    color: "#64748B",
+    prefix: "— ",
+    separator: " / "
+  }
+} as const satisfies Record<PdfPageNumberPreset, PdfPageNumberOptions>;
+
 /** Named PdfColors accepted anywhere a color is expected. */
 export const PdfColors = {
   Black: "#000000",

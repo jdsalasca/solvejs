@@ -1,5 +1,5 @@
 import { failPdf } from "../errors.js";
-import { PDF_LIMITS, normalizeColor, nonNegative, positive, resolvePageSize, type PdfAlign, type PdfFontFamily } from "../shared.js";
+import { PDF_LIMITS, PDF_PAGE_NUMBER_PRESETS, normalizeColor, nonNegative, positive, resolvePageSize, type PdfAlign, type PdfFontFamily, type PdfPageNumberOptions } from "../shared.js";
 import { layoutText, resolveFontKey } from "../pdf/fonts.js";
 import { decodeImageSource, parseJpeg, type PdfImage } from "../pdf/images.js";
 import type { PdfMetadata, PdfOutlineItem, PdfPageModel } from "../pdf/model.js";
@@ -817,6 +817,44 @@ function decorate(
   });
 }
 
+function pageNumberFooter(options: PdfPageNumberOptions): PdfPageDecorator {
+  const preset = options.preset ? PDF_PAGE_NUMBER_PRESETS[options.preset] : undefined;
+  const merged = { ...(preset ?? {}), ...options };
+  const align = merged.align ?? "right";
+  const fontSize = merged.fontSize ?? 8;
+  const color = merged.color ?? "#64748B";
+  const value = (page: number, total: number) =>
+    merged.format === "page-of-total"
+      ? `${merged.prefix ?? ""}${page}${merged.separator ?? " / "}${total}`
+      : `${merged.prefix ?? ""}${page}`;
+  return ({ page, total }) => {
+    const text: PdfElement = {
+      type: "text",
+      props: {
+        value: value(page, total),
+        align,
+        fontSize,
+        color,
+        italic: merged.italic === true,
+        bold: merged.bold === true,
+        fontFamily: merged.italic ? "times" : "helvetica"
+      }
+    };
+    if (!merged.rule) return text;
+    return {
+      type: "view",
+      props: {
+        children: [text, { type: "divider", props: { color, width: 0.5, marginTop: 2 } }]
+      }
+    };
+  };
+}
+
+function withPageNumbers(props: RootProps): RootProps {
+  if (!props.pageNumbers || props.footer) return props;
+  return { ...props, footer: pageNumberFooter(props.pageNumbers as PdfPageNumberOptions) };
+}
+
 /** Lays out a declarative PDF component tree into pages. */
 // eslint-disable-next-line complexity -- pagination and decorator convergence state machine
 function buildDocument(element: PdfElement): {
@@ -825,31 +863,32 @@ function buildDocument(element: PdfElement): {
 } {
   const root = resolveElement(element);
   if (root.type !== "pdf") failPdf("PDF_INVALID_INPUT", "Expected a Pdf root element.");
+  const props = withPageNumbers(root.props);
   const context: LayoutContext = { imageCache: new Map(), blocks: 0, cells: 0, imageBytes: 0, depth: 0 };
-  let layout = pageLayoutOf(root.props, context);
+  let layout = pageLayoutOf(props, context);
   if (layout.contentBottom <= layout.contentTop) failPdf("PDF_INVALID_INPUT", "Margins and header/footer leave no body height.");
   const blocks = layoutNodes(childrenOf(root), layout.contentWidth, context);
   let outline: PdfOutlineItem[] = [];
   let pages = paginate(blocks, layout, outline);
-  let measured = measureDecoratorHeights(root.props, context, layout.contentWidth, pages.length);
+  let measured = measureDecoratorHeights(props, context, layout.contentWidth, pages.length);
   for (let pass = 0; pass < 4; pass += 1) {
     if (measured.header <= layout.headerReserved && measured.footer <= layout.footerReserved) break;
-    layout = pageLayoutOf(root.props, context, measured);
+    layout = pageLayoutOf(props, context, measured);
     if (layout.contentBottom <= layout.contentTop) {
       failPdf("PDF_INVALID_INPUT", "Margins and header/footer leave no body height.");
     }
     outline = [];
     pages = paginate(blocks, layout, outline);
-    measured = measureDecoratorHeights(root.props, context, layout.contentWidth, pages.length);
+    measured = measureDecoratorHeights(props, context, layout.contentWidth, pages.length);
   }
   if (measured.header > layout.headerReserved || measured.footer > layout.footerReserved) {
     failPdf("PDF_LIMIT_EXCEEDED", "Header and footer heights did not stabilize.", { pages: pages.length });
   }
-  decorate(pages, root.props, layout, context);
+  decorate(pages, props, layout, context);
   return {
     document: {
       pages,
-      metadata: metadataOf(root.props),
+      metadata: metadataOf(props),
       ...(outline.length > 0 ? { outline } : {})
     },
     layout

@@ -1,6 +1,6 @@
 {
   "name": "@jdsalasc/solvejs-pdf",
-  "version": "0.1.5",
+  "version": "0.1.6",
   "description": "Zero-dependency TypeScript PDF generator with declarative components, rich styling, and a browser PDF viewer.",
   "license": "MIT",
   "type": "module",

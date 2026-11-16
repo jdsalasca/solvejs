@@ -72,6 +72,40 @@ const bytes = writeXlsx({
 
 `writeXlsx` does not evaluate formulas. It writes the formula and the `value` as Excel's cached result so the file opens with a useful number before Excel recalculates. Formula-looking strings stay inline text and are never treated as formulas.
 
+### Styled rows, merges and empty values
+
+The data-first API accepts plain arrays or row objects with `cells`, `style` and `height`. Cells can carry a style, a formula and a merge span:
+
+```ts
+import { Colors, writeXlsx } from "@jdsalasc/solvejs-xlsx";
+
+const bytes = writeXlsx({
+  sheets: [
+    {
+      name: "Summary",
+      emptyCells: "zero",
+      columns: [
+        { header: "Item", width: 24, style: { bold: true } },
+        { header: "Amount", width: 16, style: { align: "right" } }
+      ],
+      rows: [
+        [
+          {
+            value: "Quarterly report",
+            style: { bold: true, fontSize: 14, fill: Colors.DarkBlue, fontColor: Colors.White, align: "center" },
+            colSpan: 2
+          }
+        ],
+        { cells: ["Revenue", 1200], style: { fill: Colors.LightBlue }, height: 24 },
+        { cells: [{ value: 1200, formula: "B3*2", style: { italic: true, align: "right" } }] }
+      ]
+    }
+  ]
+});
+```
+
+`emptyCells: "zero"` writes null/undefined cells as `0`; the default `"blank"` leaves them empty. `colSpan`/`rowSpan` merge cells, `style` supports `bold`, `italic`, `fill`, `fontColor`, `align`, borders and number formats, and `formula` is written with the cached `value` you provide.
+
 ### Print setup and defined names
 
 Reports usually need more than cells: the page has to print the same way the screen previews it, and formulas should read like the business domain instead of raw coordinates.

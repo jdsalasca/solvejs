@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.12.6 - 2026-11-16
+
+- Extended `@jdsalasc/solvejs-xlsx@0.2.5` data-first rows: a row can now be a plain array or `{ cells, style, height }`, and cells accept `style`, `colSpan` and `rowSpan` alongside formulas and hyperlinks. This brings centered titles, row/column colors, bold/italic text, merged cells and formulas to the simple API without dropping into the component API. Added `emptyCells: "blank" | "zero"` so null/undefined cells can become blanks or numeric zeroes per sheet. Migration impact: none; additive row/cell shapes.
+
+- Added `@jdsalasc/solvejs-pdf@0.1.6` typography presets (`PDF_TEXT_PRESETS`), a `Subtitle` component, and built-in page numbers (`pageNumbers`) with `minimal`, `classic` and `editorial` presets, alignment, italic, rule, prefix and separator options. Migration impact: none; additive API.
+
+- Bumped the meta package to `1.12.6`. Migration impact: none.
+
 ## 1.12.5 - 2026-11-16
 
 - Extended `@jdsalasc/solvejs-pdf@0.1.5` typography: `textTransform` (`uppercase`, `lowercase`, `capitalize`) is applied before measurement, and `underline`/`strike` draw rules that follow the measured line width. Bold/italic faces work across `helvetica`, `times` and `courier`; `times` + italic is the documented editorial/calligraphic look. Footers can use the same styles because they are ordinary decorators measured before pagination. Custom TTF/OTF embedding remains explicitly out of scope. Migration impact: none; additive style props.

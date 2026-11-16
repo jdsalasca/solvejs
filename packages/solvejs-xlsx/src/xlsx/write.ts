@@ -4,6 +4,7 @@ import {
   type XlsxCell,
   type XlsxCellValue,
   type XlsxDataValidation,
+  type XlsxRowInput,
   type XlsxSheetInput,
   type XlsxWorkbookInput,
   assertSheetName,
@@ -46,6 +47,14 @@ const DEFAULT_COLUMN_WIDTH = 12;
 const XML_HEADER = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>';
 
 type LinkRef = { reference: string; href: string };
+
+function isRowObject(row: readonly XlsxCell[] | XlsxRowInput): row is XlsxRowInput {
+  return !Array.isArray(row);
+}
+
+function cellsOf(row: readonly XlsxCell[] | XlsxRowInput): readonly XlsxCell[] {
+  return isRowObject(row) ? row.cells : (row as readonly XlsxCell[]);
+}
 
 function hasHeaders(sheet: XlsxSheetInput): boolean {
   return sheet.columns?.some((column) => column.header !== undefined) ?? false;
@@ -756,7 +765,8 @@ function assertSimpleDimensions(sheet: XlsxSheetInput): void {
     failXlsx("XLSX_LIMIT_EXCEEDED", "Sheet has too many columns.", { sheet: sheet.name });
   }
   for (const row of sheet.rows) {
-    if (row.length > XLSX_LIMITS.maxColumns) {
+    const cells = cellsOf(row);
+    if (cells.length > XLSX_LIMITS.maxColumns) {
       failXlsx("XLSX_LIMIT_EXCEEDED", "Sheet has too many columns.", { sheet: sheet.name });
     }
   }
@@ -767,6 +777,9 @@ function validateSimpleSheet(sheet: XlsxSheetInput, names: Set<string>): void {
   names.add(sheet.name.toLowerCase());
   if (!Array.isArray(sheet.rows)) {
     failXlsx("XLSX_INVALID_INPUT", "Expected every sheet to expose a rows array.", { sheet: sheet.name });
+  }
+  if (sheet.emptyCells !== undefined && sheet.emptyCells !== "blank" && sheet.emptyCells !== "zero") {
+    failXlsx("XLSX_INVALID_INPUT", "Expected emptyCells to be blank or zero.", { sheet: sheet.name });
   }
   assertSimpleDimensions(sheet);
   validateDataValidations(sheet.dataValidations, sheet.name);
@@ -784,16 +797,24 @@ function validateWorkbook(input: XlsxWorkbookInput): void {
   validateDefinedNames(input.definedNames);
 }
 
-function toCell(value: XlsxCell): CellModel {
+function toCell(value: XlsxCell, emptyCells: "blank" | "zero"): CellModel {
+  const empty = emptyCells === "zero" ? 0 : null;
   if (isCellObject(value)) {
-    return { value: value.value ?? null, formula: value.formula, href: value.href };
+    return {
+      value: value.value ?? empty,
+      formula: value.formula,
+      href: value.href,
+      style: value.style,
+      colSpan: value.colSpan,
+      rowSpan: value.rowSpan
+    };
   }
-  return { value: value ?? null };
+  return { value: value ?? empty };
 }
 
 function computedFilterRange(sheet: XlsxSheetInput): string | undefined {
   const rows = sheet.rows.length + (hasHeaders(sheet) ? 1 : 0);
-  const columns = sheet.rows.reduce((max, row) => Math.max(max, row.length), sheet.columns?.length ?? 0);
+  const columns = sheet.rows.reduce((max, row) => Math.max(max, cellsOf(row).length), sheet.columns?.length ?? 0);
   return rows > 0 && columns > 0 ? `A1:${cellReference(rows, columns)}` : undefined;
 }
 
@@ -803,6 +824,7 @@ function filterRange(sheet: XlsxSheetInput): string | undefined {
   return typeof filter === "string" ? filter : computedFilterRange(sheet);
 }
 
+// eslint-disable-next-line max-lines-per-function -- data-first normalization keeps row variants together
 function toModel(input: XlsxWorkbookInput): WorkbookModel {
   validateWorkbook(input);
   return {
@@ -814,7 +836,19 @@ function toModel(input: XlsxWorkbookInput): WorkbookModel {
           cells: (sheet.columns ?? []).map((column) => ({ value: column.header ?? "", style: { bold: true } }))
         });
       }
-      for (const row of sheet.rows) rows.push({ cells: row.map(toCell) });
+      for (const row of sheet.rows) {
+        if (isRowObject(row)) {
+          rows.push({
+            cells: row.cells.map((value) => toCell(value, sheet.emptyCells ?? "blank")),
+            style: row.style,
+            height: row.height
+          });
+        } else {
+          rows.push({
+            cells: (row as readonly XlsxCell[]).map((value) => toCell(value, sheet.emptyCells ?? "blank"))
+          });
+        }
+      }
       return {
         name: sheet.name,
         columns,

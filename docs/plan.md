@@ -188,6 +188,13 @@ Competitor study:
 - PDF gaps ranked: PNG with transparency, page templates/watermarks, outlines/bookmarks and custom TTF fonts. Reading/editing existing PDFs stays out of scope.
 - Both package READMEs now include a capability matrix with the honest gaps and use-case guidance.
 
+## Round 13: API styling and page-number presets - done
+
+- XLSX `0.2.5`: data-first rows accept `{ cells, style, height }`; cell objects accept `style`, `colSpan` and `rowSpan`. `emptyCells: "blank" | "zero"` controls null/undefined output. Added tests for styled rows, merges, formulas and empty policy.
+- PDF `0.1.6`: `PDF_TEXT_PRESETS` (`display`, `title`, `subtitle`, `body`, `caption`, `eyebrow`, `signature`), `Subtitle` component and `pageNumbers` presets (`minimal`, `classic`, `editorial`) with alignment, italic/rule/prefix/separator overrides.
+- Live docs package explorer updated to exercise the new XLSX row shapes and PDF presets/page numbers.
+- Verified: XLSX 70 tests, PDF 45 tests, all 22 package examples run in the browser, `npm run quality` passes.
+
 ## Round 12: Typography and package explorer - done
 
 - PDF `0.1.5`: `textTransform`, `underline` and `strike` style props; transforms run before measurement, decorations use the measured line width. Documented bold/italic faces and the `times` italic editorial look. Custom TTF/OTF embedding remains out of scope rather than half-implemented.

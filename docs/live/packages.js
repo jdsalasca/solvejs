@@ -12,33 +12,35 @@ import { formatMoney, fromDecimal } from "@jdsalasc/solvejs-money";
 import { roundTo, safeDivide } from "@jdsalasc/solvejs-numbers";
 import { deepMerge, get } from "@jdsalasc/solvejs-objects";
 import { paginate } from "@jdsalasc/solvejs-pagination";
-import { Bookmark, Pdf, PdfPage, Text, renderPdf } from "@jdsalasc/solvejs-pdf";
+import { Bookmark, Pdf, PdfPage, Subtitle, Text, renderPdf } from "@jdsalasc/solvejs-pdf";
 import { escapeRegex, validateByName } from "@jdsalasc/solvejs-regex";
 import { s } from "@jdsalasc/solvejs-schema";
 import { maxSatisfying, satisfies } from "@jdsalasc/solvejs-semver";
 import { mask, slugify } from "@jdsalasc/solvejs-string";
 import { buildUrl, parseQuery } from "@jdsalasc/solvejs-url";
 import { validateCellphoneNumber, validateEmail } from "@jdsalasc/solvejs-validators";
-import { writeXlsx } from "@jdsalasc/solvejs-xlsx";
+import { Colors, writeXlsx } from "@jdsalasc/solvejs-xlsx";
 
 const PACKAGES = [
   {
     name: "@jdsalasc/solvejs-pdf",
     title: "PDF generation + viewer",
     level: "Flagship",
-    code: `Pdf({ children: PdfPage({ children: [
-  Bookmark({ title: "Intro" }),
-  Text({ value: "Hello", bold: true, italic: true })
+    code: `Pdf({ pageNumbers: { preset: "classic" }, children: PdfPage({ children: [
+  Text({ preset: "display", children: "Hello" }),
+  Subtitle({ children: "Editorial typography" })
 ]) })`,
     run: () => {
       const bytes = renderPdf(
         Pdf({
           title: "Live PDF",
+          pageNumbers: { preset: "classic" },
           children: PdfPage({
             children: [
               Bookmark({ title: "Intro" }),
-              Text({ value: "Hello", bold: true, italic: true, textTransform: "uppercase", underline: true }),
-              Text({ value: "Pay within 15 days", color: "#4F8CFF", fontSize: 10 })
+              Text({ preset: "display", children: "Hello" }),
+              Subtitle({ children: "Editorial typography" }),
+              Text({ value: "Pay within 15 days", color: "#4F8CFF", fontSize: 10, underline: true })
             ]
           })
         })
@@ -50,19 +52,28 @@ const PACKAGES = [
     name: "@jdsalasc/solvejs-xlsx",
     title: "XLSX writer + reader",
     level: "Flagship",
-    code: `writeXlsx({ sheets: [{ name: "Orders", rows, dataValidations }] })`,
+    code: `writeXlsx({ sheets: [{ name: "Orders", emptyCells: "zero", rows: [
+  [{ value: "Summary", colSpan: 2, style: { bold: true, align: "center" } }],
+  { cells: [1, undefined], style: { fill: Colors.LightBlue } },
+  [{ value: 5, formula: "B3+5" }]
+] }] })`,
     run: () => {
       const bytes = writeXlsx({
         sheets: [
           {
             name: "Orders",
+            emptyCells: "zero",
             columns: [{ header: "Status", width: 16 }, { header: "Qty", width: 10 }],
-            rows: [["open", 2]],
+            rows: [
+              [{ value: "Summary", colSpan: 2, style: { bold: true, fill: Colors.LightBlue, align: "center" } }],
+              { cells: ["open", undefined], style: { fill: Colors.LightGray }, height: 22 },
+              [{ value: 5, formula: "B3*2", style: { italic: true } }]
+            ],
             dataValidations: [{ range: "A2:A50", type: "list", values: ["open", "paid"] }]
           }
         ]
       });
-      return { bytes: bytes.byteLength, sheet: "Orders", validation: "A2:A50 list" };
+      return { bytes: bytes.byteLength, sheet: "Orders", validation: "A2:A50 list", emptyPolicy: "zero" };
     }
   },
   {

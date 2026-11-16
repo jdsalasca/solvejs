@@ -132,6 +132,24 @@ test("transforms text and draws underline and strike rules", () => {
   assert.match(text2, /\(EDITORIAL TYPOGRAPHY\) Tj/);
 });
 
+test("adds preset typography and built-in page numbers", () => {
+  const document = buildPdfDocument(
+    Pdf({
+      pageNumbers: { preset: "classic" },
+      children: [
+        PdfPage({ children: Text({ preset: "display", children: "Hello" }) }),
+        PdfPage({ children: Text({ preset: "subtitle", children: "Second page" }) })
+      ]
+    })
+  );
+  assert.equal(document.pages.length, 2);
+  const firstTexts = document.pages[0].ops.filter((op) => op.kind === "text");
+  assert.equal(firstTexts[0].size, 30);
+  assert.equal(firstTexts[0].font, "helvetica-bold");
+  assert.ok(firstTexts.some((op) => op.text.includes("1 / 2") && op.font === "times-italic"));
+  assert.ok(document.pages[0].ops.some((op) => op.kind === "line"), "classic page number draws a rule");
+});
+
 test("builds nested bookmarks with page destinations", () => {
   const element = Pdf({
     children: [

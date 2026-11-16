@@ -95,11 +95,12 @@ const bytes = renderPdf(
 
 | Component | Main props |
 |---|---|
-| `Pdf` | `page` (`"a4"`, `"letter"`, `"a3"`, `"a5"` or `{ width, height }`), `margin`, `background`, `title`, `author`, `subject`, `keywords`, `creator`, `producer`, `header`, `footer` |
+| `Pdf` | `page` (`"a4"`, `"letter"`, `"a3"`, `"a5"` or `{ width, height }`), `margin`, `background`, `title`, `author`, `subject`, `keywords`, `creator`, `producer`, `header`, `footer`, `pageNumbers` |
 | `PdfPage` | Forces a new page; its children flow on that page |
 | `View` | Vertical container: `padding`, `background`, `border`, `radius`, `width`, `height`, `gap`, plus style props |
 | `Row` | Horizontal container; children without a width share the remaining space |
-| `Text` | `value` or primitive children, `href`, plus style props; supports `bold`, `italic`, `fontFamily`, `textTransform`, `underline`, `strike` |
+| `Text` | `value` or primitive children, `href`, `preset`, plus style props; supports `bold`, `italic`, `fontFamily`, `textTransform`, `underline`, `strike` |
+| `Subtitle` | Preset italic, muted subtitle text; accepts all text props |
 | `Heading` | `level` (`1`, `2`, `3`), plus text props |
 | `Paragraph` | Body text with a comfortable line height |
 | `Table` | `columns`, `rows`, `header`, `zebra`, `cellPadding`, `headerBackground`, `headerColor`, `zebraColor`, `fontSize` |
@@ -192,6 +193,44 @@ const elegant = Pdf({
 `underline` and `strike` draw thin rules that follow the measured line width, so centered and right-aligned text stay aligned. Footers are ordinary decorators: they receive `{ page, total }`, support the same typography and are measured before pagination so they never overlap body text.
 
 Custom TTF/OTF embedding is not part of this release. The standard fonts keep the package zero-dependency and browser-first; choose `times` italic for a classical feel or `courier` for a typewriter look.
+
+### Presets and page numbers
+
+`PDF_TEXT_PRESETS` contains `display`, `title`, `subtitle`, `body`, `caption`, `eyebrow` and `signature`. Use a preset by name, or spread it in JSON-style configuration:
+
+```ts
+import { PDF_TEXT_PRESETS, Pdf, PdfPage, Subtitle, Text } from "@jdsalasc/solvejs-pdf";
+
+const title = Text({ preset: "display", children: "Annual report" });
+const caption = Text({ ...PDF_TEXT_PRESETS.caption, children: "Generated 16 Nov 2026" });
+const deck = Pdf({
+  pageNumbers: { preset: "classic" },
+  children: PdfPage({
+    children: [
+      title,
+      Subtitle({ children: "Revenue, retention and product velocity" }),
+      Text({ preset: "eyebrow", children: "Confidential" }),
+      caption
+    ]
+  })
+});
+```
+
+`pageNumbers` is opt-in and ignored when a custom `footer` exists. Presets:
+
+| Preset | Look |
+|---|---|
+| `minimal` | Number only, right aligned |
+| `classic` | `1 / 4`, centered, italic, thin rule below |
+| `editorial` | `— 1 / 4`, right aligned, italic |
+
+You can override any field: `format` (`"number"` or `"page-of-total"`), `align` (`"left"`, `"center"`, `"right"`), `fontSize`, `color`, `italic`, `bold`, `prefix`, `separator` and `rule`.
+
+```ts
+Pdf({
+  pageNumbers: { format: "number", align: "left", italic: true, fontSize: 9, prefix: "p. " }
+});
+```
 | `padding`, `paddingX`, `paddingY` | points |
 | `margin`, `marginTop`, `marginBottom` | points |
 | `border` | border width in points |

@@ -1,4 +1,4 @@
-import type { PdfColor } from "./shared.js";
+import type { PdfColor, PdfPageNumberOptions } from "./shared.js";
 import type {
   BookmarkProps,
   Fragment as FragmentType,
@@ -30,6 +30,8 @@ export type PdfProps = {
   producer?: string;
   header?: PdfPageDecorator;
   footer?: PdfPageDecorator;
+  /** Built-in page-number footer, used when no custom footer is provided. */
+  pageNumbers?: PdfPageNumberOptions;
   children?: PdfNode | PdfNode[];
 };
 
@@ -39,10 +41,33 @@ export type RowProps = PdfStyle & { children?: PdfNode | PdfNode[] };
 export type TextProps = PdfStyle & {
   value?: string | number | boolean | Date | null;
   href?: string;
+  /** Named typographic preset; explicit props override it. */
+  preset?: PdfTextPreset;
   children?: PdfNode | PdfNode[];
 };
 export type HeadingProps = TextProps & { level?: 1 | 2 | 3 };
 export type ParagraphProps = TextProps;
+export type SubtitleProps = TextProps;
+
+export type PdfTextPreset =
+  | "display"
+  | "title"
+  | "subtitle"
+  | "body"
+  | "caption"
+  | "eyebrow"
+  | "signature";
+
+/** Named typography tokens that can be spread into props or selected with `preset`. */
+export const PDF_TEXT_PRESETS: Record<PdfTextPreset, PdfStyle> = {
+  display: { fontSize: 30, bold: true, lineHeight: 1.08, marginBottom: 8 },
+  title: { fontSize: 22, bold: true, lineHeight: 1.2, marginBottom: 8 },
+  subtitle: { fontSize: 14, italic: true, color: "#64748B", lineHeight: 1.35, marginBottom: 6 },
+  body: { fontSize: 11, lineHeight: 1.55, marginBottom: 8 },
+  caption: { fontSize: 8, color: "#64748B", lineHeight: 1.4 },
+  eyebrow: { fontSize: 8, bold: true, color: "#2563EB", textTransform: "uppercase", lineHeight: 1.2 },
+  signature: { fontFamily: "times", italic: true, fontSize: 18, color: "#1E3A8A" }
+};
 export type DividerProps = { color?: PdfColor; width?: number; marginTop?: number; marginBottom?: number };
 export type SpacerProps = { height?: number; marginTop?: number; marginBottom?: number };
 export type TableProps = PdfStyle & {
@@ -95,7 +120,13 @@ export function Row(props: RowProps): PdfElement {
 
 /** Wrapping text. */
 export function Text(props: TextProps): PdfElement {
-  return create("text", props, props.children);
+  const preset = props.preset ? PDF_TEXT_PRESETS[props.preset] : undefined;
+  return create("text", preset ? { ...preset, ...props } : props, props.children);
+}
+
+/** Preset subtitle: italic, muted and slightly smaller than a title. */
+export function Subtitle(props: SubtitleProps): PdfElement {
+  return create("text", { ...PDF_TEXT_PRESETS.subtitle, ...props }, props.children);
 }
 
 /** Preset heading text. */

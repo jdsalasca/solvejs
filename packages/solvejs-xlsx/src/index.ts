@@ -64,6 +64,7 @@ export {
   type XlsxImageInput,
   type XlsxPageSetup,
   type XlsxReadStyle,
+  type XlsxRowInput,
   type XlsxSheetData,
   type XlsxSheetInput,
   type XlsxWorkbookData,
