@@ -3,7 +3,9 @@ import {
   XLSX_LIMITS,
   type XlsxCell,
   type XlsxCellValue,
+  type XlsxConditionalFormat,
   type XlsxDataValidation,
+  type XlsxFilterColumn,
   type XlsxRowInput,
   type XlsxSheetInput,
   type XlsxWorkbookInput,
@@ -163,7 +165,8 @@ function renderRow(input: RowRender): string {
   });
 
   const height = row.height !== undefined ? ` ht="${row.height}" customHeight="1"` : "";
-  return `<row r="${rowNumber}"${height}${rowStyle}>${rendered.join("")}</row>`;
+  const hidden = row.hidden ? ' hidden="1"' : "";
+  return `<row r="${rowNumber}"${height}${hidden}${rowStyle}>${rendered.join("")}</row>`;
 }
 
 function renderColumns(columns: readonly ColumnModel[] | undefined, styles: StyleRegistry): string {
@@ -175,7 +178,8 @@ function renderColumns(columns: readonly ColumnModel[] | undefined, styles: Styl
     }
     const styleId = column.style ? styles.register(column.style, false) : 0;
     const style = styleId === 0 ? "" : ` style="${styleId}"`;
-    return `<col min="${index + 1}" max="${index + 1}" width="${width}" customWidth="1"${style}/>`;
+    const hidden = column.hidden ? ' hidden="1"' : "";
+    return `<col min="${index + 1}" max="${index + 1}" width="${width}" customWidth="1"${style}${hidden}/>`;
   });
   return `<cols>${rendered.join("")}</cols>`;
 }
@@ -241,10 +245,23 @@ function assertAutoFilterRef(reference: string): void {
   }
 }
 
-function renderAutoFilter(reference: string | undefined): string {
+function renderAutoFilter(reference: string | undefined, filterColumns: readonly XlsxFilterColumn[] | undefined): string {
   if (!reference) return "";
   assertAutoFilterRef(reference);
-  return `<autoFilter ref="${escapeXmlAttribute(reference)}"/>`;
+  if (!filterColumns || filterColumns.length === 0) return `<autoFilter ref="${escapeXmlAttribute(reference)}"/>`;
+  const columns = filterColumns.map((filter) => {
+    if (!Number.isInteger(filter.column) || filter.column < 0) {
+      failXlsx("XLSX_INVALID_INPUT", "Expected filter column to be a non-negative integer.", { column: filter.column });
+    }
+    if (!Array.isArray(filter.values) || filter.values.length === 0) {
+      failXlsx("XLSX_INVALID_INPUT", "Expected filter values to be a non-empty array.", { column: filter.column });
+    }
+    const values = filter.values
+      .map((value) => `<filter val="${escapeXmlAttribute(String(value))}"/>`)
+      .join("");
+    return `<filterColumn colId="${filter.column}"><filters>${values}</filters></filterColumn>`;
+  });
+  return `<autoFilter ref="${escapeXmlAttribute(reference)}">${columns.join("")}</autoFilter>`;
 }
 
 function renderSheetData(
@@ -314,8 +331,12 @@ function renderSheet(sheet: SheetModel, styles: StyleRegistry): { xml: string; l
     sheet.tabColor,
     sheet.pageSetup
   )}${renderFreeze(sheet.freeze)}${renderColumns(sheet.columns, styles)}${data}${renderAutoFilter(
-    sheet.autoFilter
-  )}${renderMerges(merges)}${renderDataValidations(sheet.dataValidations)}${renderHyperlinks(links)}${renderPageSetup(sheet.pageSetup)}${drawing}</worksheet>`;
+    sheet.autoFilter,
+    sheet.filterColumns
+  )}${renderMerges(merges)}${renderDataValidations(sheet.dataValidations)}${renderConditionalFormatting(
+    sheet.conditionalFormatting,
+    styles
+  )}${renderHyperlinks(links)}${renderPageSetup(sheet.pageSetup)}${drawing}</worksheet>`;
   return { xml, links, hasImages };
 }
 
@@ -437,6 +458,56 @@ function renderDataValidations(validations: readonly XlsxDataValidation[] | unde
   return `<dataValidations count="${entries.length}">${entries.join("")}</dataValidations>`;
 }
 
+// eslint-disable-next-line max-lines-per-function -- OOXML rule matrix
+function renderConditionalFormatting(
+  formats: readonly XlsxConditionalFormat[] | undefined,
+  styles: StyleRegistry
+): string {
+  if (!formats || formats.length === 0) return "";
+  let priority = 0;
+  // eslint-disable-next-line complexity -- OOXML rule matrix
+  const entries = formats.map((format) => {
+    assertAutoFilterRef(format.range);
+    priority += 1;
+    const range = escapeXmlAttribute(format.range);
+    if (format.type === "colorScale") {
+      const colors = format.colors.map((color) => normalizeColor(color));
+      if (colors.length < 2 || colors.length > 3 || colors.some((color) => !color)) {
+        failXlsx("XLSX_INVALID_INPUT", "Expected a color scale with two or three colors.", { range: format.range });
+      }
+      const values = colors
+        .map((color, index) => `<cfvo type="${index === 0 ? "min" : index === colors.length - 1 ? "max" : "percentile"}"${
+          index === 0 || index === colors.length - 1 ? "" : ' val="50"'
+        }/><color rgb="${color}"/>`)
+        .join("");
+      return `<conditionalFormatting sqref="${range}"><cfRule type="colorScale" priority="${priority}"><colorScale>${values}</colorScale></cfRule></conditionalFormatting>`;
+    }
+    if (format.type === "dataBar") {
+      const color = normalizeColor(format.color) ?? "FF638EC6";
+      return `<conditionalFormatting sqref="${range}"><cfRule type="dataBar" priority="${priority}"><dataBar><cfvo type="min"/><cfvo type="max"/><color rgb="${color}"/></dataBar></cfRule></conditionalFormatting>`;
+    }
+    const style =
+      format.style ??
+      (format.type === "containsText"
+        ? { fill: "#FFC7CE", fontColor: "#9C0006", bold: true }
+        : { fill: "#FFC7CE", fontColor: "#9C0006" });
+    const dxfId = styles.registerDxf(style);
+    if (format.type === "containsText") {
+      const first = format.range.split(":")[0];
+      const formula = `NOT(ISERROR(SEARCH("${format.text.replace(/"/g, '""')}",${first})))`;
+      return `<conditionalFormatting sqref="${range}"><cfRule type="containsText" dxfId="${dxfId}" priority="${priority}" operator="containsText" text="${escapeXmlAttribute(
+        format.text
+      )}"><formula>${escapeXmlText(formula)}</formula></cfRule></conditionalFormatting>`;
+    }
+    const operator = format.type === "cellIs" ? format.operator : undefined;
+    const formula2 = format.type === "cellIs" && format.formula2 ? `<formula>${escapeXmlText(format.formula2)}</formula>` : "";
+    return `<conditionalFormatting sqref="${range}"><cfRule type="${format.type}" dxfId="${dxfId}" priority="${priority}"${
+      operator ? ` operator="${operator}"` : ""
+    }><formula>${escapeXmlText(format.formula)}</formula>${formula2}</cfRule></conditionalFormatting>`;
+  });
+  return entries.join("");
+}
+
 function renderWorkbookRels(sheetCount: number): string {
   const sheetRels = Array.from(
     { length: sheetCount },
@@ -481,10 +552,27 @@ function renderContentTypes(
   return `${XML_HEADER}<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/>${images}<Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/>${sheets}<Override PartName="/xl/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.styles+xml"/>${drawings}${core}</Types>`;
 }
 
-function renderCore(title: string | undefined, creator: string | undefined): string {
-  const titleXml = title ? `<dc:title>${escapeXmlText(title)}</dc:title>` : "";
-  const creatorXml = creator ? `<dc:creator>${escapeXmlText(creator)}</dc:creator>` : "";
-  return `${XML_HEADER}<cp:coreProperties xmlns:cp="http://schemas.openxmlformats.org/package/2006/metadata/core-properties" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:dcterms="http://purl.org/dc/terms/" xmlns:dcmitype="http://purl.org/dc/dcmitype/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">${titleXml}${creatorXml}</cp:coreProperties>`;
+function isoDate(value: Date | string | undefined): string | undefined {
+  if (value === undefined) return undefined;
+  const date = value instanceof Date ? value : new Date(value);
+  return Number.isNaN(date.getTime()) ? undefined : date.toISOString().replace(/\.\d{3}Z$/, "Z");
+}
+
+function renderCore(model: WorkbookModel): string {
+  const entry = (tag: string, value: string | undefined) =>
+    value ? `<${tag}>${escapeXmlText(value)}</${tag}>` : "";
+  const created = isoDate(model.created);
+  const modified = isoDate(model.modified);
+  const dates = `${created ? `<dcterms:created xsi:type="dcterms:W3CDTF">${created}</dcterms:created>` : ""}${
+    modified ? `<dcterms:modified xsi:type="dcterms:W3CDTF">${modified}</dcterms:modified>` : ""
+  }`;
+  return `${XML_HEADER}<cp:coreProperties xmlns:cp="http://schemas.openxmlformats.org/package/2006/metadata/core-properties" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:dcterms="http://purl.org/dc/terms/" xmlns:dcmitype="http://purl.org/dc/dcmitype/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">${entry(
+    "dc:title",
+    model.title
+  )}${entry("dc:subject", model.subject)}${entry("dc:creator", model.creator)}${entry("cp:keywords", model.keywords)}${entry(
+    "dc:description",
+    model.description
+  )}${entry("cp:category", model.category)}${entry("dc:publisher", model.company)}${dates}</cp:coreProperties>`;
 }
 
 function assertSpan(value: number | undefined, label: string, max: number, sheet: SheetModel): void {
@@ -829,7 +917,7 @@ function toModel(input: XlsxWorkbookInput): WorkbookModel {
   validateWorkbook(input);
   return {
     sheets: input.sheets.map((sheet) => {
-      const columns = (sheet.columns ?? []).map((column) => ({ width: column.width, style: column.style }));
+      const columns = (sheet.columns ?? []).map((column) => ({ width: column.width, style: column.style, hidden: column.hidden }));
       const rows: RowModel[] = [];
       if (hasHeaders(sheet)) {
         rows.push({
@@ -841,7 +929,8 @@ function toModel(input: XlsxWorkbookInput): WorkbookModel {
           rows.push({
             cells: row.cells.map((value) => toCell(value, sheet.emptyCells ?? "blank")),
             style: row.style,
-            height: row.height
+            height: row.height,
+            hidden: row.hidden
           });
         } else {
           rows.push({
@@ -855,6 +944,8 @@ function toModel(input: XlsxWorkbookInput): WorkbookModel {
         rows,
         freeze: sheet.freeze,
         autoFilter: filterRange(sheet),
+        filterColumns: sheet.filterColumns,
+        conditionalFormatting: sheet.conditionalFormatting,
         tabColor: sheet.tabColor,
         pageSetup: sheet.pageSetup,
         dataValidations: sheet.dataValidations,
@@ -863,6 +954,13 @@ function toModel(input: XlsxWorkbookInput): WorkbookModel {
     }),
     title: input.title,
     creator: input.creator,
+    subject: input.subject,
+    keywords: input.keywords,
+    description: input.description,
+    category: input.category,
+    company: input.company,
+    created: input.created,
+    modified: input.modified,
     definedNames: input.definedNames
   };
 }
@@ -934,7 +1032,7 @@ function buildEntries(model: WorkbookModel): ZipEntry[] {
   entries.push(...sheets.entries);
   entries.push({ name: "xl/styles.xml", data: utf8(styles.toXml()) });
   if (model.title || model.creator) {
-    entries.push({ name: "docProps/core.xml", data: utf8(renderCore(model.title, model.creator)) });
+    entries.push({ name: "docProps/core.xml", data: utf8(renderCore(model)) });
   }
   return entries;
 }

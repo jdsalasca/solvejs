@@ -248,14 +248,46 @@ function parseDataValidations(worksheet: XmlNode): XlsxDataValidation[] | undefi
   return validations.length > 0 ? validations : undefined;
 }
 
-function parseCore(xml: string): { title?: string; creator?: string } {
+// eslint-disable-next-line max-lines-per-function -- core property mapping
+function parseCore(xml: string): {
+  title?: string;
+  creator?: string;
+  subject?: string;
+  keywords?: string;
+  description?: string;
+  category?: string;
+  company?: string;
+  created?: string;
+  modified?: string;
+} {
   const root = parseXml(xml);
   const core = firstChild(root, "coreProperties") ?? root;
-  const properties: { title?: string; creator?: string } = {};
-  const title = firstChild(core, "title");
-  const creator = firstChild(core, "creator");
-  if (title) properties.title = textContent(title);
-  if (creator) properties.creator = textContent(creator);
+  const properties: {
+    title?: string;
+    creator?: string;
+    subject?: string;
+    keywords?: string;
+    description?: string;
+    category?: string;
+    company?: string;
+    created?: string;
+    modified?: string;
+  } = {};
+  const mapping = {
+    title: "title",
+    creator: "creator",
+    subject: "subject",
+    keywords: "keywords",
+    description: "description",
+    category: "category",
+    company: "publisher",
+    created: "created",
+    modified: "modified"
+  } as const;
+  for (const [key, tag] of Object.entries(mapping)) {
+    const node = firstChild(core, tag);
+    if (node) properties[key as keyof typeof properties] = textContent(node);
+  }
   return properties;
 }
 

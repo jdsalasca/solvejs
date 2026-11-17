@@ -1,6 +1,8 @@
 export { XlsxError, type XlsxErrorCode } from "./errors.js";
 export { readXlsx } from "./xlsx/read.js";
 export { writeWorkbook, writeWorkbookCompressed, writeXlsx, writeXlsxCompressed } from "./xlsx/write.js";
+export { jsonToSheet, jsonToXlsx, objectsToXlsx } from "./json.js";
+export type { JsonToXlsxColumn, JsonToXlsxOptions } from "./json.js";
 export {
   jsonToRows,
   readCsv,
@@ -58,9 +60,12 @@ export {
   type XlsxCellObject,
   type XlsxCellValue,
   type XlsxColumn,
+  type XlsxConditionalFormat,
+  type XlsxConditionalOperator,
   type XlsxDataValidation,
   type XlsxDataValidationType,
   type XlsxDataValidationOperator,
+  type XlsxFilterColumn,
   type XlsxImageInput,
   type XlsxPageSetup,
   type XlsxReadStyle,

@@ -35,6 +35,13 @@ type XfRecord = {
   wrapText?: boolean;
 };
 
+type DxfRecord = {
+  bold?: boolean;
+  italic?: boolean;
+  fontColor?: string;
+  fill?: string;
+};
+
 const DEFAULT_FONT: FontRecord = { bold: false, italic: false, strike: false, size: 11, name: "Calibri" };
 const DEFAULT_XF: XfRecord = { fontId: 0, fillId: 0, borderId: 0, numFmtId: 0 };
 
@@ -138,6 +145,18 @@ function xfXml(xf: XfRecord): string {
   return `<xf numFmtId="${xf.numFmtId}" fontId="${xf.fontId}" fillId="${xf.fillId}" borderId="${xf.borderId}" xfId="0" applyFont="1" applyFill="1" applyBorder="1" applyNumberFormat="1"${apply}>${alignment}</xf>`;
 }
 
+function dxfXml(dxf: DxfRecord): string {
+  const fontParts: string[] = [];
+  if (dxf.bold) fontParts.push("<b/>");
+  if (dxf.italic) fontParts.push("<i/>");
+  if (dxf.fontColor) fontParts.push(`<color rgb="${dxf.fontColor}"/>`);
+  const font = fontParts.length > 0 ? `<font>${fontParts.join("")}</font>` : "";
+  const fill = dxf.fill
+    ? `<fill><patternFill patternType="solid"><bgColor rgb="${dxf.fill}"/></patternFill></fill>`
+    : "";
+  return `<dxf>${font}${fill}</dxf>`;
+}
+
 /** Collects and deduplicates every font, fill, border, number format and cell format used by a workbook. */
 export class StyleRegistry {
   private readonly fonts: FontRecord[] = [DEFAULT_FONT];
@@ -145,11 +164,13 @@ export class StyleRegistry {
   private readonly borders: BorderRecord[] = [{}];
   private readonly numFmts = new Map<number, string>();
   private readonly xfs: XfRecord[] = [DEFAULT_XF];
+  private readonly dxfs: DxfRecord[] = [];
   private readonly fontMap = new Map<string, number>([[JSON.stringify(DEFAULT_FONT), 0]]);
   private readonly fillMap = new Map<string, number>();
   private readonly borderMap = new Map<string, number>([["{}", 0]]);
   private readonly numFmtMap = new Map<string, number>();
   private readonly xfMap = new Map<string, number>([["0|0|0|0|||false", 0]]);
+  private readonly dxfMap = new Map<string, number>();
 
   private fontId(style: XlsxCellStyle): number {
     if (!hasFont(style)) return 0;
@@ -228,6 +249,26 @@ export class StyleRegistry {
     return id;
   }
 
+  /** Registers a differential style for conditional formatting and returns its `dxfs` index. */
+  registerDxf(style: XlsxCellStyle): number {
+    const record: DxfRecord = {
+      bold: style.bold === true || undefined,
+      italic: style.italic === true || undefined,
+      fontColor: normalizeColor(style.fontColor),
+      fill: normalizeColor(style.fill)
+    };
+    if (!record.bold && !record.italic && !record.fontColor && !record.fill) {
+      record.bold = true;
+    }
+    const key = JSON.stringify(record);
+    const existing = this.dxfMap.get(key);
+    if (existing !== undefined) return existing;
+    const id = this.dxfs.length;
+    this.dxfs.push(record);
+    this.dxfMap.set(key, id);
+    return id;
+  }
+
   /** Generates `xl/styles.xml` from the registered set. */
   toXml(): string {
     const numFmts =
@@ -237,6 +278,7 @@ export class StyleRegistry {
             .map(([id, code]) => `<numFmt numFmtId="${id}" formatCode="${escapeXmlAttribute(code)}"/>`)
             .join("")}</numFmts>`;
     const xfs = this.xfs.map(xfXml).join("");
+    const dxfs = this.dxfs.length === 0 ? "" : `<dxfs count="${this.dxfs.length}">${this.dxfs.map(dxfXml).join("")}</dxfs>`;
     return `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><styleSheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">${numFmts}<fonts count="${
       this.fonts.length
     }">${this.fonts.map(fontXml).join("")}</fonts><fills count="${this.fills.length}">${this.fills
@@ -245,6 +287,6 @@ export class StyleRegistry {
       .map(borderXml)
       .join("")}</borders><cellStyleXfs count="1"><xf numFmtId="0" fontId="0" fillId="0" borderId="0"/></cellStyleXfs><cellXfs count="${
       this.xfs.length
-    }">${xfs}</cellXfs><cellStyles count="1"><cellStyle name="Normal" xfId="0" builtinId="0"/></cellStyles></styleSheet>`;
+    }">${xfs}</cellXfs><cellStyles count="1"><cellStyle name="Normal" xfId="0" builtinId="0"/></cellStyles>${dxfs}</styleSheet>`;
   }
 }

@@ -25,6 +25,8 @@ export type XlsxRowInput = {
   cells: readonly XlsxCell[];
   style?: XlsxCellStyle;
   height?: number;
+  /** Hide the row in the worksheet. */
+  hidden?: boolean;
 };
 
 /** A cell accepted by the writer. */
@@ -40,7 +42,41 @@ export type XlsxColumn = {
   header?: string;
   width?: number;
   style?: XlsxCellStyle;
+  /** Hide the column in the worksheet. */
+  hidden?: boolean;
 };
+
+/** One auto-filter column with checked values. */
+export type XlsxFilterColumn = {
+  /** Zero-based column index within the filter range. */
+  column: number;
+  values: readonly string[];
+};
+
+export type XlsxConditionalOperator =
+  | "greaterThan"
+  | "greaterThanOrEqual"
+  | "lessThan"
+  | "lessThanOrEqual"
+  | "equal"
+  | "notEqual"
+  | "between"
+  | "notBetween";
+
+/** A dynamic highlighting rule. */
+export type XlsxConditionalFormat =
+  | {
+      range: string;
+      type: "cellIs";
+      operator: XlsxConditionalOperator;
+      formula: string;
+      formula2?: string;
+      style?: XlsxCellStyle;
+    }
+  | { range: string; type: "expression"; formula: string; style?: XlsxCellStyle }
+  | { range: string; type: "containsText"; text: string; style?: XlsxCellStyle }
+  | { range: string; type: "colorScale"; colors: readonly XlsxColor[] }
+  | { range: string; type: "dataBar"; color?: XlsxColor };
 
 /** An image anchored to a worksheet cell. */
 export type XlsxImageInput = {
@@ -111,6 +147,9 @@ export type XlsxSheetInput = {
   rows: readonly (readonly XlsxCell[] | XlsxRowInput)[];
   freeze?: { rows?: number; columns?: number };
   autoFilter?: boolean | string;
+  /** Checked values for specific columns inside the auto-filter range. */
+  filterColumns?: readonly XlsxFilterColumn[];
+  conditionalFormatting?: readonly XlsxConditionalFormat[];
   tabColor?: XlsxColor;
   pageSetup?: XlsxPageSetup;
   dataValidations?: readonly XlsxDataValidation[];
@@ -124,6 +163,13 @@ export type XlsxWorkbookInput = {
   sheets: readonly XlsxSheetInput[];
   title?: string;
   creator?: string;
+  subject?: string;
+  keywords?: string;
+  description?: string;
+  category?: string;
+  company?: string;
+  created?: Date | string;
+  modified?: Date | string;
   definedNames?: Record<string, string>;
 };
 
@@ -171,7 +217,17 @@ export type ReadXlsxOptions = {
 export type XlsxWorkbookData = {
   sheets: XlsxSheetData[];
   date1904?: boolean;
-  properties?: { title?: string; creator?: string };
+  properties?: {
+    title?: string;
+    creator?: string;
+    subject?: string;
+    keywords?: string;
+    description?: string;
+    category?: string;
+    company?: string;
+    created?: string;
+    modified?: string;
+  };
   definedNames?: Record<string, string>;
 };
 

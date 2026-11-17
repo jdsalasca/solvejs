@@ -1,4 +1,10 @@
-import type { XlsxCellValue, XlsxDataValidation, XlsxPageSetup } from "../shared.js";
+import type {
+  XlsxCellValue,
+  XlsxConditionalFormat,
+  XlsxDataValidation,
+  XlsxFilterColumn,
+  XlsxPageSetup
+} from "../shared.js";
 import type { XlsxCellStyle, XlsxColor } from "../style.js";
 
 /** One image anchored on a worksheet. */
@@ -27,12 +33,14 @@ export type RowModel = {
   cells: Array<CellModel | null>;
   height?: number;
   style?: XlsxCellStyle;
+  hidden?: boolean;
 };
 
 /** A column width and default style in Excel character units. */
 export type ColumnModel = {
   width?: number;
   style?: XlsxCellStyle;
+  hidden?: boolean;
 };
 
 /** Frozen rows or columns. */
@@ -48,6 +56,8 @@ export type SheetModel = {
   rows: RowModel[];
   freeze?: FreezeModel;
   autoFilter?: string;
+  filterColumns?: readonly XlsxFilterColumn[];
+  conditionalFormatting?: readonly XlsxConditionalFormat[];
   tabColor?: XlsxColor;
   pageSetup?: XlsxPageSetup;
   dataValidations?: readonly XlsxDataValidation[];
@@ -59,5 +69,12 @@ export type WorkbookModel = {
   sheets: SheetModel[];
   title?: string;
   creator?: string;
+  subject?: string;
+  keywords?: string;
+  description?: string;
+  category?: string;
+  company?: string;
+  created?: Date | string;
+  modified?: Date | string;
   definedNames?: Record<string, string>;
 };

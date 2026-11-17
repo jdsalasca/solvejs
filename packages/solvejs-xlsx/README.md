@@ -196,6 +196,80 @@ const bytes = writeXlsx({
 
 The reader returns the same rules in `sheet.dataValidations`, including inline list items, formulas, prompts and error messages. Supported types are `list`, `whole`, `decimal`, `date`, `time`, `textLength` and `custom`; `between` and `notBetween` need `formula2`. A validation covers one rectangular `range` (`A1` or `A1:B20`); space-separated multi-ranges are not accepted.
 
+### JSON to XLSX
+
+`jsonToSheet` converts an array of objects into columns and rows; `jsonToXlsx` writes the workbook in one call. Nested objects become dotted keys, arrays of primitives become comma-separated text, and you can pin column order and headers:
+
+```ts
+import { jsonToSheet, jsonToXlsx } from "@jdsalasc/solvejs-xlsx";
+
+const data = [
+  { name: "Ada", address: { city: "London" }, tags: ["math", "code"], active: true },
+  { name: "Grace", address: { city: "New York" }, tags: ["navy"], active: false }
+];
+
+const { columns, rows, columnDefinitions } = jsonToSheet(data, {
+  columns: [
+    { key: "name", header: "Name", width: 22 },
+    { key: "address.city", header: "City", width: 18 },
+    { key: "tags", header: "Tags", width: 20 },
+    { key: "active", header: "Active", width: 10 }
+  ]
+});
+
+const bytes = jsonToXlsx(data, {
+  sheetName: "People",
+  title: "People",
+  creator: "SolveJS",
+  company: "Acme"
+});
+```
+
+```json
+{
+  "columns": ["name", "address.city", "tags", "active"],
+  "rows": [
+    ["Ada", "London", "math, code", true],
+    ["Grace", "New York", "navy", false]
+  ]
+}
+```
+
+`flatten: false` keeps nested objects as JSON text in a single cell. `headers: false` writes data only.
+
+### Conditional formatting, filters and metadata
+
+Rules are evaluated by Excel, not by this package. They survive opening the file, and the cached cell values remain available to readers that do not calculate formulas:
+
+```ts
+writeXlsx({
+  title: "Q4 revenue",
+  creator: "SolveJS",
+  subject: "Revenue by region",
+  keywords: "revenue,q4",
+  description: "Generated from the warehouse export",
+  category: "Finance",
+  company: "Acme",
+  created: "2026-11-16T00:00:00Z",
+  sheets: [
+    {
+      name: "Revenue",
+      autoFilter: "A1:D6",
+      filterColumns: [{ column: 0, values: ["North", "South"] }],
+      conditionalFormatting: [
+        { range: "C2:C6", type: "cellIs", operator: "greaterThan", formula: "1000", style: { bold: true, fill: "#DCFCE7", fontColor: "#166534" } },
+        { range: "D2:D6", type: "colorScale", colors: [Colors.Red, Colors.Yellow, Colors.Green] },
+        { range: "B2:B6", type: "dataBar", color: Colors.Blue },
+        { range: "A2:A6", type: "containsText", text: "North", style: { fill: "#DBEAFE", fontColor: "#1E3A8A" } }
+      ],
+      rows
+    }
+  ]
+});
+```
+
+Supported rule types: `cellIs` (`greaterThan`, `between`, etc.), `expression`, `containsText`, `colorScale` (2 or 3 colors) and `dataBar`. `filterColumns` uses zero-based column indexes inside the auto-filter range. `hidden: true` on a column or a row object keeps it out of view without deleting it.
+
 ### CSV and TSV
 
 ```ts
@@ -393,6 +467,8 @@ The formatter covers common number, currency, percentage, scientific, date and t
 | `readXlsx(bytes, options?)` | Reads an XLSX file; `options.sheets`, `includeStyles`, `includeFormulas`. |
 | `readCsv(text, options?)` / `writeCsv(rows, options?)` | Zero-dependency CSV/TSV parser and writer. |
 | `sheetToJson(rows, options?)` / `jsonToRows(objects, options?)` | Header-aware object mapping with a null prototype. |
+| `jsonToSheet(data, options?)` / `jsonToXlsx(data, options?)` | Converts objects/JSON into columns and rows, or a complete XLSX workbook. |
+| `XlsxConditionalFormat`, `XlsxFilterColumn` | Conditional highlighting and auto-filter column values. |
 | `formatCellValue`, `formatExcelNumber`, `formatExcelDate` | Common Excel number and date formatting. |
 | `isCellObject(value)` | Detects `{ value, formula, href }` cells. |
 | `Colors`, `XlsxCellStyle`, `XlsxBorder`, ... | Styling types and palette. |
@@ -401,7 +477,10 @@ The formatter covers common number, currency, percentage, scientific, date and t
 
 ## What is supported
 
-- Multiple sheets, column widths/styles, row heights/styles, frozen panes, auto-filter, tab color, page setup and fit-to-page printing.
+- Multiple sheets, column widths/styles, row heights/styles, hidden rows/columns, frozen panes, auto-filter with checked values, tab color, page setup and fit-to-page printing.
+- Conditional formatting: cell comparisons, expressions, contains-text, color scales and data bars.
+- JSON/object conversion through `jsonToSheet` and `jsonToXlsx`, including dotted keys for nested objects.
+- Full core metadata on write and read: title, creator, subject, keywords, description, category, company, created and modified.
 - Strings (UTF-8), numbers, booleans and dates.
 - Bold, italic, underline, strike, font name/size/color, solid fills, borders per side, horizontal/vertical alignment and wrap.
 - Number formats, including custom formats.
@@ -414,14 +493,14 @@ The formatter covers common number, currency, percentage, scientific, date and t
 - CSV/TSV import/export and JSON row mapping with leading-zero and formula-injection safety.
 - Shared strings and inline strings on read; formulas, links, styles, widths, heights, freeze, print setup and row styles metadata.
 - DEFLATE-compressed ZIP entries through the standard streams.
-- Workbook title and creator in `docProps/core.xml`.
+- Workbook metadata in `docProps/core.xml`: title, creator, subject, keywords, description, category, company, created and modified.
 - XML 1.0 escaping, control-character sanitization and a null-prototype XML attribute map.
 - Deterministic output: no timestamps in ZIP headers.
 
 ## What is not supported
 
 - Formula evaluation. The writer stores formula text and a cached result; the package never calculates expressions.
-- Charts, pivot tables, comments, conditional formatting, macros or VBA.
+- Charts, pivot tables, comments, macros or VBA.
 - External workbook links, shapes, 3D images or SVG/WebP/GIF images. Images are limited to PNG and JPEG.
 - Sheet-scoped defined names on read; only global names are returned.
 - XLS, XLSB, ODS and DBF containers. This package is XLSX-first.
