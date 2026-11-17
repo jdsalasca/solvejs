@@ -12,8 +12,9 @@ Zero-dependency TypeScript date utilities for strict parsing, UTC-safe day math,
 
 - `formatDate`, `toIsoDate`
 - `parseDateStrict`, `parseIsoDate`, `parseUnixTimestamp`
-- `addDays`, `addBusinessDays`, `nextBusinessDay`, `previousBusinessDay`, `diffInDays`
-- `startOfDay`, `endOfDay`
+- `addDays`, `addMonths`, `addBusinessDays`, `nextBusinessDay`, `previousBusinessDay`, `diffInDays`
+- `startOfDay`, `endOfDay`, `startOfWeek`, `endOfWeek`, `startOfMonth`, `endOfMonth`
+- `parseDuration`, `formatDuration`
 - `isBusinessDay`, `isWeekend`, `isLeapYear`, `daysInMonth`
 
 ## When to use this package
@@ -74,12 +75,39 @@ npm i @jdsalasc/solvejs-date
 ## Quick example
 
 ```ts
-import { parseDateStrict, addBusinessDays, toIsoDate } from "@jdsalasc/solvejs-date";
+import {
+  addBusinessDays,
+  addMonths,
+  endOfMonth,
+  formatDuration,
+  parseDateStrict,
+  parseDuration,
+  startOfWeek,
+  toIsoDate
+} from "@jdsalasc/solvejs-date";
 
 const d = parseDateStrict("2026-02-07", "YYYY-MM-DD");
 const next = addBusinessDays(d!, 3);
 toIsoDate(next); // "2026-02-11"
+toIsoDate(addMonths(parseDateStrict("2026-01-31")!, 1)); // "2026-02-28"
+toIsoDate(startOfWeek(d!)); // "2026-02-02", Monday by default
+toIsoDate(endOfMonth(d!)); // "2026-02-28"
+parseDuration("1h 30m"); // 5400000
+formatDuration(5_400_000); // "1h 30m"
 ```
+
+## Calendar boundaries and durations
+
+Month arithmetic clamps the day instead of rolling into the next month: January 31 plus one month is February 28 (or 29 in a leap year). `startOfWeek` accepts `weekStartsOn` from `0` (Sunday) to `6` (Saturday) and defaults to Monday.
+
+`parseDuration` accepts `w`, `d`, `h`, `m`, `s` and `ms`, decimals and a leading sign. `formatDuration` uses the largest allowed units and omits zero values, so `90000` becomes `"1m 30s"`. Pass a unit list when a UI needs a fixed granularity:
+
+```ts
+formatDuration(90_000, ["m"]); // "1m"
+formatDuration(1_500, ["ms"]); // "1500ms"
+```
+
+Durations are calendar-independent milliseconds; they are not timezone-aware and do not account for DST.
 
 ## DST/Timezone matrix quick check
 

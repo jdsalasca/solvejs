@@ -364,3 +364,169 @@ export function formatDate(date: Date, format: DateFormatToken = "YYYY-MM-DD"): 
 
   return `${month}-${day}-${year}`;
 }
+
+/**
+ * Adds calendar months in UTC, clamping the day to the target month.
+ *
+ * @param date - Source date.
+ * @param amount - Integer number of months to add (can be negative).
+ * @returns A new Date with the month delta applied.
+ * @throws {TypeError} If `date` is invalid or `amount` is not an integer.
+ */
+export function addMonths(date: Date, amount: number): Date {
+  if (!isDate(date)) {
+    throw new TypeError("Expected a valid Date instance.");
+  }
+  if (!Number.isSafeInteger(amount)) {
+    throw new TypeError("Expected amount to be a safe integer.");
+  }
+  const next = new Date(date.getTime());
+  const day = next.getUTCDate();
+  next.setUTCDate(1);
+  next.setUTCMonth(next.getUTCMonth() + amount);
+  next.setUTCDate(Math.min(day, daysInMonth(next.getUTCFullYear(), next.getUTCMonth() + 1)));
+  return next;
+}
+
+/**
+ * Returns the UTC start of the month for a date.
+ *
+ * @param date - Source date.
+ * @returns A new Date at `00:00:00.000` UTC on the first day of the month.
+ * @throws {TypeError} If `date` is invalid.
+ */
+export function startOfMonth(date: Date): Date {
+  if (!isDate(date)) {
+    throw new TypeError("Expected a valid Date instance.");
+  }
+  return new Date(utcTime(date.getUTCFullYear(), date.getUTCMonth(), 1));
+}
+
+/**
+ * Returns the UTC end of the month for a date.
+ *
+ * @param date - Source date.
+ * @returns A new Date at `23:59:59.999` UTC on the last day of the month.
+ * @throws {TypeError} If `date` is invalid.
+ */
+export function endOfMonth(date: Date): Date {
+  if (!isDate(date)) {
+    throw new TypeError("Expected a valid Date instance.");
+  }
+  const end = new Date(utcTime(date.getUTCFullYear(), date.getUTCMonth() + 1, 0));
+  end.setUTCHours(23, 59, 59, 999);
+  return end;
+}
+
+/**
+ * Returns the UTC start of the week.
+ *
+ * @param date - Source date.
+ * @param weekStartsOn - Day the week starts on, from 0 (Sunday) to 6 (Saturday). Defaults to 1 (Monday).
+ * @returns A new Date at `00:00:00.000` UTC on the first day of the week.
+ * @throws {TypeError} If `date` is invalid or `weekStartsOn` is outside 0-6.
+ */
+export function startOfWeek(date: Date, weekStartsOn = 1): Date {
+  if (!isDate(date)) {
+    throw new TypeError("Expected a valid Date instance.");
+  }
+  if (!Number.isInteger(weekStartsOn) || weekStartsOn < 0 || weekStartsOn > 6) {
+    throw new TypeError("Expected weekStartsOn to be an integer from 0 to 6.");
+  }
+  const offset = (date.getUTCDay() - weekStartsOn + 7) % 7;
+  return startOfDay(addDays(date, -offset));
+}
+
+/**
+ * Returns the UTC end of the week.
+ *
+ * @param date - Source date.
+ * @param weekStartsOn - Day the week starts on, from 0 (Sunday) to 6 (Saturday). Defaults to 1 (Monday).
+ * @returns A new Date at `23:59:59.999` UTC on the last day of the week.
+ * @throws {TypeError} If `date` is invalid or `weekStartsOn` is outside 0-6.
+ */
+export function endOfWeek(date: Date, weekStartsOn = 1): Date {
+  return endOfDay(addDays(startOfWeek(date, weekStartsOn), 6));
+}
+
+/** A duration unit accepted by {@link parseDuration} and {@link formatDuration}. */
+export type DurationUnit = "w" | "d" | "h" | "m" | "s" | "ms";
+
+const DURATION_FACTORS: Record<DurationUnit, number> = {
+  w: 604_800_000,
+  d: 86_400_000,
+  h: 3_600_000,
+  m: 60_000,
+  s: 1_000,
+  ms: 1
+};
+
+/* eslint-disable complexity -- duration parser loop and unit table */
+/**
+ * Parses a human duration such as `"1h 30m"` into milliseconds.
+ *
+ * Accepts `w`, `d`, `h`, `m`, `s` and `ms`, optional decimals and a leading sign.
+ *
+ * @param input - Duration text.
+ * @returns Milliseconds, or `null` when the text is not a complete duration.
+ */
+export function parseDuration(input: string): number | null {
+  if (typeof input !== "string") return null;
+  const text = input.trim();
+  if (text.length === 0 || text.length > 1024) return null;
+  const negative = text.startsWith("-");
+  const body = negative ? text.slice(1).trim() : text;
+  if (body.length === 0) return null;
+
+  // eslint-disable-next-line security/detect-unsafe-regex -- linear duration grammar
+  const pattern = /(\d+(?:\.\d+)?)\s*(w|d|h|ms|m|s)/gi;
+  let total = 0;
+  let cursor = 0;
+  let matched = false;
+  for (const match of body.matchAll(pattern)) {
+    const gap = body.slice(cursor, match.index).trim();
+    if (gap.length > 0 && !/^[,\s]+$/.test(gap)) return null;
+    const value = Number(match[1]);
+    const unit = match[2].toLowerCase() as DurationUnit;
+    total += value * DURATION_FACTORS[unit];
+    cursor = (match.index ?? 0) + match[0].length;
+    matched = true;
+  }
+  if (!matched || body.slice(cursor).trim().length > 0) return null;
+  return Math.round(negative ? -total : total);
+}
+
+/**
+ * Formats milliseconds as a compact human duration.
+ *
+ * @param milliseconds - Duration in milliseconds.
+ * @param units - Units to allow. Defaults to weeks through milliseconds.
+ * @returns A compact duration such as `"1h 30m"` or `"0s"`.
+ * @throws {TypeError} If `milliseconds` is not finite.
+ */
+export function formatDuration(
+  milliseconds: number,
+  units: readonly DurationUnit[] = ["w", "d", "h", "m", "s", "ms"]
+): string {
+  if (!Number.isFinite(milliseconds)) {
+    throw new TypeError("Expected milliseconds to be a finite number.");
+  }
+  if (units.length === 0) {
+    throw new TypeError("Expected at least one duration unit.");
+  }
+  const allowed = new Set(units);
+  let remaining = Math.round(Math.abs(milliseconds));
+  const negative = milliseconds < 0;
+  const parts: string[] = [];
+  for (const unit of ["w", "d", "h", "m", "s", "ms"] as const) {
+    if (!allowed.has(unit)) continue;
+    const count = Math.floor(remaining / DURATION_FACTORS[unit]);
+    if (count > 0) {
+      parts.push(`${count}${unit}`);
+      remaining -= count * DURATION_FACTORS[unit];
+    }
+  }
+  if (parts.length === 0) return "0s";
+  return `${negative ? "-" : ""}${parts.join(" ")}`;
+}
+/* eslint-enable complexity */

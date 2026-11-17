@@ -3,10 +3,14 @@ import assert from "node:assert/strict";
 import {
   addBusinessDays,
   addDays,
+  addMonths,
   daysInMonth,
   diffInDays,
   endOfDay,
+  endOfMonth,
+  endOfWeek,
   formatDate,
+  formatDuration,
   fromUtcParts,
   isBusinessDay,
   isLeapYear,
@@ -14,10 +18,13 @@ import {
   isWeekend,
   nextBusinessDay,
   parseDateStrict,
+  parseDuration,
   parseIsoDate,
   parseUnixTimestamp,
   previousBusinessDay,
   startOfDay,
+  startOfMonth,
+  startOfWeek,
   toIsoDate
 } from "../dist/esm/index.js";
 
@@ -489,4 +496,46 @@ test("leap-year rules follow the Gregorian calendar, not the naive every-four-ye
 // A leap day is a Friday in 2024, so the day arithmetic around it stays in the same week.
   assert.equal(addBusinessDays(new Date("2024-02-28T12:00:00Z"), 2).toISOString().slice(0, 10), "2024-03-01",
     "Wednesday plus two business days is Friday the leap day itself, which is not weekend time");
+});
+
+test("addMonths clamps the day to the target month", () => {
+  assert.equal(isoDay(addMonths(fromUtcParts(2026, 1, 31), 1)), "2026-02-28");
+  assert.equal(isoDay(addMonths(fromUtcParts(2024, 1, 31), 1)), "2024-02-29");
+  assert.equal(isoDay(addMonths(fromUtcParts(2026, 3, 31), -1)), "2026-02-28");
+  assert.equal(isoDay(addMonths(fromUtcParts(2026, 11, 17), 0)), "2026-11-17");
+});
+
+test("month and week boundaries stay in UTC", () => {
+  const date = day("2026-11-17");
+  assert.equal(isoDay(startOfMonth(date)), "2026-11-01");
+  assert.equal(isoDay(endOfMonth(date)), "2026-11-30");
+  assert.equal(endOfMonth(date).getUTCHours(), 23);
+  assert.equal(isoDay(startOfWeek(date)), "2026-11-16", "Monday is the default start");
+  assert.equal(isoDay(startOfWeek(date, 0)), "2026-11-15", "Sunday can start the week");
+  assert.equal(isoDay(endOfWeek(date)), "2026-11-22");
+  assert.throws(() => startOfWeek(date, 7), /0 to 6/);
+});
+
+test("parseDuration reads compact durations", () => {
+  assert.equal(parseDuration("1h 30m"), 5_400_000);
+  assert.equal(parseDuration("500ms"), 500);
+  assert.equal(parseDuration("2d"), 172_800_000);
+  assert.equal(parseDuration("1.5h"), 5_400_000);
+  assert.equal(parseDuration("-1h 30m"), -5_400_000);
+  assert.equal(parseDuration("1w, 2d"), 777_600_000);
+  assert.equal(parseDuration("1x"), null);
+  assert.equal(parseDuration(""), null);
+  assert.equal(parseDuration("1h junk"), null);
+  assert.equal(parseDuration("1".repeat(5_000)), null, "oversized input is rejected before parsing");
+});
+
+test("formatDuration emits compact durations", () => {
+  assert.equal(formatDuration(5_400_000), "1h 30m");
+  assert.equal(formatDuration(90_000), "1m 30s");
+  assert.equal(formatDuration(1_500), "1s 500ms");
+  assert.equal(formatDuration(0), "0s");
+  assert.equal(formatDuration(-60_000), "-1m");
+  assert.equal(formatDuration(90_000, ["m"]), "1m");
+  assert.equal(formatDuration(1_500, ["ms"]), "1500ms");
+  assert.throws(() => formatDuration(Number.NaN), /finite number/);
 });
