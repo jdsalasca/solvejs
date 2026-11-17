@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.12.7 - 2026-11-16
+
+- Added `@jdsalasc/solvejs-pdf@0.1.7` AcroForm support: `readPdfForm`, `readPdfFormValues` and `fillPdfForm` read text, checkbox, radio and choice fields (values, options, page numbers and widget rectangles), then append a filled PDF revision with `/NeedAppearances`. Classic xref, xref streams and object streams are supported. XFA, encrypted PDFs and signatures are detected but not modified. Migration impact: none; additive API.
+- Reworked the Live Lab into a package explorer with a sidebar, a PDF studio (editorial report, invoice, letter and page-number presets), an XLSX studio with a real spreadsheet preview rendered from `readXlsx`, and an AcroForm Lab that reads, edits, exports JSON and downloads filled PDFs. Migration impact: none.
+- Bumped the meta package to `1.12.7`. Migration impact: none.
+
 ## 1.12.6 - 2026-11-16
 
 - Extended `@jdsalasc/solvejs-xlsx@0.2.5` data-first rows: a row can now be a plain array or `{ cells, style, height }`, and cells accept `style`, `colSpan` and `rowSpan` alongside formulas and hyperlinks. This brings centered titles, row/column colors, bold/italic text, merged cells and formulas to the simple API without dropping into the component API. Added `emptyCells: "blank" | "zero"` so null/undefined cells can become blanks or numeric zeroes per sheet. Migration impact: none; additive row/cell shapes.

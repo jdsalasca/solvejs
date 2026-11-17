@@ -41,6 +41,8 @@ export {
   type ViewProps
 } from "./element.js";
 export { renderPdf, renderPdfCompressed } from "./render.js";
+export { fillPdfForm, readPdfForm, readPdfFormValues } from "./form.js";
+export type { PdfFormField, PdfFormFieldType, PdfFormInfo, PdfFormValue } from "./form.js";
 export { buildPdfDocument } from "./layout/engine.js";
 export {
   PdfColors,
