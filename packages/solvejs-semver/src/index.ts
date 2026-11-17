@@ -510,3 +510,33 @@ export function diffVersions(left: string, right: string): VersionDiff | null {
   if (comparePrerelease(a.prerelease, b.prerelease) !== 0) return "prerelease";
   return null;
 }
+
+/**
+ * Sorts semantic versions by precedence.
+ *
+ * @param versions - Version strings.
+ * @param order - Ascending or descending. Defaults to ascending.
+ * @returns A new sorted array.
+ * @throws {SemverError} `SEMVER_INVALID_VERSION` if any input does not parse.
+ */
+export function sortVersions(versions: readonly string[], order: "asc" | "desc" = "asc"): string[] {
+  versions.forEach((version) => requireVersion(version));
+  const factor = order === "asc" ? 1 : -1;
+  return [...versions].sort((left, right) => compareVersions(left, right) * factor);
+}
+
+/**
+ * Returns the highest semantic version.
+ *
+ * @param versions - Version strings.
+ * @returns The highest version, or `null` for an empty list.
+ * @throws {SemverError} `SEMVER_INVALID_VERSION` if any input does not parse.
+ */
+export function latestVersion(versions: readonly string[]): string | null {
+  let winner: string | null = null;
+  for (const version of versions) {
+    requireVersion(version);
+    if (winner === null || compareVersions(version, winner) > 0) winner = version;
+  }
+  return winner;
+}

@@ -8,9 +8,11 @@ import {
   incrementVersion,
   isValidRange,
   isValidVersion,
+  latestVersion,
   maxSatisfying,
   parseVersion,
-  satisfies
+  satisfies,
+  sortVersions
 } from "../dist/esm/index.js";
 
 test("parseVersion", () => {
@@ -444,4 +446,15 @@ test("a tilde range keeps a prerelease in its lower bound", () => {
   assert.equal(satisfies("1.2.0", "~1.1.0"), false, "~ pins the minor");
   assert.equal(satisfies("1.1.9", "~1.1"), true, "a partial tilde still pins the minor");
   assert.equal(satisfies("1.2.0", "~1.1"), false);
+});
+
+test("sortVersions and latestVersion order by precedence", () => {
+  const versions = ["1.2.0", "1.0.0", "2.0.0-rc.1", "1.10.0", "1.2.0-beta.1"];
+  assert.deepEqual(sortVersions(versions), ["1.0.0", "1.2.0-beta.1", "1.2.0", "1.10.0", "2.0.0-rc.1"]);
+  assert.deepEqual(sortVersions(versions, "desc"), ["2.0.0-rc.1", "1.10.0", "1.2.0", "1.2.0-beta.1", "1.0.0"]);
+  assert.equal(latestVersion(versions), "2.0.0-rc.1");
+  assert.equal(latestVersion([]), null);
+  assert.throws(() => latestVersion(["1.0.0", "nope"]), SemverError);
+  assert.throws(() => latestVersion(["nope"]), SemverError, "a single invalid version is still validated");
+  assert.throws(() => sortVersions(["nope"]), SemverError, "sort cannot skip validation when there is one item");
 });

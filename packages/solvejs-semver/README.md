@@ -18,6 +18,7 @@ Zero-dependency semantic version parsing and range matching: caret, tilde, wildc
 - `incrementVersion`
 - `formatVersion`
 - `diffVersions`
+- `sortVersions`, `latestVersion`
 - `SemverError`
 
 ## When to use this package
@@ -35,7 +36,7 @@ npm i @jdsalasc/solvejs-semver
 ## Quick example
 
 ```ts
-import { compareVersions, satisfies, maxSatisfying, incrementVersion, formatVersion } from "@jdsalasc/solvejs-semver";
+import { compareVersions, satisfies, maxSatisfying, incrementVersion, formatVersion, sortVersions, latestVersion } from "@jdsalasc/solvejs-semver";
 
 compareVersions("1.0.0-alpha", "1.0.0");        // -1, a prerelease is lower than its release
 compareVersions("1.10.0", "1.9.0");            // 1, numeric, not lexicographic
@@ -46,6 +47,8 @@ satisfies("1.2.3", ">=1.0.0 <2.0.0");          // true
 satisfies("1.5.0", "^1.0.0 || ^2.0.0");        // true
 
 maxSatisfying(["1.0.0", "1.2.3", "2.0.0"], "^1.0.0"); // "1.2.3"
+sortVersions(["1.10.0", "1.2.0", "2.0.0-rc.1"]);       // ascending by precedence
+latestVersion(["1.2.0", "2.0.0-rc.1", "1.10.0"]);      // "2.0.0-rc.1"
 formatVersion(incrementVersion("1.2.3", "minor"));     // "1.3.0"
 ```
 
