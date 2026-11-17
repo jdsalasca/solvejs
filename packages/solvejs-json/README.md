@@ -5,7 +5,7 @@
 
 > **Live documentation:** [run this package's examples in your browser](https://jdsalasca.github.io/solvejs/live/#pkg-json).
 
-Zero-dependency JSON utilities for API boundaries: safe parse and stringify, deterministic stringification, deep clone, structural equality, and prototype-safe merge. Never let a malformed payload take down a request handler.
+Zero-dependency JSON utilities for API boundaries: safe parse and stringify, deterministic stringification, deep clone, structural equality, JSON Pointer, JSON Merge Patch, and prototype-safe merge. Never let a malformed payload take down a request handler.
 
 ## Utilities
 
@@ -14,6 +14,8 @@ Zero-dependency JSON utilities for API boundaries: safe parse and stringify, det
 - `stableStringify`
 - `deepClone`
 - `deepEqual`
+- `getJsonPointer`
+- `applyMergePatch`
 - `jsonMerge`
 - `pickJsonKeys`
 - `omitJsonKeys`
@@ -35,7 +37,7 @@ npm i @jdsalasc/solvejs-json
 ## Quick example
 
 ```ts
-import { safeJsonParse, safeJsonStringify, stableStringify, deepEqual, jsonMerge } from "@jdsalasc/solvejs-json";
+import { applyMergePatch, getJsonPointer, safeJsonParse, safeJsonStringify, stableStringify, deepEqual, jsonMerge } from "@jdsalasc/solvejs-json";
 
 const parsed = safeJsonParse(request.body);
 if (!parsed.ok) return response.status(400).json({ error: parsed.error.code });
@@ -43,9 +45,29 @@ if (!parsed.ok) return response.status(400).json({ error: parsed.error.code });
 stableStringify({ b: 1, a: 2 }); // '{"a":2,"b":1}', always in this order
 deepEqual({ a: 1 }, { a: 1 });   // true, key order irrelevant
 jsonMerge({ a: { b: 1 } }, { a: { c: 2 } }); // { a: { b: 1, c: 2 } }
+getJsonPointer({ user: { name: "Ada" } }, "/user/name"); // "Ada"
+applyMergePatch({ a: 1, b: 2 }, { a: null, c: 3 });      // { b: 2, c: 3 }
 
 safeJsonStringify(circular, { fallback: "{}" }); // "{}", no throw
 ```
+
+## JSON Pointer and Merge Patch
+
+`getJsonPointer` reads RFC 6901 paths, including `~0` and `~1` escaping and array indexes. `applyMergePatch` applies RFC 7386 patches: objects merge, `null` deletes, and arrays or primitives replace. Both are prototype-safe and neither mutates its input.
+
+```ts
+getJsonPointer({ "a/b": { "m~n": 2 } }, "/a~1b/m~0n"); // 2
+getJsonPointer({ items: ["a"] }, "/items/0");          // "a"
+getJsonPointer({ items: ["a"] }, "/items/first");      // throws JSON_INVALID_POINTER
+
+applyMergePatch(
+  { name: "Ada", tags: ["math"], address: { city: "London", zip: "N1" } },
+  { tags: ["code"], address: { zip: null } }
+);
+// { name: "Ada", tags: ["code"], address: { city: "London" } }
+```
+
+Use JSON Merge Patch for `PATCH` endpoints where the client sends only the fields that changed. It is not a JSON Patch (`op`/`path`/`value`) implementation; use an explicit patch library when you need operations, move or copy.
 
 ## safeJsonParse
 

@@ -2,7 +2,8 @@
 export type JsonErrorCode =
   | "JSON_INVALID"
   | "JSON_UNSERIALISABLE"
-  | "JSON_CIRCULAR";
+  | "JSON_CIRCULAR"
+  | "JSON_INVALID_POINTER";
 
 /** Successful result of a safe parse or stringify. */
 export type SafeParseResult<T> = { ok: true; value: T } | { ok: false; error: JsonError };
@@ -386,4 +387,86 @@ export function getOrDefault<T extends object, K extends keyof T, F = undefined>
   if (!Object.prototype.hasOwnProperty.call(value, key)) return fallback as F;
   const entryValue = value[key];
   return entryValue === undefined || entryValue === null ? (fallback as F) : entryValue;
+}
+
+const ARRAY_INDEX = /^(0|[1-9]\d*)$/;
+
+function decodePointer(pointer: string): string[] {
+  if (pointer === "") return [];
+  if (typeof pointer !== "string" || !pointer.startsWith("/")) {
+    fail("JSON_INVALID_POINTER", "Expected a JSON Pointer beginning with / or an empty string.", { pointer });
+  }
+  return pointer
+    .slice(1)
+    .split("/")
+    .map((token) => {
+      if (/~(?![01])/.test(token)) {
+        fail("JSON_INVALID_POINTER", "JSON Pointer contains an invalid escape sequence.", { pointer, token });
+      }
+      return token.replace(/~1/g, "/").replace(/~0/g, "~");
+    });
+}
+
+function pointerChild(value: unknown, token: string, pointer: string): unknown {
+  if (Array.isArray(value)) {
+    if (!ARRAY_INDEX.test(token)) {
+      fail("JSON_INVALID_POINTER", "Expected an array index in the JSON Pointer.", { pointer, token });
+    }
+    return value[Number(token)];
+  }
+  if (value !== null && typeof value === "object" && Object.prototype.hasOwnProperty.call(value, token)) {
+    return (value as Record<string, unknown>)[token];
+  }
+  return undefined;
+}
+
+/**
+ * Reads the value at a JSON Pointer (RFC 6901).
+ *
+ * @param value - Source value.
+ * @param pointer - JSON Pointer such as `""`, `"/user/name"` or `"/items/0"`.
+ * @returns The value, or `undefined` when the path does not exist.
+ * @throws {JsonError} `JSON_INVALID_POINTER` for malformed pointers or array indexes.
+ */
+export function getJsonPointer<T = unknown>(value: unknown, pointer: string): T | undefined {
+  let current = value;
+  for (const token of decodePointer(pointer)) {
+    current = pointerChild(current, token, pointer);
+    if (current === undefined) return undefined;
+  }
+  return current as T | undefined;
+}
+
+// eslint-disable-next-line complexity -- RFC 7386 object merge
+function mergePatchValue(target: unknown, patch: Record<string, unknown>): Record<string, unknown> {
+  const base = target !== null && typeof target === "object" && !Array.isArray(target) ? target : {};
+  const output = deepClone(base) as Record<string, unknown>;
+  for (const [key, value] of Object.entries(patch)) {
+    if (UNSAFE_KEYS.has(key)) continue;
+    if (value === null) {
+      delete output[key];
+    } else if (value !== null && typeof value === "object" && !Array.isArray(value)) {
+      output[key] = mergePatchValue(output[key], value as Record<string, unknown>);
+    } else {
+      output[key] = deepClone(value);
+    }
+  }
+  return output;
+}
+
+/**
+ * Applies a JSON Merge Patch (RFC 7386).
+ *
+ * Objects merge recursively, `null` removes a key, and arrays or primitives replace the current
+ * value. Inputs are never mutated and prototype-polluting keys are ignored.
+ *
+ * @param target - Current JSON value.
+ * @param patch - Merge patch to apply.
+ * @returns The patched value.
+ */
+export function applyMergePatch<T = unknown>(target: unknown, patch: unknown): T {
+  if (patch === null || typeof patch !== "object" || Array.isArray(patch)) {
+    return deepClone(patch) as T;
+  }
+  return mergePatchValue(target, patch as Record<string, unknown>) as T;
 }

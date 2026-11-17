@@ -2,8 +2,10 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import {
   JsonError,
+  applyMergePatch,
   deepClone,
   deepEqual,
+  getJsonPointer,
   getOrDefault,
   jsonMerge,
   omitJsonKeys,
@@ -336,4 +338,42 @@ test("jsonMerge replaces anything that is not a plain object", () => {
   assert.deepEqual(jsonMerge({ a: 1 }, { a: null }), { a: null }, "null replaces");
   assert.deepEqual(jsonMerge({ a: { b: 1 } }, { a: "x" }), { a: "x" }, "a scalar replaces an object");
   assert.deepEqual(jsonMerge({ a: null }, { a: { b: 1 } }), { a: { b: 1 } }, "and an object replaces a scalar");
+});
+
+test("getJsonPointer reads RFC 6901 paths", () => {
+  const document = { user: { name: "Ada", "a/b": 1, "m~n": 2 }, items: [{ id: "first" }] };
+  assert.equal(getJsonPointer(document, ""), document);
+  assert.equal(getJsonPointer(document, "/user/name"), "Ada");
+  assert.equal(getJsonPointer(document, "/user/a~1b"), 1);
+  assert.equal(getJsonPointer(document, "/user/m~0n"), 2);
+  assert.equal(getJsonPointer(document, "/items/0/id"), "first");
+  assert.equal(getJsonPointer(document, "/missing/path"), undefined);
+});
+
+test("getJsonPointer rejects malformed pointers and array tokens", () => {
+  const document = { items: ["a"] };
+  for (const pointer of ["user", "/user/~2", "/items/first", "/items/01"]) {
+    assert.throws(
+      () => getJsonPointer(document, pointer),
+      (error) => error instanceof JsonError && error.code === "JSON_INVALID_POINTER"
+    );
+  }
+});
+
+test("applyMergePatch adds, removes and replaces values without mutating", () => {
+  const target = { a: 1, b: { c: 2, d: 3 }, list: [1, 2] };
+  const patch = { a: null, b: { c: 4 }, list: [3], extra: { ok: true } };
+  const result = applyMergePatch(target, patch);
+  assert.deepEqual(result, { b: { c: 4, d: 3 }, list: [3], extra: { ok: true } });
+  assert.deepEqual(target, { a: 1, b: { c: 2, d: 3 }, list: [1, 2] });
+  assert.notEqual(result.b, target.b);
+  assert.equal(applyMergePatch({ a: 1 }, 5), 5);
+  assert.deepEqual(applyMergePatch({ a: { b: 1 } }, {}), { a: { b: 1 } });
+});
+
+test("applyMergePatch ignores prototype-polluting keys", () => {
+  const patch = JSON.parse('{"__proto__":{"polluted":true},"constructor":{"x":1}}');
+  const result = applyMergePatch({ ok: true }, patch);
+  assert.deepEqual(result, { ok: true });
+  assert.equal({}.polluted, undefined);
 });
