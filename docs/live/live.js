@@ -61,9 +61,11 @@ function totals() {
   return { subtotal, tax, total: subtotal + tax };
 }
 
-function input(value, type = "text") {
+function input(value, type = "text", name = "item") {
   const element = document.createElement("input");
   element.type = type;
+  element.name = name;
+  element.autocomplete = "off";
   element.value = String(value);
   return element;
 }
@@ -73,9 +75,9 @@ function renderItems() {
   state.items.forEach((item, index) => {
     const row = document.createElement("div");
     row.className = "live-item";
-    const description = input(item.description);
-    const qty = input(item.qty, "number");
-    const unit = input(item.unit, "number");
+    const description = input(item.description, "text", `item-${index}-description`);
+    const qty = input(item.qty, "number", `item-${index}-qty`);
+    const unit = input(item.unit, "number", `item-${index}-unit`);
     const remove = document.createElement("button");
     remove.type = "button";
     remove.className = "live-remove";

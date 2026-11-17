@@ -3,8 +3,9 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="description" content="SolveJS Live Lab: editable PDF and XLSX reports plus runnable utility examples." />
+  <meta name="description" content="SolveJS Live Lab: PDF and XLSX studios, an AcroForm reader, and runnable examples for every package." />
   <title>Live Lab | SolveJS</title>
+  <link rel="icon" href="../favicon.svg" type="image/svg+xml" />
   <link rel="stylesheet" href="../styles.css?v=20261117" />
   <link rel="stylesheet" href="./live.css?v=20261117" />
   <script type="importmap">
@@ -45,6 +46,8 @@
     </a>
     <nav class="topnav-links" aria-label="SolveJS links">
       <a href="../index.html">Cookbook</a>
+      <a href="#package-explorer">Packages</a>
+      <a href="#form-lab">Form Lab</a>
       <a href="https://www.npmjs.com/package/@jdsalasc/solvejs" target="_blank" rel="noreferrer">npm</a>
       <a href="https://github.com/jdsalasca/solvejs" target="_blank" rel="noreferrer">GitHub</a>
     </nav>
@@ -55,10 +58,10 @@
       <div class="lab-hero-copy">
         <p class="eyebrow">LIVE DOCUMENTATION · ZERO DEPENDENCIES</p>
         <h1>Documents that <span>feel alive.</span></h1>
-        <p class="lead">Edit one invoice and watch a real PDF and XLSX render in the browser. The same build powers the packages you install.</p>
+        <p class="lead">Build a PDF report, a styled spreadsheet or a fillable Adobe form right here. Every example runs the same package build you install from npm.</p>
         <div class="hero-actions">
-          <a class="hero-button" href="#workspace">Open workspace</a>
-          <a class="hero-link" href="https://github.com/jdsalasca/solvejs/tree/main/packages" target="_blank" rel="noreferrer">Browse source →</a>
+          <a class="hero-button" href="#package-explorer">Explore packages</a>
+          <a class="hero-link" href="#form-lab">Try the AcroForm Lab →</a>
         </div>
         <div class="hero-stats">
           <div><strong>22</strong><span>packages</span></div>
@@ -71,17 +74,79 @@
           <div class="code-card-bar"><span></span><span></span><span></span></div>
           <pre><code><span class="code-key">const</span> report = Pdf({
   title: <span class="code-str">"Invoice 1042"</span>,
-  children: [
-    <span class="code-fn">Bookmark</span>({ title: <span class="code-str">"Items"</span> }),
-    <span class="code-fn">Table</span>({ rows }),
-    <span class="code-fn">Text</span>({ value: <span class="code-str">"Total $6,091"</span> })
-  ]
+  header: ({ page }) =&gt; <span class="code-fn">Header</span>({ page }),
+  pageNumbers: { preset: <span class="code-str">"classic"</span> },
+  children: <span class="code-fn">PdfPage</span>({ children: [
+    <span class="code-fn">Text</span>({ preset: <span class="code-str">"display"</span>, children: <span class="code-str">"Hello"</span> }),
+    <span class="code-fn">Subtitle</span>({ children: <span class="code-str">"Editorial typography"</span> }),
+    <span class="code-fn">Table</span>({ rows })
+  ]})
 });
 
-<span class="code-key">writeXlsx</span>({ dataValidations });</code></pre>
+<span class="code-fn">writeXlsx</span>({ rows: styledRows });</code></pre>
         </div>
         <div class="glow glow-one"></div>
         <div class="glow glow-two"></div>
+      </div>
+    </section>
+
+    <section class="docs-shell" id="package-explorer">
+      <aside class="docs-sidebar">
+        <div class="sidebar-head">
+          <p class="panel-kicker">PACKAGE EXPLORER</p>
+          <h2>Every package</h2>
+          <span id="package-count" class="mini-pill">0 packages</span>
+        </div>
+        <label class="sidebar-search">
+          <span class="sidebar-search-label">Filter</span>
+          <input id="package-search" type="search" placeholder="Search packages…" autocomplete="off" />
+        </label>
+        <nav id="package-nav" class="package-nav" aria-label="SolveJS packages"></nav>
+        <a class="sidebar-form-link" href="#form-lab">
+          <span>AcroForm Lab</span>
+          <span aria-hidden="true">→</span>
+        </a>
+      </aside>
+
+      <div class="docs-main">
+        <header class="package-head">
+          <div>
+            <p class="panel-kicker" id="package-level">FLAGSHIP</p>
+            <h2 id="package-name">@jdsalasc/solvejs-pdf</h2>
+            <p class="live-caption" id="package-title">PDF generation + viewer</p>
+          </div>
+          <a id="package-npm" class="mini-pill" href="https://www.npmjs.com/package/@jdsalasc/solvejs-pdf" target="_blank" rel="noreferrer">npm ↗</a>
+        </header>
+        <div id="package-content" class="package-content"></div>
+      </div>
+    </section>
+
+    <section class="panel form-lab" id="form-lab">
+      <div class="panel-kicker">ACROFORM LAB · PDF</div>
+      <div class="form-lab-head">
+        <div>
+          <h2>Read and fill Adobe forms.</h2>
+          <p class="live-caption">Upload a fillable PDF, edit its fields and download the values or a filled copy. Standard AcroForm fields work; XFA and encrypted files are detected.</p>
+        </div>
+        <span id="form-status" class="status-pill" role="status" aria-live="polite">Loading sample…</span>
+      </div>
+      <div class="form-lab-grid">
+        <div class="form-fields-panel">
+          <div class="form-actions">
+            <label class="file-button">Upload PDF<input id="form-upload" type="file" accept="application/pdf" hidden /></label>
+            <button id="form-sample" class="live-button ghost" type="button">Use sample</button>
+            <button id="form-json" class="live-button ghost" type="button">Download JSON</button>
+            <button id="form-filled" class="live-button" type="button">Download filled PDF</button>
+          </div>
+          <div id="form-fields" class="form-fields">
+            <p class="form-empty">Choose a PDF to inspect its AcroForm fields.</p>
+          </div>
+          <pre id="form-meta" class="live-output">Loading sample…</pre>
+        </div>
+        <div class="form-viewer-panel">
+          <iframe id="form-viewer" class="doc-frame" title="AcroForm preview"></iframe>
+          <p class="live-caption">The native viewer also lets you type in the fields. Our API reads and writes the same values.</p>
+        </div>
       </div>
     </section>
 
@@ -98,10 +163,10 @@
           </div>
 
           <div class="live-fields">
-            <label>Customer<input id="live-customer" value="Ada Lovelace" /></label>
-            <label>Company<input id="live-company" value="Analytical Engines Ltd." /></label>
-            <label>Invoice<input id="live-number" value="1042" /></label>
-            <label>Tax %<input id="live-tax" type="number" min="0" max="40" step="0.5" value="8" /></label>
+            <label>Customer<input id="live-customer" name="customer" autocomplete="name" value="Ada Lovelace" /></label>
+            <label>Company<input id="live-company" name="company" autocomplete="organization" value="Analytical Engines Ltd." /></label>
+            <label>Invoice<input id="live-number" name="invoice" autocomplete="off" value="1042" /></label>
+            <label>Tax %<input id="live-tax" name="tax" type="number" min="0" max="40" step="0.5" autocomplete="off" value="8" /></label>
           </div>
 
           <div class="items-block">
@@ -115,9 +180,9 @@
           <div class="panel-kicker">UNDER THE HOOD</div>
           <h3>One dataset. Two document engines.</h3>
           <ul class="feature-list">
-            <li><span>01</span> PDF bookmarks and page numbers are written as native PDF objects.</li>
-            <li><span>02</span> XLSX formulas keep cached values, defined names and live validation.</li>
-            <li><span>03</span> Both files come from the same package build you install from npm.</li>
+            <li><span>01</span> PDF headers, footers, bookmarks and page numbers are native PDF objects.</li>
+            <li><span>02</span> XLSX formulas keep cached values, defined names, validation and print setup.</li>
+            <li><span>03</span> AcroForm fields can be read, edited and written back into the document.</li>
           </ul>
           <div class="package-row">
             <code>solvejs-pdf</code>
@@ -161,7 +226,7 @@
       <article class="panel tool-panel">
         <div class="panel-kicker">04 · VALIDATORS</div>
         <h2>Structured input</h2>
-        <label>Email, phone, UUID or username<input id="live-validate-input" value="dev@example.com" /></label>
+        <label>Email, phone, UUID or username<input id="live-validate-input" name="validate" autocomplete="off" value="dev@example.com" /></label>
         <div class="live-actions">
           <button data-validate="email" class="chip" type="button">Email</button>
           <button data-validate="phone" class="chip" type="button">Phone</button>
@@ -175,9 +240,9 @@
         <div class="panel-kicker">05 · TIME &amp; MONEY</div>
         <h2>Date &amp; money</h2>
         <div class="live-fields compact">
-          <label>Date<input id="live-date" type="date" value="2026-11-16" /></label>
-          <label>Add days<input id="live-days" type="number" value="30" /></label>
-          <label>Amount<input id="live-amount" value="19.99" /></label>
+          <label>Date<input id="live-date" name="date" autocomplete="off" type="date" value="2026-11-16" /></label>
+          <label>Add days<input id="live-days" name="days" autocomplete="off" type="number" value="30" /></label>
+          <label>Amount<input id="live-amount" name="amount" autocomplete="off" value="19.99" /></label>
         </div>
         <pre id="live-date-output" class="live-output">Choose a date and an offset.</pre>
       </article>
@@ -185,35 +250,13 @@
       <article class="panel tool-panel">
         <div class="panel-kicker">06 · JSON &amp; URL</div>
         <h2>Query strings</h2>
-        <label>Query string<input id="live-query" value="?page=2&q=pdf+reports&tag=docs" /></label>
+        <label>Query string<input id="live-query" name="query" autocomplete="off" value="?page=2&q=pdf+reports&tag=docs" /></label>
         <div class="live-actions">
           <button id="live-run-query" class="chip" type="button">Parse + build URL</button>
           <button id="live-run-json" class="chip" type="button">Stable JSON</button>
         </div>
         <pre id="live-query-output" class="live-output">?page=2&amp;q=pdf+reports&amp;tag=docs</pre>
       </article>
-    </section>
-
-    <section class="panel explorer-panel" id="package-explorer">
-      <div class="panel-kicker">07 · PACKAGE EXPLORER</div>
-      <div class="explorer-head">
-        <div>
-          <h2>Every package. One tap away.</h2>
-          <p class="live-caption">Pick a package to run a real example from the workspace build. No mock data, no CDN drift.</p>
-        </div>
-        <span class="mini-pill" id="package-count">0 packages</span>
-      </div>
-      <div id="package-tabs" class="package-tabs" role="tablist" aria-label="SolveJS packages"></div>
-      <div class="package-panel">
-        <div class="package-code">
-          <div class="package-code-head"><span id="package-name">Package</span><span id="package-level">Example</span></div>
-          <pre><code id="package-code"></code></pre>
-        </div>
-        <div class="package-result">
-          <div class="package-result-head">Live result</div>
-          <pre id="package-output" class="live-output"></pre>
-        </div>
-      </div>
     </section>
 
     <footer class="lab-footer">

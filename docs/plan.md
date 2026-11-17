@@ -188,6 +188,12 @@ Competitor study:
 - PDF gaps ranked: PNG with transparency, page templates/watermarks, outlines/bookmarks and custom TTF fonts. Reading/editing existing PDFs stays out of scope.
 - Both package READMEs now include a capability matrix with the honest gaps and use-case guidance.
 
+## Round 14: AcroForm support and document studios - done
+
+- PDF `0.1.7`: `readPdfForm`, `readPdfFormValues` and `fillPdfForm` for standard AcroForm text, checkbox, radio and choice fields, including xref streams and object streams. XFA and encrypted PDFs are detected; signatures are read but not signed.
+- Live Lab: sidebar package explorer, PDF studio with report/invoice/letter documents and page-number presets, XLSX studio with three workbooks and a real preview parsed back from the generated file, and an AcroForm Lab with sample upload, JSON export and filled PDF download.
+- Verified: PDF 49 tests, XLSX 70 tests, live Lab checked locally in Chrome at desktop and 390px, and the generated report/invoice/letter PDFs opened in the native viewer.
+
 ## Round 13: API styling and page-number presets - done
 
 - XLSX `0.2.5`: data-first rows accept `{ cells, style, height }`; cell objects accept `style`, `colSpan` and `rowSpan`. `emptyCells: "blank" | "zero"` controls null/undefined output. Added tests for styled rows, merges, formulas and empty policy.

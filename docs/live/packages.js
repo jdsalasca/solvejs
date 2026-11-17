@@ -12,71 +12,32 @@ import { formatMoney, fromDecimal } from "@jdsalasc/solvejs-money";
 import { roundTo, safeDivide } from "@jdsalasc/solvejs-numbers";
 import { deepMerge, get } from "@jdsalasc/solvejs-objects";
 import { paginate } from "@jdsalasc/solvejs-pagination";
-import { Bookmark, Pdf, PdfPage, Subtitle, Text, renderPdf } from "@jdsalasc/solvejs-pdf";
 import { escapeRegex, validateByName } from "@jdsalasc/solvejs-regex";
 import { s } from "@jdsalasc/solvejs-schema";
 import { maxSatisfying, satisfies } from "@jdsalasc/solvejs-semver";
 import { mask, slugify } from "@jdsalasc/solvejs-string";
 import { buildUrl, parseQuery } from "@jdsalasc/solvejs-url";
 import { validateCellphoneNumber, validateEmail } from "@jdsalasc/solvejs-validators";
-import { Colors, writeXlsx } from "@jdsalasc/solvejs-xlsx";
+import { renderPdfDemo, renderFormLab } from "./pdf-gallery.js";
+import { renderXlsxDemo } from "./xlsx-gallery.js";
 
 const PACKAGES = [
   {
+    id: "pdf",
     name: "@jdsalasc/solvejs-pdf",
-    title: "PDF generation + viewer",
+    title: "PDF generation, typography and AcroForm",
     level: "Flagship",
-    code: `Pdf({ pageNumbers: { preset: "classic" }, children: PdfPage({ children: [
-  Text({ preset: "display", children: "Hello" }),
-  Subtitle({ children: "Editorial typography" })
-]) })`,
-    run: () => {
-      const bytes = renderPdf(
-        Pdf({
-          title: "Live PDF",
-          pageNumbers: { preset: "classic" },
-          children: PdfPage({
-            children: [
-              Bookmark({ title: "Intro" }),
-              Text({ preset: "display", children: "Hello" }),
-              Subtitle({ children: "Editorial typography" }),
-              Text({ value: "Pay within 15 days", color: "#4F8CFF", fontSize: 10, underline: true })
-            ]
-          })
-        })
-      );
-      return { bytes: bytes.byteLength, signature: new TextDecoder().decode(bytes.subarray(0, 8)) };
-    }
+    demo: "pdf"
   },
   {
+    id: "xlsx",
     name: "@jdsalasc/solvejs-xlsx",
-    title: "XLSX writer + reader",
+    title: "XLSX writer, reader and live preview",
     level: "Flagship",
-    code: `writeXlsx({ sheets: [{ name: "Orders", emptyCells: "zero", rows: [
-  [{ value: "Summary", colSpan: 2, style: { bold: true, align: "center" } }],
-  { cells: [1, undefined], style: { fill: Colors.LightBlue } },
-  [{ value: 5, formula: "B3+5" }]
-] }] })`,
-    run: () => {
-      const bytes = writeXlsx({
-        sheets: [
-          {
-            name: "Orders",
-            emptyCells: "zero",
-            columns: [{ header: "Status", width: 16 }, { header: "Qty", width: 10 }],
-            rows: [
-              [{ value: "Summary", colSpan: 2, style: { bold: true, fill: Colors.LightBlue, align: "center" } }],
-              { cells: ["open", undefined], style: { fill: Colors.LightGray }, height: 22 },
-              [{ value: 5, formula: "B3*2", style: { italic: true } }]
-            ],
-            dataValidations: [{ range: "A2:A50", type: "list", values: ["open", "paid"] }]
-          }
-        ]
-      });
-      return { bytes: bytes.byteLength, sheet: "Orders", validation: "A2:A50 list", emptyPolicy: "zero" };
-    }
+    demo: "xlsx"
   },
   {
+    id: "date",
     name: "@jdsalasc/solvejs-date",
     title: "Strict dates and UTC math",
     level: "Core",
@@ -87,6 +48,7 @@ const PACKAGES = [
     }
   },
   {
+    id: "money",
     name: "@jdsalasc/solvejs-money",
     title: "Exact minor-unit money",
     level: "Core",
@@ -97,6 +59,7 @@ const PACKAGES = [
     }
   },
   {
+    id: "validators",
     name: "@jdsalasc/solvejs-validators",
     title: "Structured validation codes",
     level: "Core",
@@ -107,6 +70,7 @@ const PACKAGES = [
     })
   },
   {
+    id: "string",
     name: "@jdsalasc/solvejs-string",
     title: "Safe text normalization",
     level: "Core",
@@ -114,6 +78,7 @@ const PACKAGES = [
     run: () => ({ slug: slugify("Café & Code"), masked: mask("4242424242424242", 4) })
   },
   {
+    id: "list",
     name: "@jdsalasc/solvejs-list",
     title: "Array grouping and dedupe",
     level: "Core",
@@ -128,6 +93,7 @@ const PACKAGES = [
     }
   },
   {
+    id: "objects",
     name: "@jdsalasc/solvejs-objects",
     title: "Nested paths and deep merge",
     level: "Core",
@@ -138,6 +104,7 @@ const PACKAGES = [
     }
   },
   {
+    id: "numbers",
     name: "@jdsalasc/solvejs-numbers",
     title: "Safe math helpers",
     level: "Core",
@@ -145,6 +112,7 @@ const PACKAGES = [
     run: () => ({ divideByZero: safeDivide(10, 0, 0), rounded: roundTo(19.995, 2) })
   },
   {
+    id: "regex",
     name: "@jdsalasc/solvejs-regex",
     title: "Tested common patterns",
     level: "Core",
@@ -152,6 +120,7 @@ const PACKAGES = [
     run: () => ({ email: validateByName("a@b.co", "email"), escaped: escapeRegex("a.b") })
   },
   {
+    id: "url",
     name: "@jdsalasc/solvejs-url",
     title: "Deterministic URLs",
     level: "Core",
@@ -162,6 +131,7 @@ const PACKAGES = [
     })
   },
   {
+    id: "json",
     name: "@jdsalasc/solvejs-json",
     title: "Stable JSON and deep clone",
     level: "Core",
@@ -169,6 +139,7 @@ const PACKAGES = [
     run: () => ({ stable: stableStringify({ b: 1, a: 2 }), clone: deepClone({ nested: { ok: true } }) })
   },
   {
+    id: "pagination",
     name: "@jdsalasc/solvejs-pagination",
     title: "Pages, offsets and cursors",
     level: "Core",
@@ -176,6 +147,7 @@ const PACKAGES = [
     run: () => paginate([1, 2, 3, 4, 5], { page: 2, perPage: 2 })
   },
   {
+    id: "semver",
     name: "@jdsalasc/solvejs-semver",
     title: "Ranges and version bumps",
     level: "Core",
@@ -186,6 +158,7 @@ const PACKAGES = [
     })
   },
   {
+    id: "errors",
     name: "@jdsalasc/solvejs-errors",
     title: "Stable application errors",
     level: "Infra",
@@ -193,6 +166,7 @@ const PACKAGES = [
     run: () => errorToResponse(createError("NOT_FOUND", "No user with id 42."))
   },
   {
+    id: "http",
     name: "@jdsalasc/solvejs-http",
     title: "HTTP status and negotiation",
     level: "Infra",
@@ -204,6 +178,7 @@ const PACKAGES = [
     })
   },
   {
+    id: "cache",
     name: "@jdsalasc/solvejs-cache",
     title: "TTL and LRU caches",
     level: "Infra",
@@ -215,6 +190,7 @@ const PACKAGES = [
     }
   },
   {
+    id: "async",
     name: "@jdsalasc/solvejs-async",
     title: "Retries and bounded concurrency",
     level: "Infra",
@@ -225,6 +201,7 @@ const PACKAGES = [
     })
   },
   {
+    id: "env",
     name: "@jdsalasc/solvejs-env",
     title: "Fail-fast environment parsing",
     level: "Infra",
@@ -232,6 +209,7 @@ const PACKAGES = [
     run: () => ({ port: getEnvNumber("PORT", { PORT: "3000" }), timeout: TIME.SECOND_MS })
   },
   {
+    id: "schema",
     name: "@jdsalasc/solvejs-schema",
     title: "Typed runtime schemas",
     level: "Infra",
@@ -242,6 +220,7 @@ const PACKAGES = [
     }
   },
   {
+    id: "constants",
     name: "@jdsalasc/solvejs-constants",
     title: "Typed constants",
     level: "Infra",
@@ -249,6 +228,7 @@ const PACKAGES = [
     run: () => ({ ok: HTTP_STATUS.OK, minute: TIME.MINUTE_MS })
   },
   {
+    id: "meta",
     name: "@jdsalasc/solvejs",
     title: "One import surface",
     level: "Meta",
@@ -257,44 +237,153 @@ const PACKAGES = [
   }
 ];
 
-const tabs = document.querySelector("#package-tabs");
-const code = document.querySelector("#package-code");
-const output = document.querySelector("#package-output");
-const name = document.querySelector("#package-name");
-const level = document.querySelector("#package-level");
+const GROUPS = ["Flagship", "Core", "Infra", "Meta"];
+const nav = document.querySelector("#package-nav");
+const content = document.querySelector("#package-content");
 const count = document.querySelector("#package-count");
+const search = document.querySelector("#package-search");
+const packageName = document.querySelector("#package-name");
+const packageTitle = document.querySelector("#package-title");
+const packageLevel = document.querySelector("#package-level");
+const packageNpm = document.querySelector("#package-npm");
 if (count) count.textContent = `${PACKAGES.length} packages`;
 
-let active = 0;
+let active = PACKAGES[0];
+let cleanup = () => {};
 
-function select(index) {
-  active = index;
-  const pkg = PACKAGES[index];
-  tabs.querySelectorAll(".package-tab").forEach((tab, tabIndex) => {
-    tab.setAttribute("aria-selected", String(tabIndex === index));
-  });
-  name.textContent = pkg.name;
-  level.textContent = `${pkg.level} · ${pkg.title}`;
-  code.textContent = pkg.code;
-  output.textContent = "Running...";
-  Promise.resolve()
-    .then(pkg.run)
-    .then((result) => {
-      output.textContent = typeof result === "string" ? result : JSON.stringify(result, null, 2);
-    })
-    .catch((error) => {
-      output.textContent = error instanceof Error ? error.message : String(error);
-    });
+function el(tag, className, text) {
+  const node = document.createElement(tag);
+  if (className) node.className = className;
+  if (text !== undefined) node.textContent = text;
+  return node;
 }
 
-for (const [index, pkg] of PACKAGES.entries()) {
-  const tab = document.createElement("button");
-  tab.type = "button";
-  tab.className = "package-tab";
-  tab.setAttribute("role", "tab");
-  tab.setAttribute("aria-selected", String(index === 0));
-  tab.textContent = pkg.name.replace("@jdsalasc/solvejs", "solvejs");
-  tab.addEventListener("click", () => select(index));
-  tabs.append(tab);
+function codeCard(label, code) {
+  const card = el("section", "package-code");
+  const head = el("div", "package-code-head");
+  head.append(el("span", undefined, label), el("span", undefined, "ESM · zero deps"));
+  const pre = el("pre");
+  const codeNode = el("code", undefined, code);
+  pre.append(codeNode);
+  card.append(head, pre);
+  return { card, codeNode };
 }
-select(active);
+
+function resultCard() {
+  const card = el("section", "package-result");
+  const head = el("div", "package-result-head");
+  const label = el("span", undefined, "Live result");
+  const run = el("button", "result-run", "Run again");
+  run.type = "button";
+  head.append(label, run);
+  const output = el("pre", "live-output");
+  card.append(head, output);
+  return { card, output, run };
+}
+
+function renderSimple(pkg) {
+  const grid = el("div", "package-grid");
+  const code = codeCard("Code", pkg.code);
+  const result = resultCard();
+  grid.append(code.card, result.card);
+  content.replaceChildren(grid);
+
+  async function execute() {
+    result.output.classList.remove("is-error");
+    result.output.textContent = "Running…";
+    try {
+      const value = await Promise.resolve().then(pkg.run);
+      result.output.textContent = typeof value === "string" ? value : JSON.stringify(value, null, 2);
+    } catch (error) {
+      result.output.classList.add("is-error");
+      result.output.textContent = error instanceof Error ? `${error.name}: ${error.message}` : String(error);
+    }
+  }
+  result.run.addEventListener("click", execute);
+  execute();
+  return () => {};
+}
+
+function setActive(pkg) {
+  active = pkg;
+  for (const button of nav.querySelectorAll(".nav-item")) {
+    const selected = button.dataset.id === pkg.id;
+    button.classList.toggle("is-active", selected);
+    if (selected) button.setAttribute("aria-current", "true");
+    else button.removeAttribute("aria-current");
+  }
+  packageName.textContent = pkg.name;
+  packageTitle.textContent = pkg.title;
+  packageLevel.textContent = pkg.level.toUpperCase();
+  packageNpm.href = `https://www.npmjs.com/package/${pkg.name}`;
+  cleanup();
+  content.replaceChildren();
+  cleanup =
+    pkg.demo === "pdf"
+      ? renderPdfDemo(content)
+      : pkg.demo === "xlsx"
+        ? renderXlsxDemo(content)
+        : renderSimple(pkg);
+}
+
+function select(id, updateHash = true) {
+  const pkg = PACKAGES.find((candidate) => candidate.id === id) ?? PACKAGES[0];
+  if (pkg === active && content.childElementCount > 0) return;
+  setActive(pkg);
+  if (updateHash) history.replaceState(null, "", `#pkg-${pkg.id}`);
+}
+
+for (const group of GROUPS) {
+  const packages = PACKAGES.filter((pkg) => pkg.level === group);
+  const section = el("div", "nav-group");
+  const heading = el("h3", "nav-group-label", group);
+  heading.append(el("span", undefined, String(packages.length)));
+  section.append(heading);
+  for (const pkg of packages) {
+    const button = el("button", "nav-item");
+    button.type = "button";
+    button.dataset.id = pkg.id;
+    button.title = pkg.title;
+    const dot = el("span", "nav-dot");
+    dot.dataset.level = pkg.level.toLowerCase();
+    const label = el("span", "nav-name", pkg.name.replace("@jdsalasc/solvejs", "solvejs"));
+    const arrow = el("span", "nav-arrow", "→");
+    button.append(dot, label, arrow);
+    button.addEventListener("click", () => select(pkg.id));
+    section.append(button);
+  }
+  nav.append(section);
+}
+
+search.addEventListener("input", () => {
+  const query = search.value.trim().toLowerCase();
+  for (const section of nav.querySelectorAll(".nav-group")) {
+    let visible = 0;
+    for (const button of section.querySelectorAll(".nav-item")) {
+      const pkg = PACKAGES.find((candidate) => candidate.id === button.dataset.id);
+      const match = !query || `${pkg.name} ${pkg.title} ${pkg.level}`.toLowerCase().includes(query);
+      button.hidden = !match;
+      if (match) visible += 1;
+    }
+    section.hidden = visible === 0;
+  }
+});
+
+const initial = location.hash.startsWith("#pkg-") ? location.hash.slice(5) : "pdf";
+select(initial, false);
+
+window.addEventListener("hashchange", () => {
+  if (location.hash.startsWith("#pkg-")) select(location.hash.slice(5), false);
+});
+
+const formLab = renderFormLab({
+  status: document.querySelector("#form-status"),
+  fields: document.querySelector("#form-fields"),
+  meta: document.querySelector("#form-meta"),
+  viewer: document.querySelector("#form-viewer"),
+  upload: document.querySelector("#form-upload"),
+  sample: document.querySelector("#form-sample"),
+  json: document.querySelector("#form-json"),
+  filled: document.querySelector("#form-filled")
+});
+void formLab;
