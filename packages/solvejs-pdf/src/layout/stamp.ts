@@ -1,7 +1,7 @@
 /* eslint-disable complexity, max-lines-per-function, max-params -- rotated stamp geometry */
 import { failPdf } from "../errors.js";
-import { normalizeColor, positive } from "../shared.js";
-import { measureText } from "../pdf/fonts.js";
+import { normalizeColor, positive, type PdfFontFamily } from "../shared.js";
+import { measureText, resolveFontKey } from "../pdf/fonts.js";
 import type { Block } from "./blocks.js";
 
 export type StampBlock = Block & { kind: "stamp"; width: number; height: number };
@@ -17,6 +17,12 @@ export function stampBlock(
   text: string,
   options: {
     color?: string;
+    background?: string;
+    borderColor?: string;
+    fontFamily?: PdfFontFamily;
+    bold?: boolean;
+    italic?: boolean;
+    uppercase?: boolean;
     angle?: number;
     fontSize?: number;
     borderWidth?: number;
@@ -33,11 +39,17 @@ export function stampBlock(
   if (!Number.isFinite(opacity) || opacity < 0 || opacity > 1) {
     failPdf("PDF_INVALID_INPUT", "Stamp opacity must be between 0 and 1.", { opacity });
   }
-  const font = "helvetica-bold" as const;
-  const textWidth = measureText(text.toUpperCase(), font, fontSize);
+  if (!Number.isFinite(angle) || angle < -180 || angle > 180) {
+    failPdf("PDF_INVALID_INPUT", "Stamp angle must be between -180 and 180.", { angle });
+  }
+  const label = options.uppercase === false ? text : text.toUpperCase();
+  const font = resolveFontKey(options.fontFamily ?? "helvetica", options.bold !== false, options.italic === true);
+  const textWidth = measureText(label, font, fontSize);
   const width = textWidth + padding * 2;
   const height = fontSize + padding * 2;
   const color = normalizeColor(options.color) ?? "#B91C1C";
+  const borderColor = normalizeColor(options.borderColor) ?? color;
+  const background = normalizeColor(options.background);
   return {
     kind: "stamp",
     width,
@@ -56,7 +68,8 @@ export function stampBlock(
       target.page.ops.push({
         kind: "polygon",
         points: corners,
-        stroke: color,
+        stroke: borderColor,
+        ...(background ? { fill: background } : {}),
         lineWidth: borderWidth,
         lineJoin: "miter",
         closed: true,
@@ -66,7 +79,7 @@ export function stampBlock(
         kind: "text",
         x: cx - textWidth / 2,
         y: cy + fontSize * 0.35,
-        text: text.toUpperCase(),
+        text: label,
         font,
         size: fontSize,
         color,

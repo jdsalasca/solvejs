@@ -22,6 +22,7 @@ export {
   Subtitle,
   Table,
   Text,
+  Title,
   View,
   PDF_TEXT_PRESETS,
   createElement,

@@ -1,7 +1,7 @@
 import { failPdf } from "../errors.js";
 import { PDF_LIMITS, PDF_PAGE_NUMBER_PRESETS, normalizeColor, nonNegative, positive, resolvePageSize, type PdfAlign, type PdfFontFamily, type PdfPageNumberOptions, type PdfWatermark, type PdfWatermarkInput } from "../shared.js";
-import { layoutText, measureText, resolveFontKey } from "../pdf/fonts.js";
-import { decodeImageSource, parseJpeg, type PdfImage } from "../pdf/images.js";
+import { layoutText, measureText, resolveFontKey, encodeForFont, type MeasuredLine } from "../pdf/fonts.js";
+import { decodeImageSource, parseImage, type PdfImage } from "../pdf/images.js";
 import type { PdfMetadata, PdfOp, PdfOutlineItem, PdfPageModel } from "../pdf/model.js";
 import {
   bookmarkBlock,
@@ -25,6 +25,7 @@ import { chartBlock, type PdfChartDatum } from "./charts.js";
 import { mathBlock } from "./math.js";
 import { barcodeBlock } from "./barcode.js";
 import { stampBlock } from "./stamp.js";
+import { PDF_TEXT_PRESETS } from "../element.js";
 import {
   Fragment,
   type PdfCell,
@@ -235,6 +236,27 @@ function drawStack(input: StackDraw): void {
   });
 }
 
+function clampLines(
+  lines: MeasuredLine[],
+  options: { maxLines: number; font: ReturnType<typeof resolveFontKey>; size: number; maxWidth: number }
+): MeasuredLine[] {
+  const { maxLines } = options;
+  if (lines.length <= maxLines) return lines;
+  const kept = lines.slice(0, maxLines);
+  const last = kept[maxLines - 1];
+  let text = last.text;
+  while (text.length > 0 && measureText(`${text}...`, options.font, options.size) > options.maxWidth) {
+    text = text.slice(0, -1);
+  }
+  const clipped = `${text}...`;
+  kept[maxLines - 1] = {
+    text: clipped,
+    bytes: encodeForFont(clipped, options.font),
+    width: measureText(clipped, options.font, options.size)
+  };
+  return kept;
+}
+
 function layoutTextNode(
   node: PdfElement,
   available: number,
@@ -249,7 +271,14 @@ function layoutTextNode(
   if (text.length > PDF_LIMITS.maxTextLength) {
     failPdf("PDF_LIMIT_EXCEEDED", "Text exceeds the configured length limit.", { length: text.length });
   }
-  const lines = layoutText(text, font, style.fontSize, contentWidth);
+  let lines = layoutText(text, font, style.fontSize, contentWidth);
+  if (node.props.maxLines !== undefined) {
+    const maxLines = positive(node.props.maxLines, "maxLines");
+    if (!Number.isInteger(maxLines) || maxLines > 500) {
+      failPdf("PDF_INVALID_INPUT", "maxLines must be an integer from 1 to 500.", { maxLines });
+    }
+    lines = clampLines(lines, { maxLines, font, size: style.fontSize, maxWidth: contentWidth });
+  }
   const href = typeof node.props.href === "string" ? node.props.href : undefined;
   return [withWidth(textBlock({ lines, font, size: style.fontSize, style, href }), width)];
 }
@@ -481,9 +510,9 @@ function layoutImage(node: PdfElement, available: number, context: LayoutContext
   if (typeof src !== "string" && !(src instanceof Uint8Array)) {
     failPdf("PDF_INVALID_INPUT", "Image src must be bytes, a data URL or base64.");
   }
-  let image = context.imageCache.get(src);
+  let image: PdfImage | undefined = context.imageCache.get(src);
   if (!image) {
-    image = parseJpeg(decodeImageSource(src));
+    image = parseImage(decodeImageSource(src));
     context.imageBytes += image.data.length;
     if (context.imageBytes > PDF_LIMITS.maxTotalImageBytes) {
       failPdf("PDF_LIMIT_EXCEEDED", "Document images exceed the aggregate byte limit.", {
@@ -562,6 +591,12 @@ function layoutStamp(node: PdfElement): Block[] {
   return [
     stampBlock(text, {
       color: normalizeColor(node.props.color as string | undefined),
+      background: normalizeColor(node.props.background as string | undefined),
+      borderColor: normalizeColor(node.props.borderColor as string | undefined),
+      fontFamily: node.props.fontFamily as PdfFontFamily | undefined,
+      bold: node.props.bold as boolean | undefined,
+      italic: node.props.italic as boolean | undefined,
+      uppercase: node.props.uppercase as boolean | undefined,
       angle: node.props.angle as number | undefined,
       fontSize: node.props.fontSize === undefined ? undefined : positive(node.props.fontSize, "fontSize"),
       borderWidth: node.props.borderWidth === undefined ? undefined : positive(node.props.borderWidth, "borderWidth"),
@@ -649,6 +684,14 @@ function layoutLink(node: PdfElement, available: number, context: LayoutContext)
   return layoutNodes(childrenOf(node), available, context).map((block) => linkBlock(block, href));
 }
 
+function presetStyle(preset: unknown): Partial<PdfStyle> {
+  if (preset === undefined) return {};
+  if (typeof preset !== "string" || !(preset in PDF_TEXT_PRESETS)) {
+    failPdf("PDF_INVALID_INPUT", "Unknown text preset.", { preset });
+  }
+  return PDF_TEXT_PRESETS[preset as keyof typeof PDF_TEXT_PRESETS];
+}
+
 function headingDefaults(level: unknown): Partial<PdfStyle> {
   if (level === 2) return { fontSize: 22, bold: true, marginBottom: 8, lineHeight: 1.25 };
   if (level === 3) return { fontSize: 18, bold: true, marginBottom: 6, lineHeight: 1.3 };
@@ -656,7 +699,7 @@ function headingDefaults(level: unknown): Partial<PdfStyle> {
 }
 
 function layoutHeading(node: PdfElement, available: number, context: LayoutContext): Block[] {
-  const defaults = headingDefaults(node.props.level);
+  const defaults = { ...headingDefaults(node.props.level), ...presetStyle(node.props.preset) };
   if (context.defaults.lineHeight !== undefined) defaults.lineHeight = context.defaults.lineHeight;
   return layoutTextNode(node, available, context, defaults);
 }
@@ -664,7 +707,8 @@ function layoutHeading(node: PdfElement, available: number, context: LayoutConte
 function layoutParagraph(node: PdfElement, available: number, context: LayoutContext): Block[] {
   return layoutTextNode(node, available, context, {
     lineHeight: context.defaults.lineHeight ?? 1.55,
-    marginBottom: 8
+    marginBottom: 8,
+    ...presetStyle(node.props.preset)
   });
 }
 
@@ -939,36 +983,88 @@ function resolveWatermark(
   return input;
 }
 
-// eslint-disable-next-line complexity -- watermark defaults and validation
-function watermarkOps(watermark: PdfWatermark, page: PdfPageModel): PdfOp[] {
-  if (typeof watermark.text !== "string" || watermark.text.trim().length === 0) {
+type WatermarkLayer = {
+  watermark: PdfWatermark;
+  page: PdfPageModel;
+  context: LayoutContext;
+  angle: number;
+  opacity: number;
+};
+
+// eslint-disable-next-line complexity -- image cache, sizing and rotation in one place
+function watermarkImageOp({ watermark, page, context, angle, opacity }: WatermarkLayer): PdfOp {
+  const src = watermark.image;
+  if (src === undefined) failPdf("PDF_INVALID_INPUT", "Watermark image is missing.");
+  let image: PdfImage | undefined = context.imageCache.get(src);
+  if (!image) {
+    image = parseImage(decodeImageSource(src));
+    context.imageBytes += image.data.length;
+    if (context.imageBytes > PDF_LIMITS.maxTotalImageBytes) {
+      failPdf("PDF_LIMIT_EXCEEDED", "Document images exceed the aggregate byte limit.", { bytes: context.imageBytes });
+    }
+    context.imageCache.set(src, image);
+  }
+  const width = watermark.imageWidth === undefined ? undefined : positive(watermark.imageWidth, "imageWidth");
+  const height = watermark.imageHeight === undefined ? undefined : positive(watermark.imageHeight, "imageHeight");
+  const natural = image.width / image.height;
+  let drawWidth = width ?? (height === undefined ? page.width * 0.4 : height * natural);
+  let drawHeight = height ?? drawWidth / natural;
+  if (drawWidth > page.width || drawHeight > page.height) {
+    const scale = Math.min(page.width / drawWidth, page.height / drawHeight);
+    drawWidth *= scale;
+    drawHeight *= scale;
+  }
+  const rotate: number | undefined = angle === 0 ? undefined : angle;
+  return {
+    kind: "image",
+    x: (page.width - drawWidth) / 2,
+    y: (page.height - drawHeight) / 2,
+    width: drawWidth,
+    height: drawHeight,
+    image,
+    ...(rotate === undefined ? {} : { rotate }),
+    opacity
+  };
+}
+
+function watermarkTextOp({ watermark, page, angle, opacity }: WatermarkLayer): PdfOp {
+  const text = watermark.text;
+  if (typeof text !== "string" || text.trim().length === 0) {
     failPdf("PDF_INVALID_INPUT", "Watermark text must be a non-empty string.");
   }
-  if (watermark.text.length > 500) failPdf("PDF_LIMIT_EXCEEDED", "Watermark text is too long.", { length: watermark.text.length });
+  if (text.length > 500) failPdf("PDF_LIMIT_EXCEEDED", "Watermark text is too long.", { length: text.length });
   const size = watermark.fontSize === undefined ? 64 : positive(watermark.fontSize, "fontSize");
+  const font = resolveFontKey(watermark.fontFamily ?? "helvetica", watermark.bold === true, false);
+  const width = measureText(text, font, size);
+  return {
+    kind: "text",
+    x: (page.width - width) / 2,
+    y: page.height / 2 + size * 0.35,
+    text,
+    font,
+    size,
+    color: normalizeColor(watermark.color) ?? "#E2E8F0",
+    rotate: angle,
+    opacity
+  };
+}
+
+// eslint-disable-next-line complexity -- watermark defaults and validation
+function watermarkOps(watermark: PdfWatermark, page: PdfPageModel, context: LayoutContext): PdfOp[] {
   const opacity = watermark.opacity === undefined ? 0.12 : watermark.opacity;
   if (!Number.isFinite(opacity) || opacity < 0 || opacity > 1) {
     failPdf("PDF_INVALID_INPUT", "Watermark opacity must be between 0 and 1.", { opacity });
   }
-  const angle = watermark.angle === undefined ? -35 : watermark.angle;
+  const angle = watermark.angle === undefined ? (watermark.image !== undefined ? 0 : -35) : watermark.angle;
   if (!Number.isFinite(angle) || angle < -180 || angle > 180) {
     failPdf("PDF_INVALID_INPUT", "Watermark angle must be between -180 and 180.", { angle });
   }
-  const font = resolveFontKey(watermark.fontFamily ?? "helvetica", watermark.bold === true, false);
-  const width = measureText(watermark.text, font, size);
-  return [
-    {
-      kind: "text",
-      x: (page.width - width) / 2,
-      y: page.height / 2 + size * 0.35,
-      text: watermark.text,
-      font,
-      size,
-      color: normalizeColor(watermark.color) ?? "#E2E8F0",
-      rotate: angle,
-      opacity
-    }
-  ];
+  const layer = { watermark, page, context, angle, opacity };
+  const ops: PdfOp[] = [];
+  if (watermark.image !== undefined) ops.push(watermarkImageOp(layer));
+  if (watermark.text !== undefined) ops.push(watermarkTextOp(layer));
+  if (ops.length === 0) failPdf("PDF_INVALID_INPUT", "Watermark requires text, a PNG/JPEG image, or both.");
+  return ops;
 }
 
 function decorate(
@@ -984,7 +1080,7 @@ function decorate(
     const total = pages.length;
     const target = targetOf(page);
     const watermark = resolveWatermark(page.watermark, index + 1, total);
-    if (watermark) page.ops.splice(backgroundOffset, 0, ...watermarkOps(watermark, page));
+    if (watermark) page.ops.splice(backgroundOffset, 0, ...watermarkOps(watermark, page, context));
     const headerBlocks = decoratorBlocks({ decorator: header, context, width: layout.contentWidth, page: index + 1, total });
     drawStack({ blocks: headerBlocks, target, x: layout.margin.left, y: layout.margin.top, width: layout.contentWidth });
     const footerBlocks = decoratorBlocks({ decorator: footer, context, width: layout.contentWidth, page: index + 1, total });

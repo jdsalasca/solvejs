@@ -52,7 +52,7 @@ export type PdfOutlineItem = {
   y: number;
 };
 
-/** JPEG image placed in a rectangle. */
+/** An image placed in a rectangle, optionally rotated about its center. */
 export type PdfImageOp = {
   kind: "image";
   x: number;
@@ -60,6 +60,7 @@ export type PdfImageOp = {
   width: number;
   height: number;
   image: PdfImage;
+  rotate?: number;
   opacity?: number;
 };
 

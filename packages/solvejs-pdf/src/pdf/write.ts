@@ -167,11 +167,25 @@ function contentFor(
     else if (op.kind === "polygon") builder.pushAscii(polygonCommands(op, page.height));
     else {
       const gs = op.opacity !== undefined && op.opacity < 1 ? `/${gsNames.get(op.opacity) ?? "GS1"} gs\n` : "";
-      builder.pushAscii(
-        `q\n${gs}${num(op.width)} 0 0 ${num(op.height)} ${num(op.x)} ${num(page.height - op.y - op.height)} cm\n/${
-          imageNames.get(op.image) ?? "Im1"
-        } Do\nQ\n`
-      );
+      const name = imageNames.get(op.image) ?? "Im1";
+      if (op.rotate === undefined || op.rotate === 0) {
+        builder.pushAscii(
+          `q\n${gs}${num(op.width)} 0 0 ${num(op.height)} ${num(op.x)} ${num(page.height - op.y - op.height)} cm\n/${name} Do\nQ\n`
+        );
+        continue;
+      }
+      const radians = (op.rotate * Math.PI) / 180;
+      const cos = Math.cos(radians);
+      const sin = Math.sin(radians);
+      const cx = op.x + op.width / 2;
+      const cy = page.height - op.y - op.height / 2;
+      const a = op.width * cos;
+      const b = op.width * sin;
+      const c = -op.height * sin;
+      const d = op.height * cos;
+      const e = cx - (op.width / 2) * cos + (op.height / 2) * sin;
+      const f = cy - (op.width / 2) * sin - (op.height / 2) * cos;
+      builder.pushAscii(`q\n${gs}${num(a)} ${num(b)} ${num(c)} ${num(d)} ${num(e)} ${num(f)} cm\n/${name} Do\nQ\n`);
     }
   }
   return builder.toBytes();
@@ -180,6 +194,7 @@ function contentFor(
 type ResourceIds = {
   fontIds: Map<PdfFontKey, number>;
   imageIds: Map<PdfImage, number>;
+  smaskIds: Map<PdfImage, number>;
   gsIds: Map<number, number>;
   pageIds: Array<{ page: number; content: number; annotations: number[] }>;
   nextId: number;
@@ -204,6 +219,10 @@ function collectResources(model: PdfDocumentModel): ResourceIds {
   for (const font of fonts) fontIds.set(font, nextId++);
   const imageIds = new Map<PdfImage, number>();
   for (const image of images) imageIds.set(image, nextId++);
+  const smaskIds = new Map<PdfImage, number>();
+  for (const image of images) {
+    if (image.alpha) smaskIds.set(image, nextId++);
+  }
   const gsIds = new Map<number, number>();
   for (const opacity of opacities) gsIds.set(opacity, nextId++);
 
@@ -213,7 +232,7 @@ function collectResources(model: PdfDocumentModel): ResourceIds {
     const annotations = page.links.map(() => nextId++);
     return { page: pageId, content: contentId, annotations };
   });
-  return { fontIds, imageIds, gsIds, pageIds, nextId };
+  return { fontIds, imageIds, smaskIds, gsIds, pageIds, nextId };
 }
 
 function fontObject(font: PdfFontKey): Uint8Array {
@@ -239,14 +258,25 @@ function resourceNames(resources: ResourceIds): {
   return { fontNames, imageNames, gsNames };
 }
 
-function imageObject(image: PdfImage): Uint8Array {
+function imageObject(image: PdfImage, smaskId?: number): Uint8Array {
   const builder = new ByteBuilder();
+  const filter = image.filter === "None" ? "" : " /Filter /DCTDecode";
+  const smask = smaskId === undefined ? "" : ` /SMask ${smaskId} 0 R`;
   builder.pushAscii(
-    `<< /Type /XObject /Subtype /Image /Width ${image.width} /Height ${image.height} /ColorSpace /${
-      image.colorSpace
-    } /BitsPerComponent 8 /Filter /DCTDecode /Length ${image.data.length} >>\nstream\n`
+    `<< /Type /XObject /Subtype /Image /Width ${image.width} /Height ${image.height} /ColorSpace /${image.colorSpace} /BitsPerComponent 8${filter}${smask} /Length ${image.data.length} >>\nstream\n`
   );
   builder.pushBytes(image.data);
+  builder.pushAscii("\nendstream");
+  return builder.toBytes();
+}
+
+function smaskObject(image: PdfImage): Uint8Array {
+  const alpha = image.alpha ?? new Uint8Array(0);
+  const builder = new ByteBuilder();
+  builder.pushAscii(
+    `<< /Type /XObject /Subtype /Image /Width ${image.width} /Height ${image.height} /ColorSpace /DeviceGray /BitsPerComponent 8 /Length ${alpha.length} >>\nstream\n`
+  );
+  builder.pushBytes(alpha);
   builder.pushAscii("\nendstream");
   return builder.toBytes();
 }
@@ -423,7 +453,11 @@ function buildObjects(
   }
 
   for (const [font, id] of resources.fontIds) objects.set(id, fontObject(font));
-  for (const [image, id] of resources.imageIds) objects.set(id, imageObject(image));
+  for (const [image, id] of resources.imageIds) {
+    objects.set(id, imageObject(image, resources.smaskIds.get(image)));
+    const smaskId = resources.smaskIds.get(image);
+    if (smaskId !== undefined) objects.set(smaskId, smaskObject(image));
+  }
   for (const [opacity, id] of resources.gsIds) objects.set(id, graphicsStateObject(opacity));
 
   const resource = resourceDictionary(resources.fontIds, resources.imageIds, resources.gsIds, fontNames, imageNames, gsNames);

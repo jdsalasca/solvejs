@@ -1,5 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
 import {
   BarChart,
   Formula,
@@ -10,6 +11,7 @@ import {
   PieChart,
   Receipt,
   Row,
+  Stamp,
   Text,
   buildPdfDocument,
   renderPdf
@@ -159,3 +161,59 @@ test("draws vector icons and charts", () => {
   assert.ok(ops.filter((op) => op.kind === "line").length > 4);
   assert.ok(ops.filter((op) => op.kind === "polygon").length > 1);
 });
+
+test("draws PNG image watermarks, alone or combined with text", () => {
+  const png = readFileSync(new URL("./fixtures/tiny-rgb.png", import.meta.url));
+  const model = buildPdfDocument(
+    Pdf({
+      watermark: { image: png, imageWidth: 200, opacity: 0.2 },
+      children: PdfPage({ children: Text({ value: "Body" }) })
+    })
+  );
+  const image = model.pages[0].ops.find((op) => op.kind === "image");
+  assert.ok(image);
+  assert.equal(image.width, 200);
+  assert.equal(image.height, 200);
+  assert.equal(image.opacity, 0.2);
+  assert.equal(image.x, (model.pages[0].width - 200) / 2);
+
+  const both = buildPdfDocument(
+    Pdf({
+      watermark: { image: png, text: "DRAFT", angle: 15 },
+      children: PdfPage({ children: Text({ value: "Body" }) })
+    })
+  );
+  const ops = both.pages[0].ops;
+  assert.ok(ops.some((op) => op.kind === "image" && op.rotate === 15));
+  assert.ok(ops.some((op) => op.kind === "text" && op.text === "DRAFT" && op.rotate === 15));
+});
+
+test("customizes stamp colors, font and casing", () => {
+  const model = buildPdfDocument(
+    Pdf({
+      children: PdfPage({
+        children: Stamp({
+          text: "Approved",
+          color: "#9A3412",
+          background: "#FFF7ED",
+          borderColor: "#EA580C",
+          fontFamily: "times",
+          bold: false,
+          italic: true,
+          uppercase: false,
+          borderWidth: 2
+        })
+      })
+    })
+  );
+  const ops = model.pages[0].ops;
+  const polygon = ops.find((op) => op.kind === "polygon");
+  const label = ops.find((op) => op.kind === "text");
+  assert.equal(polygon.fill, "#FFF7ED");
+  assert.equal(polygon.stroke, "#EA580C");
+  assert.equal(polygon.lineWidth, 2);
+  assert.equal(label.text, "Approved");
+  assert.equal(label.font, "times-italic");
+  assert.equal(label.color, "#9A3412");
+});
+

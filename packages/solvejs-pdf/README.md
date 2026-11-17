@@ -101,12 +101,14 @@ const bytes = renderPdf(
 | `PdfPage` | Forces a new page; `lineHeight` and `watermark` override the document defaults for that page and its continuation |
 | `View` | Vertical container: `padding`, `background`, `border`, `radius`, `width`, `height`, `gap`, plus style props |
 | `Row` | Horizontal container; `valign` (`"top"`, `"middle"`, `"bottom"`) aligns items with different heights |
-| `Text` | `value` or primitive children, `href`, `preset`, plus style props; `align` accepts `"justify"` |
+| `Text` | `value` or primitive children, `href`, `preset`, `maxLines`, plus style props; `align` accepts `"justify"` |
+| `Title` | Preset bold title text; accepts all text props |
 | `Subtitle` | Preset italic, muted subtitle text; accepts all text props |
-| `Heading` | `level` (`1`, `2`, `3`), plus text props |
-| `Paragraph` | Body text with a comfortable line height; accepts `padding`, `paddingX`, `paddingY` |
+| `Heading` | `level` (`1`, `2`, `3`), `preset`, plus text props |
+| `Paragraph` | Body text with a comfortable line height; `preset`, `maxLines`, `padding`, `paddingX`, `paddingY` |
+| `Stamp` | `text`, `color`, `background`, `borderColor`, `fontFamily`, `bold`, `italic`, `uppercase`, `angle`, `fontSize`, `borderWidth`, `padding`, `opacity` |
 | `Table` | `columns`, `rows`, `header`, `zebra`, `cellPadding`, `headerBackground`, `headerColor`, `zebraColor`, `fontSize` |
-| `Image` | `src` (JPEG bytes, data URL or base64), `width`, `height`, `background` |
+| `Image` | `src` (PNG or JPEG bytes, data URL or base64), `width`, `height`, `background`; PNG alpha becomes a PDF SMask |
 | `Icon` | `name` (`check`, `arrow-right`, `star`, `info`, `warning`, `mail`, `lock`, `calendar`, `search`, `download`, `upload`, `clock`, `chart`, `doc`, `folder`, `user`, `globe` and more), `size`, `color`, `strokeWidth` |
 | `BarChart` | `data` (`{ label, value, color? }[]`), `title`, `height`, `colors`, `showValues`, `valueFormat` |
 | `LineChart` | Same data contract as `BarChart`, with one line series |
@@ -154,6 +156,13 @@ const table = (
 | `lineHeight` | multiplier (0-4) |
 | `textTransform` | `"none"`, `"uppercase"`, `"lowercase"`, `"capitalize"` |
 | `underline`, `strike` | boolean text decorations |
+| `padding`, `paddingX`, `paddingY` | points |
+| `margin`, `marginTop`, `marginBottom` | points |
+| `border` | border width in points |
+| `radius` | corner radius in points |
+| `width` | points or a percentage string such as `"40%"` |
+| `height` | points |
+| `gap` | space between children in points |
 
 ## Typography and footers
 
@@ -203,7 +212,7 @@ Custom TTF/OTF embedding is not part of this release. The standard fonts keep th
 
 ### Presets and page numbers
 
-`PDF_TEXT_PRESETS` contains `display`, `title`, `subtitle`, `body`, `caption`, `eyebrow` and `signature`. Use a preset by name, or spread it in JSON-style configuration:
+`PDF_TEXT_PRESETS` contains `hero`, `display`, `title`, `section`, `subtitle`, `lead`, `body`, `quote`, `caption`, `eyebrow` and `signature`. Use a preset by name, or spread it in JSON-style configuration:
 
 ```ts
 import { PDF_TEXT_PRESETS, Pdf, PdfPage, Subtitle, Text } from "@jdsalasc/solvejs-pdf";
@@ -238,13 +247,6 @@ Pdf({
   pageNumbers: { format: "number", align: "left", italic: true, fontSize: 9, prefix: "p. " }
 });
 ```
-| `padding`, `paddingX`, `paddingY` | points |
-| `margin`, `marginTop`, `marginBottom` | points |
-| `border` | border width in points |
-| `radius` | corner radius in points |
-| `width` | points or a percentage string such as `"40%"` |
-| `height` | points |
-| `gap` | space between children in points |
 
 `PdfColors` includes `Black`, `White`, `Slate`, `Gray`, `LightGray`, `SoftGray`, `Red`, `DarkRed`, `Rose`, `Orange`, `Amber`, `Yellow`, `Green`, `DarkGreen`, `Emerald`, `Teal`, `Blue`, `DarkBlue`, `Sky`, `LightBlue`, `Indigo`, `Purple`, `Pink` and `Brown`.
 
@@ -290,9 +292,77 @@ Pdf({
 
 `opacity` is emitted through a PDF `ExtGState`; `color`, `fontSize`, `fontFamily`, `bold` and `angle` are configurable. A factory receives `{ page, total }` if you want the text to change with the page.
 
+Pass `image` instead of `text` to stamp a PNG or JPEG behind the content, or pass both to layer text over the image. `imageWidth` and `imageHeight` are optional and preserve the aspect ratio; by default the image spans 40% of the page width and stays centered:
+
+```tsx
+Pdf({
+  watermark: { image: logoPng, imageWidth: 320, opacity: 0.08 },
+  children: PdfPage({
+    watermark: { image: logoPng, text: "CONFIDENTIAL", angle: 0, opacity: 0.1 },
+    children: Text({ children: "The same watermark factory works for both layers." })
+  })
+});
+```
+
+PNG alpha is preserved through a PDF `SMask`, so transparent logos look correct on colored backgrounds.
+
+## Titles, presets and paragraph controls
+
+`Title`, `Subtitle`, `Heading` and `Paragraph` share the same typography tokens. Explicit props win over the preset, so a title can inherit `title` and override only color or spacing:
+
+```tsx
+import { Paragraph, Pdf, PdfPage, Subtitle, Text, Title } from "@jdsalasc/solvejs-pdf";
+
+const report = Pdf({
+  children: PdfPage({
+    children: [
+      Title({ children: "Annual report" }),
+      Subtitle({ children: "Revenue, retention and product velocity" }),
+      Paragraph({ preset: "lead", children: "A one-paragraph summary for the reader in a hurry." }),
+      Paragraph({ preset: "quote", children: "Numbers should support a decision, not replace it." }),
+      Paragraph({
+        preset: "body",
+        align: "justify",
+        maxLines: 3,
+        children: "Long copy that wraps across several lines and then clamps with an ellipsis, which is useful for cards and previews."
+      }),
+      Text({ preset: "caption", children: "Generated 17 Nov 2026" })
+    ]
+  })
+});
+```
+
+`maxLines` clamps a text block and ends the last visible line with `...`. `Text`, `Title`, `Subtitle`, `Heading` and `Paragraph` all accept it, along with `align`, `lineHeight`, `paddingX`, `paddingY`, `marginTop` and `marginBottom`.
+
+## Stamps
+
+`Stamp` is a rotated, bordered label with independent text, border and background colors:
+
+```tsx
+Stamp({
+  text: "Paid",
+  color: "#9A3412",
+  background: "#FFF7ED",
+  borderColor: "#EA580C",
+  fontFamily: "times",
+  bold: true,
+  italic: true,
+  uppercase: false,
+  angle: -8,
+  borderWidth: 2,
+  padding: 10
+});
+```
+
+By default a stamp is bold, uppercase and rotated -12°, with a red border and no fill. Set `uppercase: false` to keep the original casing, `bold: false` for a lighter face, and `background` for a filled badge. The border defaults to `color` when `borderColor` is omitted.
+
+## Visual documents
+
 ### Icons, images and vertical alignment
 
-`Row({ valign: "middle" })` aligns a logo with a headline. `Image` accepts JPEG bytes, a data URL or base64. `Icon` draws a built-in vector glyph with the same color and stroke controls:
+`Row({ valign: "middle" })` aligns a logo with a headline. `Image` accepts PNG or JPEG bytes, a data URL or base64. `Icon` draws a built-in vector glyph with the same color and stroke controls:
+
+PNG support covers 8-bit, non-interlaced images with color type 0 (gray), 2 (RGB), 3 (palette), 4 (gray + alpha) or 6 (RGBA). 16-bit and interlaced PNGs fail with `PDF_UNSUPPORTED` instead of producing a broken image; export them as 8-bit PNG or JPEG.
 
 ```tsx
 Row({

@@ -1,4 +1,4 @@
-import type { PdfColor, PdfPageNumberOptions, PdfWatermarkInput } from "./shared.js";
+import type { PdfColor, PdfFontFamily, PdfPageNumberOptions, PdfWatermarkInput } from "./shared.js";
 import type { PdfIconName } from "./layout/icons.js";
 import type { PdfChartDatum } from "./layout/charts.js";
 import type {
@@ -59,6 +59,8 @@ export type TextProps = PdfStyle & {
   href?: string;
   /** Named typographic preset; explicit props override it. */
   preset?: PdfTextPreset;
+  /** Clamp the paragraph to this many lines and end the last one with an ellipsis. */
+  maxLines?: number;
   children?: PdfNode | PdfNode[];
 };
 export type HeadingProps = TextProps & { level?: 1 | 2 | 3 };
@@ -66,10 +68,14 @@ export type ParagraphProps = TextProps;
 export type SubtitleProps = TextProps;
 
 export type PdfTextPreset =
+  | "hero"
   | "display"
   | "title"
+  | "section"
   | "subtitle"
+  | "lead"
   | "body"
+  | "quote"
   | "caption"
   | "eyebrow"
   | "signature"
@@ -78,10 +84,14 @@ export type PdfTextPreset =
 
 /** Named typography tokens that can be spread into props or selected with `preset`. */
 export const PDF_TEXT_PRESETS: Record<PdfTextPreset, PdfStyle> = {
+  hero: { fontSize: 40, bold: true, lineHeight: 1.05, marginBottom: 6 },
   display: { fontSize: 30, bold: true, lineHeight: 1.08, marginBottom: 8 },
   title: { fontSize: 22, bold: true, lineHeight: 1.2, marginBottom: 8 },
+  section: { fontSize: 17, bold: true, lineHeight: 1.25, marginTop: 8, marginBottom: 4 },
   subtitle: { fontSize: 14, italic: true, color: "#64748B", lineHeight: 1.35, marginBottom: 6 },
+  lead: { fontSize: 13, color: "#334155", lineHeight: 1.55, marginBottom: 10 },
   body: { fontSize: 11, lineHeight: 1.55, marginBottom: 8 },
+  quote: { fontFamily: "times", italic: true, fontSize: 12.5, color: "#475569", lineHeight: 1.5, paddingX: 14, marginBottom: 10 },
   caption: { fontSize: 8, color: "#64748B", lineHeight: 1.4 },
   eyebrow: { fontSize: 8, bold: true, color: "#2563EB", textTransform: "uppercase", lineHeight: 1.2 },
   signature: { fontFamily: "times", italic: true, fontSize: 18, color: "#1E3A8A" },
@@ -145,6 +155,13 @@ export type BarcodeProps = {
 export type StampProps = {
   text: string;
   color?: PdfColor;
+  background?: PdfColor;
+  borderColor?: PdfColor;
+  fontFamily?: PdfFontFamily;
+  bold?: boolean;
+  italic?: boolean;
+  /** Defaults to true. Set false to keep the original casing. */
+  uppercase?: boolean;
   angle?: number;
   fontSize?: number;
   borderWidth?: number;
@@ -183,6 +200,11 @@ export function Row(props: RowProps): PdfElement {
 export function Text(props: TextProps): PdfElement {
   const preset = props.preset ? PDF_TEXT_PRESETS[props.preset] : undefined;
   return create("text", preset ? { ...preset, ...props } : props, props.children);
+}
+
+/** Preset title: bold and larger than body text. */
+export function Title(props: TextProps): PdfElement {
+  return create("text", { ...PDF_TEXT_PRESETS.title, ...props }, props.children);
 }
 
 /** Preset subtitle: italic, muted and slightly smaller than a title. */

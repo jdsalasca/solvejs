@@ -225,6 +225,7 @@ class Lexer {
     if (word === "true") return true;
     if (word === "false") return false;
     if (word === "null") return null;
+    if (word.length === 0) failPdf("PDF_INVALID_INPUT", "Unexpected PDF token.", { position: this.pos });
     return { kind: "name", value: word };
   }
 
@@ -237,7 +238,9 @@ class Lexer {
         this.pos += 1;
         break;
       }
+      const before = this.pos;
       items.push(this.parse());
+      if (this.pos === before) failPdf("PDF_INVALID_INPUT", "PDF array parser made no progress.", { position: this.pos });
     }
     return items;
   }
@@ -252,8 +255,7 @@ class Lexer {
         break;
       }
       if (this.source[this.pos] !== "/") {
-        this.pos += 1;
-        continue;
+        failPdf("PDF_INVALID_INPUT", "Expected a name key inside a PDF dictionary.", { position: this.pos });
       }
       const key = this.readName().value;
       dict.set(key, this.parse());
@@ -433,11 +435,16 @@ function attachStreamBytes(parsed: ParsedPdf, source: string): void {
 }
 
 async function parseObjectStreams(parsed: ParsedPdf): Promise<void> {
+  let decompressed = 0;
   for (const object of [...parsed.objects.values()]) {
     if (!isStream(object.value)) continue;
     const type = object.value.dict.get("Type");
     if (!isName(type) || type.value !== "ObjStm") continue;
     const data = await decodeStreamData(object.value);
+    decompressed += data.length;
+    if (decompressed > MAX_DECOMPRESSED_BYTES) {
+      failPdf("PDF_LIMIT_EXCEEDED", "PDF object streams expand beyond the limit.", { bytes: decompressed });
+    }
     const text = binaryString(data);
     const count = Number(object.value.dict.get("N"));
     const first = Number(object.value.dict.get("First"));
@@ -461,6 +468,7 @@ async function parseObjectStreams(parsed: ParsedPdf): Promise<void> {
         parsed.objects.set(entry.num, { num: entry.num, gen: 0, value, offset });
       }
     }
+    if (parsed.objects.size > MAX_OBJECTS) failPdf("PDF_LIMIT_EXCEEDED", "PDF has too many objects.", { objects: parsed.objects.size });
   }
 }
 

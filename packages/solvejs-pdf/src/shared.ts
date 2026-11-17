@@ -99,13 +99,17 @@ export const PAGE_SIZES = {
 export type PdfPageSizeName = keyof typeof PAGE_SIZES;
 export type PdfPageSize = PdfPageSizeName | { width: number; height: number };
 
-/** A diagonal text watermark drawn behind the page content. */
+/** A watermark drawn behind the page content: text, image, or both. */
 export type PdfWatermark = {
-  text: string;
+  text?: string;
+  /** PNG or JPEG bytes, data URL or base64. */
+  image?: Uint8Array | string;
+  imageWidth?: number;
+  imageHeight?: number;
   fontFamily?: PdfFontFamily;
   fontSize?: number;
   color?: PdfColor;
-  /** Rotation in degrees. Defaults to -35. */
+  /** Rotation in degrees for text. Defaults to -35. */
   angle?: number;
   /** 0 to 1. Defaults to 0.12. */
   opacity?: number;

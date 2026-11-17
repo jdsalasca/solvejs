@@ -5,12 +5,14 @@ import {
   PdfColors,
   Heading,
   Image,
+  Paragraph,
   Pdf,
   PdfPage,
   Row,
   Spacer,
   Table,
   Text,
+  Title,
   View,
   buildPdfDocument,
   renderPdf
@@ -292,5 +294,78 @@ test("rejects non-JPEG image data", () => {
     (error) => error.code === "PDF_INVALID_INPUT"
   );
 });
+
+test("embeds RGB PNG images as raw pixels", () => {
+  const png = readFileSync(new URL("./fixtures/tiny-rgb.png", import.meta.url));
+  const document = buildPdfDocument(Pdf({ children: Image({ src: png, width: 40 }) }));
+  const image = document.pages[0].ops.find((op) => op.kind === "image");
+  assert.ok(image);
+  assert.equal(image.width, 40);
+  assert.equal(image.height, 40);
+  assert.equal(image.image.filter, "None");
+  assert.equal(image.image.colorSpace, "DeviceRGB");
+  const text = new TextDecoder("windows-1252").decode(renderPdf(Pdf({ children: Image({ src: png, width: 40 }) })));
+  assert.match(text, /\/ColorSpace \/DeviceRGB/);
+  assert.doesNotMatch(text, /\/DCTDecode/);
+});
+
+test("writes an alpha channel as a PDF SMask", () => {
+  const png = readFileSync(new URL("./fixtures/tiny.png", import.meta.url));
+  const model = buildPdfDocument(Pdf({ children: Image({ src: png, width: 24 }) }));
+  const image = model.pages[0].ops.find((op) => op.kind === "image");
+  assert.ok(image);
+  assert.equal(image.image.alpha.length, 4);
+  const text = new TextDecoder("windows-1252").decode(renderPdf(Pdf({ children: Image({ src: png, width: 24 }) })));
+  assert.match(text, /\/SMask \d+ 0 R/);
+});
+
+test("accepts PNG data URLs and base64 strings", () => {
+  const png = readFileSync(new URL("./fixtures/tiny-rgb.png", import.meta.url));
+  const base64 = png.toString("base64");
+  const fromDataUrl = buildPdfDocument(
+    Pdf({ children: Image({ src: `data:image/png;base64,${base64}`, width: 18 }) })
+  );
+  const fromBase64 = buildPdfDocument(Pdf({ children: Image({ src: base64, width: 18 }) }));
+  assert.equal(fromDataUrl.pages[0].ops.find((op) => op.kind === "image").width, 18);
+  assert.equal(fromBase64.pages[0].ops.find((op) => op.kind === "image").width, 18);
+});
+
+test("expands palette PNG images with transparency", () => {
+  const png = readFileSync(new URL("./fixtures/tiny-palette.png", import.meta.url));
+  const document = buildPdfDocument(Pdf({ children: Image({ src: png, width: 16 }) }));
+  const image = document.pages[0].ops.find((op) => op.kind === "image");
+  assert.ok(image);
+  assert.equal(image.image.colorSpace, "DeviceRGB");
+  assert.deepEqual([...image.image.alpha], [0, 128, 128, 0]);
+});
+
+test("renders titles, typography presets and clamped paragraphs", () => {
+  const model = buildPdfDocument(
+    Pdf({
+      children: PdfPage({
+        children: [
+          Title({ children: "Quarterly report" }),
+          Paragraph({
+            preset: "lead",
+            value: "A short lead paragraph that introduces the numbers below."
+          }),
+          Paragraph({
+            maxLines: 2,
+            width: 120,
+            value: "This paragraph is deliberately long so it wraps across several lines and then gets clamped with an ellipsis."
+          })
+        ]
+      })
+    })
+  );
+  const ops = model.pages[0].ops.filter((op) => op.kind === "text");
+  assert.equal(ops[0].text, "Quarterly report");
+  assert.equal(ops[0].size, 22);
+  assert.equal(ops.find((op) => op.text.startsWith("A short lead")).size, 13);
+  const ellipsized = ops.filter((op) => op.text.endsWith("..."));
+  assert.equal(ellipsized.length, 1);
+  assert.equal(ops.filter((op) => op.size === 11).length, 2);
+});
+
 
 

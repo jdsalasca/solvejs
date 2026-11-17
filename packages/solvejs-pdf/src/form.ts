@@ -138,10 +138,15 @@ function pageIndexes(parsed: Awaited<ReturnType<typeof parsePdf>>, root: PdfDict
   const indexes = new Map<number, number>();
   if (!root) return indexes;
   let page = 0;
+  const visited = new Set<number>();
   const visit = (value: PdfValue | undefined, depth: number): void => {
     if (depth > 64) return;
     const entry = entryOf(parsed, value);
     if (!entry) return;
+    if (entry.num > 0) {
+      if (visited.has(entry.num)) return;
+      visited.add(entry.num);
+    }
     const type = nameOf(entry.dict.get("Type"));
     if (type === "Page") {
       indexes.set(entry.num, page);
@@ -185,10 +190,18 @@ function walkFields(
   inherited: Inherited,
   records: FieldRecord[],
   indexes: Map<number, number>,
-  annotationMap: Map<number, number>
+  annotationMap: Map<number, number>,
+  depth = 0,
+  visited = new Set<number>()
 ): void {
+  if (depth > 64) failPdf("PDF_LIMIT_EXCEEDED", "AcroForm field tree is too deep.", { depth });
   const entry = entryOf(parsed, value);
   if (!entry) return;
+  if (entry.num > 0) {
+    if (visited.has(entry.num)) failPdf("PDF_LIMIT_EXCEEDED", "AcroForm field tree contains a cycle.", { field: entry.num });
+    visited.add(entry.num);
+    if (visited.size > 10_000) failPdf("PDF_LIMIT_EXCEEDED", "AcroForm has too many fields.");
+  }
   const dict = entry.dict;
   const partial = textOf(dict.get("T"));
   const name = partial ? (inherited.name ? `${inherited.name}.${partial}` : partial) : inherited.name;
@@ -220,7 +233,7 @@ function walkFields(
   }
 
   for (const kid of kids) {
-    walkFields(parsed, kid.raw, { name, ft, flags }, records, indexes, annotationMap);
+    walkFields(parsed, kid.raw, { name, ft, flags }, records, indexes, annotationMap, depth + 1, visited);
   }
 }
 
