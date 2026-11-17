@@ -1,6 +1,6 @@
 {
   "name": "@jdsalasc/solvejs-numbers",
-  "version": "1.11.0",
+  "version": "1.11.1",
   "description": "Safer TypeScript number utilities for forms, analytics, pricing, percentages, rounding, currency formatting, and strict numeric parsing.",
   "license": "MIT",
   "type": "module",

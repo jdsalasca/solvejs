@@ -1,6 +1,6 @@
 {
   "name": "@jdsalasc/solvejs-cache",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "description": "TypeScript cache utilities for TTL maps, async memoization, LRU eviction, and stale-while-revalidate fetches, with deterministic keys and injectable clocks.",
   "license": "MIT",
   "type": "module",
