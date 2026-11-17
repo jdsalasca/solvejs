@@ -23,15 +23,15 @@ SolveJS is a monorepo of 21 focused packages. Install the whole ecosystem with o
 
 | I need to… | Package | Install |
 |---|---|---|
-| Parse, format, and do UTC-safe date math, business days, DST boundaries | `@jdsalasc/solvejs-date` | `npm i @jdsalasc/solvejs-date` |
+| Parse, format, and do UTC-safe date math, business days, month/week boundaries, durations and DST boundaries | `@jdsalasc/solvejs-date` | `npm i @jdsalasc/solvejs-date` |
 | Validate emails, phones, postal codes, UUIDs, IPv4, ISO dates, passwords, addresses | `@jdsalasc/solvejs-validators` | `npm i @jdsalasc/solvejs-validators` |
 | Do exact money math for invoices, payments, taxes, and splits | `@jdsalasc/solvejs-money` | `npm i @jdsalasc/solvejs-money` |
 | Cache API responses with TTL, LRU, async memoization, or stale-while-revalidate | `@jdsalasc/solvejs-cache` | `npm i @jdsalasc/solvejs-cache` |
-| Retry HTTP calls with exponential backoff and jitter, or negotiate content types | `@jdsalasc/solvejs-http` | `npm i @jdsalasc/solvejs-http` |
+| Fetch JSON with timeout, abort and typed errors, retry HTTP calls with exponential backoff and jitter, or negotiate content types | `@jdsalasc/solvejs-http` | `npm i @jdsalasc/solvejs-http` |
 | Normalize errors into typed codes, HTTP statuses, and safe JSON responses | `@jdsalasc/solvejs-errors` | `npm i @jdsalasc/solvejs-errors` |
 | Parse environment variables at startup and fail fast with clear messages | `@jdsalasc/solvejs-env` | `npm i @jdsalasc/solvejs-env` |
 | Validate API payloads and forms without a schema dependency | `@jdsalasc/solvejs-schema` | `npm i @jdsalasc/solvejs-schema` |
-| Parse, stringify, clone, compare, and merge JSON safely | `@jdsalasc/solvejs-json` | `npm i @jdsalasc/solvejs-json` |
+| Parse, stringify, clone, compare, merge JSON, read JSON Pointers or apply Merge Patch safely | `@jdsalasc/solvejs-json` | `npm i @jdsalasc/solvejs-json` |
 | Build URLs, join paths, and serialize query strings deterministically | `@jdsalasc/solvejs-url` | `npm i @jdsalasc/solvejs-url` |
 | Paginate API responses with pages, offsets, cursors, and envelopes | `@jdsalasc/solvejs-pagination` | `npm i @jdsalasc/solvejs-pagination` |
 | Parse and compare semantic versions, ranges, and prereleases | `@jdsalasc/solvejs-semver` | `npm i @jdsalasc/solvejs-semver` |
@@ -39,7 +39,7 @@ SolveJS is a monorepo of 21 focused packages. Install the whole ecosystem with o
 | Sleep, timeout, retry, debounce, throttle, queue, or rate-limit async work | `@jdsalasc/solvejs-async` | `npm i @jdsalasc/solvejs-async` |
 | Group, count, dedupe, sort, chunk, or partition arrays | `@jdsalasc/solvejs-list` | `npm i @jdsalasc/solvejs-list` |
 | Pick, omit, get/set dotted paths, map values, or deep-merge objects | `@jdsalasc/solvejs-objects` | `npm i @jdsalasc/solvejs-objects` |
-| Slugify, truncate, mask, strip HTML, or change string case | `@jdsalasc/solvejs-string` | `npm i @jdsalasc/solvejs-string` |
+| Slugify, truncate, mask, build initials, pluralize, or change string case | `@jdsalasc/solvejs-string` | `npm i @jdsalasc/solvejs-string` |
 | Use common regex patterns for email, phone, URL, UUID, IPv4, and ISO dates | `@jdsalasc/solvejs-regex` | `npm i @jdsalasc/solvejs-regex` |
 | Parse numbers, compute percentages, format currency, or round safely | `@jdsalasc/solvejs-numbers` | `npm i @jdsalasc/solvejs-numbers` |
 | Use time, file-size, HTTP method, status, and content-type constants | `@jdsalasc/solvejs-constants` | `npm i @jdsalasc/solvejs-constants` |

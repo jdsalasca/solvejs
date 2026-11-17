@@ -2,7 +2,7 @@ import { retry } from "@jdsalasc/solvejs-async";
 import { memoizeAsync } from "@jdsalasc/solvejs-cache";
 import { addBusinessDays, formatDate, parseIsoDate, toIsoDate } from "@jdsalasc/solvejs-date";
 import { calculateBackoffDelay } from "@jdsalasc/solvejs-http";
-import { deepEqual, stableStringify } from "@jdsalasc/solvejs-json";
+import { applyMergePatch, deepEqual, getJsonPointer, stableStringify } from "@jdsalasc/solvejs-json";
 import { applyPercentage, formatMoney, fromDecimal, sumMoney } from "@jdsalasc/solvejs-money";
 import { deepMerge } from "@jdsalasc/solvejs-objects";
 import { offsetToCursor, pageCount, paginate } from "@jdsalasc/solvejs-pagination";
@@ -164,6 +164,28 @@ const merged = deepMerge(defaults, overrides);
         merged,
         sameAsExpected: deepEqual(merged, expected),
         json: stableStringify(merged)
+      };
+    }
+  },
+  {
+    id: "merge-patch",
+    title: "Patch a JSON document",
+    description: "Apply an RFC 7386 merge patch and read nested values with an RFC 6901 pointer, without mutating the original document.",
+    packages: ["json"],
+    code: `const current = { name: "Ada", address: { city: "London", zip: "N1" }, tags: ["math"] };
+const patch = { address: { zip: null }, tags: ["code"], active: true };
+const next = applyMergePatch(current, patch);
+
+({ next, city: getJsonPointer(next, "/address/city"),
+   originalZip: getJsonPointer(current, "/address/zip") })`,
+    run: () => {
+      const current = { name: "Ada", address: { city: "London", zip: "N1" }, tags: ["math"] };
+      const patch = { address: { zip: null }, tags: ["code"], active: true };
+      const next = applyMergePatch(current, patch);
+      return {
+        next,
+        city: getJsonPointer(next, "/address/city"),
+        originalZip: getJsonPointer(current, "/address/zip")
       };
     }
   }

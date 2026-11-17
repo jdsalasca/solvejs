@@ -1,5 +1,14 @@
 # Changelog
 
+## 1.13.0 - 2026-11-17
+
+- `@jdsalasc/solvejs-http@0.3.0`: added `fetchJson` with JSON body serialization, timeout, external `AbortSignal`, typed `HTTP_TIMEOUT` / `HTTP_INVALID_RESPONSE` / `HTTP_REQUEST_FAILED` errors, bounded error bodies and parsed response metadata. Timeout and cancellation stay active while the response body is read, and body-read failures are normalized. Migration impact: none.
+- `@jdsalasc/solvejs-json@0.3.0`: added `getJsonPointer` (RFC 6901) and `applyMergePatch` (RFC 7386) with escaped tokens, array indexes, immutable patching and prototype-pollution guards. Migration impact: none.
+- `@jdsalasc/solvejs-date@1.11.0`: added `addMonths` with day clamping, `startOfWeek` / `endOfWeek`, `startOfMonth` / `endOfMonth`, and `parseDuration` / `formatDuration`. Oversized duration text is rejected before parsing to avoid pathological regex backtracking. Migration impact: none.
+- `@jdsalasc/solvejs-string@1.11.0`: added `initials`, `truncateMiddle` and `pluralize` for UI labels and safe previews. Migration impact: none.
+- Meta package `1.13.0` depends on the updated leaves and re-exports the new helpers. Migration impact: none.
+- Live Lab: package tabs now demonstrate month clamping, durations, initials, middle truncation, JSON Pointer, Merge Patch and retryable statuses. Migration impact: none.
+
 ## 1.12.17 - 2026-11-17
 
 - PDF `0.1.14`: `Image` now accepts PNG (8-bit, non-interlaced, color types 0/2/3/4/6) with alpha written as a PDF `SMask`; JPEG still uses `DCTDecode`. Migration impact: none.

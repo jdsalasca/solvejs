@@ -188,6 +188,16 @@ Competitor study:
 - PDF gaps ranked: PNG with transparency, page templates/watermarks, outlines/bookmarks and custom TTF fonts. Reading/editing existing PDFs stays out of scope.
 - Both package READMEs now include a capability matrix with the honest gaps and use-case guidance.
 
+## Round 23: Cross-package production helpers - done
+
+- Added `fetchJson` to HTTP: JSON request/response, timeout, abort, typed errors and bounded error bodies.
+- Added RFC 6901 JSON Pointer and RFC 7386 Merge Patch to JSON.
+- Added month/week boundaries, month clamping and duration parse/format helpers to Date.
+- Added `initials`, `truncateMiddle` and `pluralize` to String.
+- Live Lab tabs and recipes updated; READMEs document the new surface.
+- Codex Terra review found and we fixed: duration parser quadratic backtracking (input cap), timeout/cancellation being cleared before the response body finished, and unnormalized body-read errors.
+- Verified: package tests, full quality gate, live docs check and browser examples.
+
 ## Round 22: Live documentation polish - done
 
 - Added six runnable cross-package recipes: input validation, invoice math, retry/backoff, async memoization, pagination cursors and config merging.

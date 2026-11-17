@@ -2,12 +2,12 @@ import { formatDate as metaFormatDate, slugify as metaSlugify } from "@jdsalasc/
 import { pMap, retry } from "@jdsalasc/solvejs-async";
 import { createTtlCache, stableKey } from "@jdsalasc/solvejs-cache";
 import { HTTP_STATUS, TIME } from "@jdsalasc/solvejs-constants";
-import { addDays, parseDateStrict } from "@jdsalasc/solvejs-date";
+import { addDays, addMonths, endOfMonth, formatDuration, parseDateStrict, parseDuration, startOfWeek, toIsoDate } from "@jdsalasc/solvejs-date";
 import { nanoid, prefixedId, randomToken, ulid, uuidTimestamp, uuidv4, uuidv7 } from "@jdsalasc/solvejs-id";
 import { getEnvNumber } from "@jdsalasc/solvejs-env";
 import { createError, errorToResponse } from "@jdsalasc/solvejs-errors";
-import { calculateBackoffDelay, negotiateContentType } from "@jdsalasc/solvejs-http";
-import { deepClone, stableStringify } from "@jdsalasc/solvejs-json";
+import { calculateBackoffDelay, isRetryableStatus, negotiateContentType, parseContentType } from "@jdsalasc/solvejs-http";
+import { applyMergePatch, deepClone, getJsonPointer, stableStringify } from "@jdsalasc/solvejs-json";
 import { groupBy, uniqueBy } from "@jdsalasc/solvejs-list";
 import { formatMoney, fromDecimal } from "@jdsalasc/solvejs-money";
 import { roundTo, safeDivide } from "@jdsalasc/solvejs-numbers";
@@ -16,7 +16,7 @@ import { paginate } from "@jdsalasc/solvejs-pagination";
 import { escapeRegex, validateByName } from "@jdsalasc/solvejs-regex";
 import { s } from "@jdsalasc/solvejs-schema";
 import { maxSatisfying, satisfies } from "@jdsalasc/solvejs-semver";
-import { mask, slugify } from "@jdsalasc/solvejs-string";
+import { initials, mask, pluralize, slugify, truncateMiddle } from "@jdsalasc/solvejs-string";
 import { buildUrl, parseQuery } from "@jdsalasc/solvejs-url";
 import { validateCellphoneNumber, validateEmail } from "@jdsalasc/solvejs-validators";
 import { renderPdfDemo, renderFormLab } from "./pdf-gallery.js";
@@ -41,7 +41,7 @@ const PACKAGES = [
   {
     id: "date",
     name: "@jdsalasc/solvejs-date",
-    title: "Strict dates and UTC math",
+    title: "Strict dates, calendars and durations",
     level: "Core",
     code: `addDays(parseDateStrict("2026-11-16"), 30)`,
     run: () => {
@@ -56,6 +56,24 @@ const PACKAGES = [
           const start = parseDateStrict("2026-11-16", "YYYY-MM-DD");
           return { start: metaFormatDate(start), minus7: metaFormatDate(addDays(start, -7)) };
         }
+      },
+      {
+        label: "Month clamp",
+        code: `addMonths(parseDateStrict("2026-01-31"), 1); startOfWeek(date); endOfMonth(date)`,
+        run: () => {
+          const start = parseDateStrict("2026-01-31", "YYYY-MM-DD");
+          const date = parseDateStrict("2026-11-17", "YYYY-MM-DD");
+          return {
+            plusMonth: toIsoDate(addMonths(start, 1)),
+            weekStart: toIsoDate(startOfWeek(date, 1)),
+            monthEnd: toIsoDate(endOfMonth(date))
+          };
+        }
+      },
+      {
+        label: "Durations",
+        code: `formatDuration(parseDuration("1h 30m")); formatDuration(90000)`,
+        run: () => ({ parsed: parseDuration("1h 30m"), formatted: formatDuration(5_400_000), shorter: formatDuration(90_000) })
       }
     ]
   },
@@ -133,7 +151,7 @@ const PACKAGES = [
   {
     id: "string",
     name: "@jdsalasc/solvejs-string",
-    title: "Safe text normalization",
+    title: "Safe text and UI labels",
     level: "Core",
     code: `slugify("Café & Code"); mask("4242424242424242")`,
     run: () => ({ slug: slugify("Café & Code"), masked: mask("4242424242424242", 4) }),
@@ -142,6 +160,16 @@ const PACKAGES = [
         label: "Punctuation",
         code: `slugify("Hello, World!"); mask("1234567890", 2)`,
         run: () => ({ slug: slugify("Hello, World!"), masked: mask("1234567890", 2) })
+      },
+      {
+        label: "Initials and plural",
+        code: `initials("Ada Lovelace"); pluralize(2, "invoice")`,
+        run: () => ({ initials: initials("Ada Lovelace"), one: pluralize(1, "invoice"), many: pluralize(2, "invoice") })
+      },
+      {
+        label: "Middle truncation",
+        code: `truncateMiddle("ada@analytical-engines.example", 18)`,
+        run: () => ({ value: truncateMiddle("ada@analytical-engines.example", 18) })
       }
     ]
   },
@@ -236,7 +264,7 @@ const PACKAGES = [
   {
     id: "json",
     name: "@jdsalasc/solvejs-json",
-    title: "Stable JSON and deep clone",
+    title: "Stable JSON, pointers and merge patch",
     level: "Core",
     code: `stableStringify({ b: 1, a: 2 })`,
     run: () => ({ stable: stableStringify({ b: 1, a: 2 }), clone: deepClone({ nested: { ok: true } }) }),
@@ -250,6 +278,19 @@ const PACKAGES = [
           clone.nested.ok = false;
           return { source: source.nested.ok, clone: clone.nested.ok };
         }
+      },
+      {
+        label: "JSON Pointer",
+        code: `getJsonPointer({ "a/b": { "m~n": 2 } }, "/a~1b/m~0n")`,
+        run: () => ({
+          escaped: getJsonPointer({ "a/b": { "m~n": 2 } }, "/a~1b/m~0n"),
+          array: getJsonPointer({ items: ["a", "b"] }, "/items/1")
+        })
+      },
+      {
+        label: "Merge patch",
+        code: `applyMergePatch({ a: 1, b: 2 }, { a: null, c: 3 })`,
+        run: () => applyMergePatch({ a: 1, b: 2, nested: { keep: true, drop: 1 } }, { a: null, c: 3, nested: { drop: null } })
       }
     ]
   },
@@ -304,7 +345,7 @@ const PACKAGES = [
   {
     id: "http",
     name: "@jdsalasc/solvejs-http",
-    title: "HTTP status and negotiation",
+    title: "HTTP status, retry and JSON fetch",
     level: "Infra",
     code: `negotiateContentType(["application/json"], { accept: "text/html,application/json;q=0.9" })`,
     run: () => ({
@@ -317,6 +358,16 @@ const PACKAGES = [
         label: "Retry schedule",
         code: `calculateBackoffDelay(3, { baseMs: 200, factor: 2, jitter: false })`,
         run: () => ({ retryDelay: calculateBackoffDelay(3, { baseMs: 200, factor: 2, maxMs: 5000, jitter: false }) })
+      },
+      {
+        label: "Retryable status",
+        code: `isRetryableStatus(503); isRetryableStatus(404)`,
+        run: () => ({ unavailable: isRetryableStatus(503), notFound: isRetryableStatus(404), rateLimited: isRetryableStatus(429) })
+      },
+      {
+        label: "Content type",
+        code: `parseContentType("application/json; charset=utf-8")`,
+        run: () => parseContentType("application/json; charset=utf-8")
       }
     ]
   },
