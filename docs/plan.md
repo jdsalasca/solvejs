@@ -188,6 +188,13 @@ Competitor study:
 - PDF gaps ranked: PNG with transparency, page templates/watermarks, outlines/bookmarks and custom TTF fonts. Reading/editing existing PDFs stays out of scope.
 - Both package READMEs now include a capability matrix with the honest gaps and use-case guidance.
 
+## Round 16: Receipts and reporting workbooks - done
+
+- PDF `0.1.11`: `Receipt` template with Courier typography, dashed rules, item table, totals, Code 39 `Barcode` and rotated `Stamp`; added `receipt`/`receiptTitle` presets and dashed `Divider`s.
+- XLSX `0.3.0`: `jsonToSheet`/`jsonToXlsx`, conditional formatting (`cellIs`, `expression`, `containsText`, `colorScale`, `dataBar`), auto-filter `filterColumns`, hidden rows/columns and full core metadata.
+- Live Lab: "Thermal receipt" PDF document and "JSON import" XLSX workbook.
+- Verified: PDF 55 tests, XLSX 73 tests, snippets and links.
+
 ## Round 15: Visual PDF toolkit - done
 
 - PDF `0.1.10`: justified text, document/page line-height overrides, text watermarks with opacity and per-page overrides, `Row` vertical alignment, vector `Icon`s, `BarChart`/`LineChart`/`PieChart`, and a `Formula` subset with the Symbol font. Added polygon paths, text rotation, word spacing and ExtGState opacity to the serializer.

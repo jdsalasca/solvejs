@@ -13,6 +13,7 @@ import {
   PdfColors,
   PdfPage,
   PieChart,
+  Receipt,
   Row,
   Spacer,
   Subtitle,
@@ -377,11 +378,54 @@ function visualDoc(preset) {
   });
 }
 
+function receiptDoc(preset) {
+  return Pdf({
+    title: "Receipt 1042",
+    author: "Acme Hardware",
+    page: "a4",
+    ...(preset === "none" ? {} : { pageNumbers: { preset } }),
+    children: PdfPage({
+      children: [
+        Row({
+          gap: 0,
+          children: [
+            View({ width: 93 }),
+            Receipt({
+              title: "ACME HARDWARE",
+              subtitle: "123 Main Street · Springfield",
+              meta: [
+                { label: "DATE", value: "16 NOV 2026 14:32" },
+                { label: "CASHIER", value: "ADA" },
+                { label: "RECEIPT", value: "#1042" }
+              ],
+              items: [
+                { description: "Design system", qty: 1, unit: "2,400.00", total: "2,400.00" },
+                { description: "Implementation", qty: 2, unit: "1,200.00", total: "2,400.00" },
+                { description: "Documentation", qty: 1, unit: "840.00", total: "840.00" }
+              ],
+              totals: [
+                { label: "SUBTOTAL", value: "5,640.00" },
+                { label: "TAX 8%", value: "451.20" },
+                { label: "TOTAL", value: "6,091.20", bold: true }
+              ],
+              barcode: "ACME-1042",
+              stamp: "PAID",
+              footer: "THANK YOU · KEEP THIS RECEIPT"
+            }),
+            View({ width: 93 })
+          ]
+        })
+      ]
+    })
+  });
+}
+
 const DOCS = {
   report: { title: "Editorial report", description: "Display type, a native header, a zebra table, bookmarks and page-number presets.", build: reportDoc, pages: true },
   invoice: { title: "Invoice with custom furniture", description: "A branded header, a custom footer with contact details and its own page numbers.", build: invoiceDoc, pages: false },
   letter: { title: "Editorial letter", description: "Title, subtitle, body and signature with the built-in page-number footer.", build: letterDoc, pages: true },
-  visual: { title: "Visual systems", description: "Logo and text alignment, justified copy, a LaTeX formula, vector icons, charts and a per-page watermark.", build: visualDoc, pages: true }
+  visual: { title: "Visual systems", description: "Logo and text alignment, justified copy, a LaTeX formula, vector icons, charts and a per-page watermark.", build: visualDoc, pages: true },
+  receipt: { title: "Thermal receipt", description: "Monospace receipt typography, dashed rules, item table, totals, barcode, PAID stamp and a paper background.", build: receiptDoc, pages: true }
 };
 
 function snippet(kind, preset) {
@@ -422,6 +466,18 @@ function snippet(kind, preset) {
       PieChart({ data: mix })
     ]})
   ]
+})`;
+  }
+  if (kind === "receipt") {
+    return `Receipt({
+  title: "ACME HARDWARE",
+  subtitle: "123 Main Street",
+  meta: [{ label: "DATE", value: "16 NOV 2026" }],
+  items: [{ description: "Design system", qty: 1, unit: "2,400.00", total: "2,400.00" }],
+  totals: [{ label: "TOTAL", value: "6,091.20", bold: true }],
+  barcode: "ACME-1042",
+  stamp: "PAID",
+  footer: "THANK YOU"
 })`;
   }
   return `Pdf({
@@ -499,7 +555,9 @@ export function renderPdfDemo(container) {
           ? ["Display and title presets", "Subtitle + paragraph rhythm", "Signature preset", "Built-in page-number footer"]
           : doc === "visual"
             ? ["Logo aligned with text", "Justified paragraph", "LaTeX fraction, root and sum", "Vector icons + bar, line and pie charts", "Per-page watermark"]
-            : ["Native PDF header", "Display / title / body presets", "Bookmarks for each section", "Page-number presets"];
+            : doc === "receipt"
+              ? ["Courier receipt typography", "Dashed rules and dense rows", "Code 39 barcode", "Rotated PAID stamp", "Paper background"]
+              : ["Native PDF header", "Display / title / body presets", "Bookmarks for each section", "Page-number presets"];
     features.replaceChildren(...items.map((item) => el("li", undefined, item)));
   }
 

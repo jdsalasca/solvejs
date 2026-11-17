@@ -1,5 +1,5 @@
 /* eslint-disable complexity, max-depth, max-lines-per-function -- gallery builders are declarative demos */
-import { Colors, formatCellValue, readXlsx, writeXlsx } from "@jdsalasc/solvejs-xlsx";
+import { Colors, formatCellValue, jsonToSheet, readXlsx, writeXlsx } from "@jdsalasc/solvejs-xlsx";
 
 const money = '"$"#,##0';
 const percent = "0.00%";
@@ -225,10 +225,71 @@ function budgetWorkbook() {
   });
 }
 
+function jsonWorkbook() {
+  const { rows, columnDefinitions } = jsonToSheet(
+    [
+      { name: "Ada", region: "North", q1: 1200, q2: 1380, active: true },
+      { name: "Grace", region: "South", q1: 980, q2: 1120, active: true },
+      { name: "Linus", region: "North", q1: 760, q2: 940, active: false },
+      { name: "Margaret", region: "West", q1: 1520, q2: 1680, active: true }
+    ],
+    {
+      columns: [
+        { key: "name", header: "Name", width: 22 },
+        { key: "region", header: "Region", width: 14 },
+        { key: "q1", header: "Q1", width: 12 },
+        { key: "q2", header: "Q2", width: 12 },
+        { key: "active", header: "Active", width: 10 }
+      ]
+    }
+  );
+  return writeXlsx({
+    title: "JSON import",
+    creator: "SolveJS",
+    subject: "People and revenue",
+    keywords: "json,xlsx",
+    description: "Generated from an array of objects",
+    category: "Demo",
+    company: "Acme",
+    sheets: [
+      {
+        name: "People",
+        columns: columnDefinitions,
+        rows,
+        freeze: { rows: 1 },
+        autoFilter: true,
+        filterColumns: [{ column: 1, values: ["North", "South"] }],
+        conditionalFormatting: [
+          { range: "C2:D5", type: "colorScale", colors: [Colors.Red, Colors.Yellow, Colors.Green] },
+          { range: "D2:D5", type: "dataBar", color: Colors.Blue },
+          { range: "C2:C5", type: "cellIs", operator: "greaterThan", formula: "1000", style: { bold: true, fill: "#DCFCE7", fontColor: "#166534" } }
+        ],
+        pageSetup: { orientation: "landscape", fitToWidth: 1 }
+      }
+    ]
+  });
+}
+
 const WORKBOOKS = {
   revenue: { title: "Revenue report", description: "Merged title, colored header, row styles, formulas with cached values, validation and an empty cell rendered as zero.", build: revenueWorkbook },
   inventory: { title: "Inventory", description: "Borders, row fills, number formats, a defined name, freeze panes, print setup and conditional-looking low-stock rows.", build: inventoryWorkbook },
-  budget: { title: "Budget · 2 sheets", description: "Two sheets, defined names, currency and percent formats, and a blank-cell sheet next to a zero-filled one.", build: budgetWorkbook }
+  budget: { title: "Budget · 2 sheets", description: "Two sheets, defined names, currency and percent formats, and a blank-cell sheet next to a zero-filled one.", build: budgetWorkbook },
+  json: {
+    title: "JSON import",
+    description: "jsonToSheet turns an array of objects into columns and cells, then conditional formatting, filters, frozen headers and metadata finish the workbook.",
+    build: jsonWorkbook,
+    badges: ["JSON → sheet", "3 conditional rules", "filter: North/South", "metadata"],
+    code: `const { rows, columnDefinitions } = jsonToSheet(objects, { columns });
+writeXlsx({
+  title: "JSON import",
+  sheets: [{ name: "People", columns: columnDefinitions, rows,
+    autoFilter: true, filterColumns: [{ column: 1, values: ["North", "South"] }],
+    conditionalFormatting: [
+      { range: "C2:D5", type: "colorScale", colors: [Colors.Red, Colors.Yellow, Colors.Green] },
+      { range: "D2:D5", type: "dataBar", color: Colors.Blue }
+    ] }]
+})`
+  }
 };
 
 function splitRef(ref) {
@@ -350,8 +411,9 @@ function sheetPreview(sheet) {
   return table;
 }
 
-function badges(sheet) {
-  const items = [];
+function badges(sheet, extra = []) {
+  const items = [...extra];
+  if (sheet.merges?.length) items.push(`${sheet.merges.length} merges`);
   if (sheet.merges?.length) items.push(`${sheet.merges.length} merges`);
   if (sheet.formulas && Object.keys(sheet.formulas).length) items.push(`${Object.keys(sheet.formulas).length} formulas`);
   if (sheet.dataValidations?.length) items.push(`${sheet.dataValidations.length} validations`);
@@ -419,7 +481,7 @@ export function renderXlsxDemo(container) {
   function renderSheet() {
     const sheet = parsed.sheets[state.sheet];
     scroll.replaceChildren(sheetPreview(sheet));
-    badgesRow.replaceChildren(...badges(sheet).map((badge) => el("span", "sheet-badge", badge)));
+    badgesRow.replaceChildren(...badges(sheet, WORKBOOKS[state.workbook].badges).map((badge) => el("span", "sheet-badge", badge)));
   }
 
   async function update() {
@@ -433,7 +495,7 @@ export function renderXlsxDemo(container) {
     }
     title.textContent = workbook.title;
     description.textContent = workbook.description;
-    code.textContent = `writeXlsx({
+    code.textContent = workbook.code ?? `writeXlsx({
   sheets: [{ name: "${parsed.sheets[0].name}", rows, columns,
     freeze: { rows: 2, columns: 1 }, autoFilter: true,
     dataValidations, pageSetup: { orientation: "landscape" } }]

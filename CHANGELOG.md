@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.12.11 - 2026-11-16
+
+- Added `@jdsalasc/solvejs-xlsx@0.3.0` reporting tools: `jsonToSheet`/`jsonToXlsx` convert arrays of objects (including nested dotted keys) into workbooks; sheets accept `conditionalFormatting` (`cellIs`, `expression`, `containsText`, `colorScale`, `dataBar`), `filterColumns` for checked auto-filter values, hidden rows/columns, and full core metadata (subject, keywords, description, category, company, created, modified). Migration impact: none; additive API.
+- Added `@jdsalasc/solvejs-pdf@0.1.11` receipt tools: a `Receipt` template with thermal-receipt typography, dashed rules, item table and totals; `Barcode` (Code 39); `Stamp` (rotated PAID/VOID marks); `receipt`/`receiptTitle` text presets; and dashed `Divider`s. Migration impact: none; additive API.
+- Bumped the meta package to `1.12.11`. Migration impact: none.
+
 ## 1.12.10 - 2026-11-16
 
 - Added `@jdsalasc/solvejs-pdf@0.1.10` visual document features: justified text, document/page-level line height, paragraph padding and margins, text watermarks with opacity and per-page overrides, `Row` vertical alignment, built-in vector `Icon`s, `BarChart`/`LineChart`/`PieChart`, and a documented `Formula` subset with the standard Symbol font. The serializer now supports polygon paths, text rotation, word spacing and PDF ExtGState opacity. Migration impact: none; additive API.
