@@ -5,13 +5,13 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta name="description" content="SolveJS benchmark and package size snapshot." />
   <title>Performance and Size Report | SolveJS</title>
-  <link rel="stylesheet" href="../styles.css?v=20261117" />
+  <link rel="stylesheet" href="../styles.css" />
 </head>
 <body data-root="..">
   <main class="page">
     <section class="hero">
       <h1>Performance and Size Report</h1>
-      <p>Generated on 2026-11-16. Local benchmark and package-size snapshot.</p>
+      <p>Generated on 2026-11-17. Local benchmark and package-size snapshot.</p>
     </section>
     <section class="layout">
       <aside class="panel">
@@ -20,55 +20,55 @@
       </aside>
       <section class="panel">
         <h2>Benchmark Snapshot</h2>
-        <ul class="topic-list"><li>date.formatDate: 22.48ms for 100.000 iterations</li>
-<li>string.toKebabCase: 46.17ms for 100.000 iterations</li>
-<li>list.unique: 10.20ms for 100.000 iterations</li>
-<li>numbers.percent: 2.38ms for 100.000 iterations</li>
-<li>validators.isCellphoneNumber: 13.50ms for 100.000 iterations</li>
-<li>url.buildUrl: 188.18ms for 100.000 iterations</li>
-<li>url.stringifyQuery: 46.11ms for 100.000 iterations</li>
-<li>url.parseQuery: 82.41ms for 100.000 iterations</li>
-<li>cache.stableKey: 168.23ms for 100.000 iterations</li>
-<li>json.stableStringify: 119.55ms for 100.000 iterations</li>
-<li>json.safeJsonParse: 23.71ms for 100.000 iterations</li>
-<li>json.deepClone: 38.92ms for 100.000 iterations</li>
-<li>json.deepEqual: 39.42ms for 100.000 iterations</li>
-<li>pagination.offsetToCursor: 1.27ms for 100.000 iterations</li>
-<li>semver.parseVersion: 63.19ms for 100.000 iterations</li>
-<li>semver.satisfies: 145.90ms for 100.000 iterations</li>
-<li>semver.compareVersions: 42.57ms for 100.000 iterations</li>
-<li>errors.createError: 675.83ms for 100.000 iterations</li>
-<li>errors.normalizeError: 1108.42ms for 100.000 iterations</li>
-<li>errors.serializeError: 1726.43ms for 100.000 iterations</li>
-<li>money.fromDecimal: 15.48ms for 100.000 iterations</li>
-<li>money.addMoney: 23.30ms for 100.000 iterations</li>
-<li>money.percentageOf: 39.02ms for 100.000 iterations</li>
-<li>http.calculateBackoffDelay: 21.49ms for 100.000 iterations</li>
-<li>http.parseContentType: 86.90ms for 100.000 iterations</li>
-<li>http.negotiateContentType: 57.17ms for 100.000 iterations</li>
-<li>cache.createLruCache.get (10000): 0.22ms for 1 iterations</li>
-<li>cache.createTtlCache.get (10000): 0.10ms for 1 iterations</li>
+        <ul class="topic-list"><li>date.formatDate: 20.08ms for 100.000 iterations</li>
+<li>string.toKebabCase: 41.54ms for 100.000 iterations</li>
+<li>list.unique: 6.99ms for 100.000 iterations</li>
+<li>numbers.percent: 1.77ms for 100.000 iterations</li>
+<li>validators.isCellphoneNumber: 7.37ms for 100.000 iterations</li>
+<li>url.buildUrl: 116.89ms for 100.000 iterations</li>
+<li>url.stringifyQuery: 35.24ms for 100.000 iterations</li>
+<li>url.parseQuery: 68.42ms for 100.000 iterations</li>
+<li>cache.stableKey: 141.44ms for 100.000 iterations</li>
+<li>json.stableStringify: 100.40ms for 100.000 iterations</li>
+<li>json.safeJsonParse: 22.28ms for 100.000 iterations</li>
+<li>json.deepClone: 30.24ms for 100.000 iterations</li>
+<li>json.deepEqual: 32.43ms for 100.000 iterations</li>
+<li>pagination.offsetToCursor: 1.75ms for 100.000 iterations</li>
+<li>semver.parseVersion: 45.26ms for 100.000 iterations</li>
+<li>semver.satisfies: 115.77ms for 100.000 iterations</li>
+<li>semver.compareVersions: 38.37ms for 100.000 iterations</li>
+<li>errors.createError: 687.96ms for 100.000 iterations</li>
+<li>errors.normalizeError: 921.83ms for 100.000 iterations</li>
+<li>errors.serializeError: 1081.92ms for 100.000 iterations</li>
+<li>money.fromDecimal: 11.15ms for 100.000 iterations</li>
+<li>money.addMoney: 16.80ms for 100.000 iterations</li>
+<li>money.percentageOf: 26.77ms for 100.000 iterations</li>
+<li>http.calculateBackoffDelay: 17.47ms for 100.000 iterations</li>
+<li>http.parseContentType: 60.00ms for 100.000 iterations</li>
+<li>http.negotiateContentType: 34.51ms for 100.000 iterations</li>
+<li>cache.createLruCache.get (10000): 0.08ms for 1 iterations</li>
+<li>cache.createTtlCache.get (10000): 0.02ms for 1 iterations</li>
 <li>cache.createLruCache.get (100000): 0.01ms for 1 iterations</li>
 <li>cache.createTtlCache.get (100000): 0.00ms for 1 iterations</li>
-<li>list.uniqueBy (10000): 1.29ms for 1 iterations</li>
-<li>list.groupBy (10000): 1.21ms for 1 iterations</li>
-<li>list.sortBy (10000): 0.57ms for 1 iterations</li>
-<li>list.uniqueBy (100000): 13.00ms for 1 iterations</li>
-<li>list.groupBy (100000): 9.41ms for 1 iterations</li>
-<li>list.sortBy (100000): 2.52ms for 1 iterations</li>
-<li>list.uniqueBy high-cardinality (100000): 34.93ms for 1 iterations</li>
-<li>list.groupBy high-cardinality (100000): 29.14ms for 1 iterations</li>
-<li>list.sortBy high-cardinality (100000): 12.19ms for 1 iterations</li>
-<li>list.uniqueBy high-cardinality (250000): 115.25ms for 1 iterations</li>
-<li>list.groupBy high-cardinality (250000): 67.58ms for 1 iterations</li>
-<li>list.sortBy high-cardinality (250000): 37.38ms for 1 iterations</li></ul>
+<li>list.uniqueBy (10000): 0.71ms for 1 iterations</li>
+<li>list.groupBy (10000): 0.67ms for 1 iterations</li>
+<li>list.sortBy (10000): 0.40ms for 1 iterations</li>
+<li>list.uniqueBy (100000): 4.66ms for 1 iterations</li>
+<li>list.groupBy (100000): 7.33ms for 1 iterations</li>
+<li>list.sortBy (100000): 2.43ms for 1 iterations</li>
+<li>list.uniqueBy high-cardinality (100000): 12.91ms for 1 iterations</li>
+<li>list.groupBy high-cardinality (100000): 11.55ms for 1 iterations</li>
+<li>list.sortBy high-cardinality (100000): 7.91ms for 1 iterations</li>
+<li>list.uniqueBy high-cardinality (250000): 32.45ms for 1 iterations</li>
+<li>list.groupBy high-cardinality (250000): 23.55ms for 1 iterations</li>
+<li>list.sortBy high-cardinality (250000): 21.59ms for 1 iterations</li></ul>
         <h2>Test Coverage</h2>
         <div style="overflow:auto">
           <table style="width:100%; border-collapse: collapse;">
             <thead>
               <tr><th align="left">Package</th><th align="left">Lines</th><th align="left">Branches</th><th align="left">Functions</th></tr>
             </thead>
-            <tbody><tr><td><code>@jdsalasc/solvejs</code></td><td>53.11%</td><td>51.75%</td><td>44.76%</td></tr>
+            <tbody><tr><td><code>@jdsalasc/solvejs</code></td><td>46.82%</td><td>50.94%</td><td>40.64%</td></tr>
 <tr><td><code>@jdsalasc/solvejs-async</code></td><td>100.00%</td><td>99.05%</td><td>100.00%</td></tr>
 <tr><td><code>@jdsalasc/solvejs-cache</code></td><td>100.00%</td><td>100.00%</td><td>100.00%</td></tr>
 <tr><td><code>@jdsalasc/solvejs-constants</code></td><td>100.00%</td><td>100.00%</td><td>100.00%</td></tr>
@@ -82,14 +82,14 @@
 <tr><td><code>@jdsalasc/solvejs-numbers</code></td><td>100.00%</td><td>100.00%</td><td>100.00%</td></tr>
 <tr><td><code>@jdsalasc/solvejs-objects</code></td><td>100.00%</td><td>100.00%</td><td>100.00%</td></tr>
 <tr><td><code>@jdsalasc/solvejs-pagination</code></td><td>100.00%</td><td>100.00%</td><td>100.00%</td></tr>
-<tr><td><code>@jdsalasc/solvejs-pdf</code></td><td>86.34%</td><td>78.82%</td><td>89.61%</td></tr>
+<tr><td><code>@jdsalasc/solvejs-pdf</code></td><td>88.65%</td><td>75.89%</td><td>91.96%</td></tr>
 <tr><td><code>@jdsalasc/solvejs-regex</code></td><td>100.00%</td><td>100.00%</td><td>100.00%</td></tr>
 <tr><td><code>@jdsalasc/solvejs-schema</code></td><td>100.00%</td><td>100.00%</td><td>100.00%</td></tr>
 <tr><td><code>@jdsalasc/solvejs-semver</code></td><td>100.00%</td><td>99.51%</td><td>100.00%</td></tr>
 <tr><td><code>@jdsalasc/solvejs-string</code></td><td>100.00%</td><td>100.00%</td><td>100.00%</td></tr>
 <tr><td><code>@jdsalasc/solvejs-url</code></td><td>100.00%</td><td>100.00%</td><td>100.00%</td></tr>
 <tr><td><code>@jdsalasc/solvejs-validators</code></td><td>100.00%</td><td>100.00%</td><td>100.00%</td></tr>
-<tr><td><code>@jdsalasc/solvejs-xlsx</code></td><td>91.56%</td><td>80.35%</td><td>95.70%</td></tr></tbody>
+<tr><td><code>@jdsalasc/solvejs-xlsx</code></td><td>91.57%</td><td>80.07%</td><td>95.78%</td></tr></tbody>
           </table>
         </div>
         <h2>Package Size Snapshot</h2>
@@ -98,34 +98,34 @@
             <thead>
               <tr><th align="left">Package</th><th align="left">Version</th><th align="left">Tarball Size</th><th align="left">Unpacked Size</th><th align="left">Files</th></tr>
             </thead>
-            <tbody><tr><td><code>@jdsalasc/solvejs</code></td><td>1.12.4</td><td>3.93 KB</td><td>14.89 KB</td><td>7</td></tr>
-<tr><td><code>@jdsalasc/solvejs-async</code></td><td>1.10.0</td><td>9.56 KB</td><td>56.80 KB</td><td>7</td></tr>
-<tr><td><code>@jdsalasc/solvejs-cache</code></td><td>0.2.1</td><td>10.37 KB</td><td>60.58 KB</td><td>7</td></tr>
-<tr><td><code>@jdsalasc/solvejs-constants</code></td><td>1.10.0</td><td>3.41 KB</td><td>12.35 KB</td><td>7</td></tr>
-<tr><td><code>@jdsalasc/solvejs-date</code></td><td>1.10.1</td><td>8.61 KB</td><td>50.30 KB</td><td>7</td></tr>
-<tr><td><code>@jdsalasc/solvejs-env</code></td><td>1.10.0</td><td>6.58 KB</td><td>45.68 KB</td><td>7</td></tr>
-<tr><td><code>@jdsalasc/solvejs-errors</code></td><td>0.2.1</td><td>10.10 KB</td><td>48.72 KB</td><td>7</td></tr>
-<tr><td><code>@jdsalasc/solvejs-http</code></td><td>0.2.1</td><td>10.84 KB</td><td>56.17 KB</td><td>7</td></tr>
-<tr><td><code>@jdsalasc/solvejs-json</code></td><td>0.2.0</td><td>9.81 KB</td><td>54.65 KB</td><td>7</td></tr>
-<tr><td><code>@jdsalasc/solvejs-list</code></td><td>1.10.0</td><td>4.79 KB</td><td>26.68 KB</td><td>7</td></tr>
-<tr><td><code>@jdsalasc/solvejs-money</code></td><td>0.2.1</td><td>11.03 KB</td><td>60.95 KB</td><td>7</td></tr>
-<tr><td><code>@jdsalasc/solvejs-numbers</code></td><td>1.10.0</td><td>7.25 KB</td><td>46.78 KB</td><td>7</td></tr>
-<tr><td><code>@jdsalasc/solvejs-objects</code></td><td>1.10.0</td><td>5.14 KB</td><td>24.76 KB</td><td>7</td></tr>
-<tr><td><code>@jdsalasc/solvejs-pagination</code></td><td>0.2.1</td><td>7.06 KB</td><td>41.46 KB</td><td>7</td></tr>
-<tr><td><code>@jdsalasc/solvejs-pdf</code></td><td>0.1.4</td><td>94.60 KB</td><td>561.10 KB</td><td>87</td></tr>
-<tr><td><code>@jdsalasc/solvejs-regex</code></td><td>1.10.0</td><td>3.33 KB</td><td>12.89 KB</td><td>7</td></tr>
-<tr><td><code>@jdsalasc/solvejs-schema</code></td><td>1.10.0</td><td>9.24 KB</td><td>58.50 KB</td><td>7</td></tr>
-<tr><td><code>@jdsalasc/solvejs-semver</code></td><td>0.2.1</td><td>12.09 KB</td><td>76.02 KB</td><td>7</td></tr>
-<tr><td><code>@jdsalasc/solvejs-string</code></td><td>1.10.1</td><td>4.08 KB</td><td>18.87 KB</td><td>7</td></tr>
-<tr><td><code>@jdsalasc/solvejs-url</code></td><td>0.2.1</td><td>7.70 KB</td><td>38.66 KB</td><td>7</td></tr>
-<tr><td><code>@jdsalasc/solvejs-validators</code></td><td>1.10.0</td><td>13.64 KB</td><td>98.40 KB</td><td>7</td></tr>
-<tr><td><code>@jdsalasc/solvejs-xlsx</code></td><td>0.2.4</td><td>139.34 KB</td><td>723.61 KB</td><td>102</td></tr></tbody>
+            <tbody><tr><td><code>@jdsalasc/solvejs</code></td><td>1.12.11</td><td>4.38 KB</td><td>19.68 KB</td><td>8</td></tr>
+<tr><td><code>@jdsalasc/solvejs-async</code></td><td>1.10.0</td><td>10.10 KB</td><td>61.55 KB</td><td>8</td></tr>
+<tr><td><code>@jdsalasc/solvejs-cache</code></td><td>0.2.1</td><td>11.14 KB</td><td>66.99 KB</td><td>8</td></tr>
+<tr><td><code>@jdsalasc/solvejs-constants</code></td><td>1.10.0</td><td>3.47 KB</td><td>14.35 KB</td><td>8</td></tr>
+<tr><td><code>@jdsalasc/solvejs-date</code></td><td>1.10.1</td><td>8.97 KB</td><td>55.52 KB</td><td>8</td></tr>
+<tr><td><code>@jdsalasc/solvejs-env</code></td><td>1.10.0</td><td>7.03 KB</td><td>50.35 KB</td><td>8</td></tr>
+<tr><td><code>@jdsalasc/solvejs-errors</code></td><td>0.2.1</td><td>11.00 KB</td><td>55.40 KB</td><td>8</td></tr>
+<tr><td><code>@jdsalasc/solvejs-http</code></td><td>0.2.1</td><td>11.34 KB</td><td>61.43 KB</td><td>8</td></tr>
+<tr><td><code>@jdsalasc/solvejs-json</code></td><td>0.2.0</td><td>10.37 KB</td><td>59.66 KB</td><td>8</td></tr>
+<tr><td><code>@jdsalasc/solvejs-list</code></td><td>1.10.0</td><td>4.87 KB</td><td>30.27 KB</td><td>8</td></tr>
+<tr><td><code>@jdsalasc/solvejs-money</code></td><td>0.2.1</td><td>11.65 KB</td><td>67.57 KB</td><td>8</td></tr>
+<tr><td><code>@jdsalasc/solvejs-numbers</code></td><td>1.10.0</td><td>7.63 KB</td><td>53.23 KB</td><td>8</td></tr>
+<tr><td><code>@jdsalasc/solvejs-objects</code></td><td>1.10.0</td><td>5.22 KB</td><td>27.04 KB</td><td>8</td></tr>
+<tr><td><code>@jdsalasc/solvejs-pagination</code></td><td>0.2.1</td><td>7.69 KB</td><td>47.46 KB</td><td>8</td></tr>
+<tr><td><code>@jdsalasc/solvejs-pdf</code></td><td>0.1.11</td><td>174.29 KB</td><td>1035.41 KB</td><td>146</td></tr>
+<tr><td><code>@jdsalasc/solvejs-regex</code></td><td>1.10.0</td><td>3.38 KB</td><td>14.83 KB</td><td>8</td></tr>
+<tr><td><code>@jdsalasc/solvejs-schema</code></td><td>1.10.0</td><td>10.12 KB</td><td>63.74 KB</td><td>8</td></tr>
+<tr><td><code>@jdsalasc/solvejs-semver</code></td><td>0.2.1</td><td>12.51 KB</td><td>81.02 KB</td><td>8</td></tr>
+<tr><td><code>@jdsalasc/solvejs-string</code></td><td>1.10.1</td><td>4.15 KB</td><td>21.05 KB</td><td>8</td></tr>
+<tr><td><code>@jdsalasc/solvejs-url</code></td><td>0.2.1</td><td>8.11 KB</td><td>42.87 KB</td><td>8</td></tr>
+<tr><td><code>@jdsalasc/solvejs-validators</code></td><td>1.10.0</td><td>17.06 KB</td><td>108.64 KB</td><td>8</td></tr>
+<tr><td><code>@jdsalasc/solvejs-xlsx</code></td><td>0.3.0</td><td>157.95 KB</td><td>808.59 KB</td><td>128</td></tr></tbody>
           </table>
         </div>
       </section>
     </section>
     <p class="back-link"><a class="inline-link" href="../index.html">Back to docs home</a></p>
   </main>
-  <script src="../app.js?v=20261117"></script>
+  <script src="../app.js"></script>
 </body>
 </html>
