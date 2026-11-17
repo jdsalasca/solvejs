@@ -15,6 +15,7 @@ Zero-dependency common regex patterns and safe helpers: email, E.164 phone, HTTP
 - `validateWithPattern`
 - `escapeRegex`
 - `literalRegex`
+- named patterns: email, E.164 phone, HTTP URL, hex color, username, UUID v4/v7, IPv4, ISO date/date-time, semver, slug and IBAN
 
 ## When to use this package
 
@@ -37,6 +38,8 @@ npm i @jdsalasc/solvejs-regex
 import { REGEX_PATTERNS, validateWithPattern, escapeRegex, literalRegex } from "@jdsalasc/solvejs-regex";
 
 validateWithPattern("550e8400-e29b-41d4-a716-446655440000", REGEX_PATTERNS.uuidV4);
+validateWithPattern("018f4b7c-7a3d-7c2e-9f10-2b6d8a1f3c40", REGEX_PATTERNS.uuidV7);
+validateWithPattern("solve-js", REGEX_PATTERNS.slug);
 new RegExp(`^${escapeRegex("user.name")}$`);
 literalRegex("price $10.00").test("price $10.00");
 ```

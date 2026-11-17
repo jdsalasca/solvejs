@@ -8,7 +8,15 @@ export const REGEX_PATTERNS = {
   uuidV4: /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i,
   // eslint-disable-next-line security/detect-unsafe-regex -- four bounded octet groups, anchored
   ipv4: /^(?:25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(?:\.(?:25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3}$/,
-  isoDate: /^\d{4}-\d{2}-\d{2}$/
+  isoDate: /^\d{4}-\d{2}-\d{2}$/,
+  // eslint-disable-next-line security/detect-unsafe-regex -- fixed date-time shape
+  isoDateTime: /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d{1,3})?Z$/,
+  uuidV7: /^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i,
+  // eslint-disable-next-line security/detect-unsafe-regex -- anchored semver identifiers
+  semver: /^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(?:-(?:0|[1-9]\d*|\d*[A-Za-z-][0-9A-Za-z-]*)(?:\.(?:0|[1-9]\d*|\d*[A-Za-z-][0-9A-Za-z-]*))*)?(?:\+(?:[0-9A-Za-z-]+(?:\.[0-9A-Za-z-]+)*))?$/,
+  // eslint-disable-next-line security/detect-unsafe-regex -- anchored slug segments
+  slug: /^[a-z0-9]+(?:-[a-z0-9]+)*$/,
+  iban: /^[A-Z]{2}\d{2}[A-Z0-9]{11,30}$/
 } as const;
 
 export type PatternName = keyof typeof REGEX_PATTERNS;

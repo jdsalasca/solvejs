@@ -97,3 +97,17 @@ test("literalRegex", () => {
   assert.equal(literalRegex("[x]").test("x"), false, "a character class is matched literally");
   assert.equal(literalRegex("a.b", "g").test("a.b"), true);
 });
+
+test("new named patterns cover UUID v7, semver, slugs, IBAN and ISO date-time", () => {
+  assert.equal(validateByName("018f4b7c-7a3d-7c2e-9f10-2b6d8a1f3c40", "uuidV7"), true);
+  assert.equal(validateByName("550e8400-e29b-41d4-a716-446655440000", "uuidV7"), false);
+  assert.equal(validateByName("1.2.3-rc.1+build.5", "semver"), true);
+  assert.equal(validateByName("1.2", "semver"), false);
+  assert.equal(validateByName("1.2.3-alpha..1", "semver"), false, "empty prerelease identifiers are rejected");
+  assert.equal(validateByName("1.2.3-01", "semver"), false, "numeric prerelease identifiers cannot have leading zeros");
+  assert.equal(validateByName("1.2.3+.", "semver"), false, "build identifiers cannot be empty");
+  assert.equal(validateByName("solve-js-2026", "slug"), true);
+  assert.equal(validateByName("Solve JS", "slug"), false);
+  assert.equal(validateByName("GB82WEST12345698765432", "iban"), true);
+  assert.equal(validateByName("2026-11-17T12:00:00.000Z", "isoDateTime"), true);
+});
