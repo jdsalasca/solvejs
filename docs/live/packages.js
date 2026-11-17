@@ -128,7 +128,14 @@ const PACKAGES = [
         { id: 2, team: "api" }
       ];
       return groupBy(uniqueBy(rows, (row) => row.id), (row) => row.team);
-    }
+    },
+    variants: [
+      {
+        label: "Dedupe only",
+        code: `uniqueBy([{id:1},{id:1},{id:2}], row => row.id)`,
+        run: () => uniqueBy([{ id: 1 }, { id: 1 }, { id: 2 }], (row) => row.id)
+      }
+    ]
   },
   {
     id: "objects",
@@ -139,7 +146,14 @@ const PACKAGES = [
     run: () => {
       const merged = deepMerge({ app: { env: "dev" } }, { app: { port: 3000 } });
       return { merged, env: get(merged, "app.env") };
-    }
+    },
+    variants: [
+      {
+        label: "Deep path",
+        code: `get({ app: { db: { port: 5432 } } }, "app.db.port")`,
+        run: () => ({ port: get({ app: { db: { port: 5432 } } }, "app.db.port") })
+      }
+    ]
   },
   {
     id: "numbers",
@@ -162,7 +176,14 @@ const PACKAGES = [
     title: "Tested common patterns",
     level: "Core",
     code: `validateByName("a@b.co", "email"); escapeRegex("a.b")`,
-    run: () => ({ email: validateByName("a@b.co", "email"), escaped: escapeRegex("a.b") })
+    run: () => ({ email: validateByName("a@b.co", "email"), escaped: escapeRegex("a.b") }),
+    variants: [
+      {
+        label: "Invalid email",
+        code: `validateByName("not-an-email", "email")`,
+        run: () => ({ email: validateByName("not-an-email", "email") })
+      }
+    ]
   },
   {
     id: "url",
@@ -188,7 +209,19 @@ const PACKAGES = [
     title: "Stable JSON and deep clone",
     level: "Core",
     code: `stableStringify({ b: 1, a: 2 })`,
-    run: () => ({ stable: stableStringify({ b: 1, a: 2 }), clone: deepClone({ nested: { ok: true } }) })
+    run: () => ({ stable: stableStringify({ b: 1, a: 2 }), clone: deepClone({ nested: { ok: true } }) }),
+    variants: [
+      {
+        label: "Clone independence",
+        code: `const clone = deepClone(source); clone.nested.ok = false`,
+        run: () => {
+          const source = { nested: { ok: true } };
+          const clone = deepClone(source);
+          clone.nested.ok = false;
+          return { source: source.nested.ok, clone: clone.nested.ok };
+        }
+      }
+    ]
   },
   {
     id: "pagination",
@@ -196,7 +229,14 @@ const PACKAGES = [
     title: "Pages, offsets and cursors",
     level: "Core",
     code: `paginate(items, { page: 2, perPage: 10 })`,
-    run: () => paginate([1, 2, 3, 4, 5], { page: 2, perPage: 2 })
+    run: () => paginate([1, 2, 3, 4, 5], { page: 2, perPage: 2 }),
+    variants: [
+      {
+        label: "First page",
+        code: `paginate([1,2,3,4,5], { page: 1, perPage: 2 })`,
+        run: () => paginate([1, 2, 3, 4, 5], { page: 1, perPage: 2 })
+      }
+    ]
   },
   {
     id: "semver",
@@ -207,7 +247,14 @@ const PACKAGES = [
     run: () => ({
       satisfies: satisfies("1.9.0", "^1.2.3"),
       max: maxSatisfying(["1.0.0", "1.4.2", "2.0.0"], "^1.0.0")
-    })
+    }),
+    variants: [
+      {
+        label: "Outside range",
+        code: `satisfies("2.0.0", "^1.2.3")`,
+        run: () => ({ satisfies: satisfies("2.0.0", "^1.2.3") })
+      }
+    ]
   },
   {
     id: "errors",
@@ -215,7 +262,14 @@ const PACKAGES = [
     title: "Stable application errors",
     level: "Infra",
     code: `errorToResponse(createError("NOT_FOUND", "No user"))`,
-    run: () => errorToResponse(createError("NOT_FOUND", "No user with id 42."))
+    run: () => errorToResponse(createError("NOT_FOUND", "No user with id 42.")),
+    variants: [
+      {
+        label: "Validation error",
+        code: `errorToResponse(createError("VALIDATION_FAILED", "Email is required."))`,
+        run: () => errorToResponse(createError("VALIDATION_FAILED", "Email is required."))
+      }
+    ]
   },
   {
     id: "http",
@@ -227,7 +281,14 @@ const PACKAGES = [
       chosen: negotiateContentType(["application/json"], { accept: "text/html,application/json;q=0.9" }),
       retryDelay: calculateBackoffDelay(2, { baseMs: 100, factor: 2, maxMs: 2000, jitter: false }),
       status: HTTP_STATUS.TOO_MANY_REQUESTS
-    })
+    }),
+    variants: [
+      {
+        label: "Retry schedule",
+        code: `calculateBackoffDelay(3, { baseMs: 200, factor: 2, jitter: false })`,
+        run: () => ({ retryDelay: calculateBackoffDelay(3, { baseMs: 200, factor: 2, maxMs: 5000, jitter: false }) })
+      }
+    ]
   },
   {
     id: "cache",
@@ -239,7 +300,21 @@ const PACKAGES = [
       const cache = createTtlCache({ ttlMs: 1000, now: () => 0 });
       cache.set("user:42", "Ada");
       return { key: stableKey({ userId: 42 }), value: cache.get("user:42"), size: cache.size() };
-    }
+    },
+    variants: [
+      {
+        label: "Expired entry",
+        code: `cache.set("k", "v"); cache.get("k") // after ttl`,
+        run: () => {
+          let now = 0;
+          const cache = createTtlCache({ ttlMs: 1000, now: () => now });
+          cache.set("k", "v");
+          const before = cache.get("k");
+          now = 2000;
+          return { before, after: cache.get("k") ?? null };
+        }
+      }
+    ]
   },
   {
     id: "async",
@@ -265,7 +340,20 @@ const PACKAGES = [
     title: "Fail-fast environment parsing",
     level: "Infra",
     code: `getEnvNumber("PORT", { PORT: "3000" })`,
-    run: () => ({ port: getEnvNumber("PORT", { PORT: "3000" }), timeout: TIME.SECOND_MS })
+    run: () => ({ port: getEnvNumber("PORT", { PORT: "3000" }), timeout: TIME.SECOND_MS }),
+    variants: [
+      {
+        label: "Invalid number",
+        code: `getEnvNumber("PORT", { PORT: "not-a-number" })`,
+        run: () => {
+          try {
+            return { port: getEnvNumber("PORT", { PORT: "not-a-number" }) };
+          } catch (error) {
+            return { error: error instanceof Error ? error.message : String(error) };
+          }
+        }
+      }
+    ]
   },
   {
     id: "schema",
@@ -298,7 +386,14 @@ const PACKAGES = [
     title: "Typed constants",
     level: "Infra",
     code: `HTTP_STATUS.OK; TIME.MINUTE_MS`,
-    run: () => ({ ok: HTTP_STATUS.OK, minute: TIME.MINUTE_MS })
+    run: () => ({ ok: HTTP_STATUS.OK, minute: TIME.MINUTE_MS }),
+    variants: [
+      {
+        label: "More constants",
+        code: `HTTP_STATUS.NOT_FOUND; TIME.HOUR_MS`,
+        run: () => ({ notFound: HTTP_STATUS.NOT_FOUND, hour: TIME.HOUR_MS })
+      }
+    ]
   },
   {
     id: "meta",
@@ -306,7 +401,14 @@ const PACKAGES = [
     title: "One import surface",
     level: "Meta",
     code: `import { slugify, formatDate } from "@jdsalasc/solvejs"`,
-    run: () => ({ slug: metaSlugify("One Import Surface"), date: metaFormatDate(new Date("2026-11-16T00:00:00Z")) })
+    run: () => ({ slug: metaSlugify("One Import Surface"), date: metaFormatDate(new Date("2026-11-16T00:00:00Z")) }),
+    variants: [
+      {
+        label: "Another date",
+        code: `formatDate(new Date("2027-01-01T00:00:00Z"))`,
+        run: () => ({ date: metaFormatDate(new Date("2027-01-01T00:00:00Z")) })
+      }
+    ]
   }
 ];
 

@@ -192,7 +192,7 @@ Competitor study:
 
 - Generated `docs/live/api.json` from the TypeScript declarations of every package, with function, type, interface, class and const signatures plus JSDoc.
 - Added an API Reference browser with search, package filter, copy buttons and npm links.
-- Added copy buttons to every code block, a "Copy link" action in the package header, and extra runnable variants for date, money, validators, string, numbers, URL, schema and async.
+- Added copy buttons to every code block, a "Copy link" action in the package header, and extra runnable variants for every non-flagship package.
 - Linked the package health report and repository changelog from the footer.
 - Deploy scripts and GitHub Pages now regenerate the API index before publishing.
 
