@@ -13,6 +13,7 @@ Zero-dependency caching primitives for Node.js and the browser: TTL maps, LRU ev
 - `createTtlCache`
 - `createLruCache`
 - `memoizeAsync`
+- `createSingleFlight`
 - `createStaleWhileRevalidate`
 - `CacheError`
 
@@ -31,7 +32,7 @@ npm i @jdsalasc/solvejs-cache
 ## Quick example
 
 ```ts
-import { createTtlCache, createLruCache, memoizeAsync, createStaleWhileRevalidate } from "@jdsalasc/solvejs-cache";
+import { createSingleFlight, createTtlCache, createLruCache, memoizeAsync, createStaleWhileRevalidate } from "@jdsalasc/solvejs-cache";
 
 const flags = createTtlCache<boolean>({ ttlMs: 60_000 });
 flags.set("new-checkout", true);
@@ -45,10 +46,15 @@ const loadUser = memoizeAsync(async (id: string) => fetchUser(id));
 await loadUser("u1"); // one request
 await loadUser("u1"); // served from memory
 
+const refreshPrices = createSingleFlight(async () => fetchPrices());
+await Promise.all([refreshPrices(), refreshPrices()]); // one in-flight request, not cached afterwards
+
 const readConfig = createStaleWhileRevalidate(fetchConfig, { freshMs: 30_000, staleMs: 300_000 });
 await readConfig(); // loads
 await readConfig(); // fresh, no reload
 ```
+
+`createSingleFlight` deduplicates only concurrent calls. The resolved value is not cached, so the next call after it settles runs the loader again. That is the right shape for manual refresh buttons, webhook fan-in and "load once per request" work; use `memoizeAsync` when you also want to keep the value for a TTL.
 
 ## Injectable clocks
 

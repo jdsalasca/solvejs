@@ -87,6 +87,16 @@ function assertKeyNotCircular(input: object, seen: WeakSet<object>): void {
 
 function serialiseKeyObject(input: object, walk: (value: unknown) => string): string {
   if (Array.isArray(input)) return `[${input.map(walk).join(",")}]`;
+  if (input instanceof Date) return `Date(${input.toISOString()})`;
+  if (input instanceof RegExp) return `RegExp(${input.source}/${input.flags})`;
+  if (input instanceof Map) {
+    return `Map(${[...input.entries()].map(([key, value]) => `${walk(key)}=>${walk(value)}`).join(",")})`;
+  }
+  if (input instanceof Set) return `Set(${[...input.values()].map(walk).join(",")})`;
+  if (ArrayBuffer.isView(input)) {
+    return `View(${Object.prototype.toString.call(input)}:${Array.from(input as unknown as ArrayLike<number>).join(",")})`;
+  }
+  if (input instanceof ArrayBuffer) return `ArrayBuffer(${Array.from(new Uint8Array(input)).join(",")})`;
 
   const entries = Object.entries(input as Record<string, unknown>)
     .filter(([, entryValue]) => entryValue !== undefined)
@@ -486,4 +496,55 @@ export function createStaleWhileRevalidate<T>(
 
     return refresh();
   };
+}
+
+/** Options for {@link createSingleFlight}. */
+export type SingleFlightOptions<TArgs extends unknown[]> = {
+  /** Builds the in-flight key from the call arguments. Defaults to a stable key. */
+  key?: (...args: TArgs) => string;
+};
+
+/** A loader that deduplicates concurrent calls with the same key. */
+export type SingleFlight<TArgs extends unknown[], TResult> = ((...args: TArgs) => Promise<TResult>) & {
+  /** Number of calls currently in flight. */
+  readonly size: number;
+  /** Forgets all in-flight entries without cancelling the promises. */
+  clear(): void;
+};
+
+/**
+ * Deduplicates concurrent async calls without caching the resolved value.
+ *
+ * While a call is in flight, later calls with the same key share its promise. Once it settles,
+ * the entry is removed, so the next call runs the loader again. Rejected calls are shared by
+ * concurrent callers and then removed.
+ *
+ * @param loader - Async work to run.
+ * @param options - Optional key builder.
+ * @returns A loader with `size` and `clear()`.
+ */
+export function createSingleFlight<TArgs extends unknown[], TResult>(
+  loader: (...args: TArgs) => Promise<TResult> | TResult,
+  options: SingleFlightOptions<TArgs> = {}
+): SingleFlight<TArgs, TResult> {
+  const inFlight = new Map<string, Promise<TResult>>();
+  const keyOf = options.key ?? ((...args: TArgs) => stableKey(args));
+
+  const run = (...args: TArgs): Promise<TResult> => {
+    const key = keyOf(...args);
+    const existing = inFlight.get(key);
+    if (existing) return existing;
+
+    const promise = Promise.resolve().then(() => loader(...args));
+    inFlight.set(key, promise);
+    const remove = () => {
+      if (inFlight.get(key) === promise) inFlight.delete(key);
+    };
+    promise.then(remove, remove);
+    return promise;
+  };
+
+  Object.defineProperty(run, "size", { get: () => inFlight.size });
+  (run as SingleFlight<TArgs, TResult>).clear = () => inFlight.clear();
+  return run as SingleFlight<TArgs, TResult>;
 }

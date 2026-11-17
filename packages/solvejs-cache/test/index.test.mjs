@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 import {
   CacheError,
   createLruCache,
+  createSingleFlight,
   createStaleWhileRevalidate,
   createTtlCache,
   memoizeAsync,
@@ -560,4 +561,49 @@ test("createStaleWhileRevalidate collapses concurrent reads into one loader call
 
   assert.equal(calls, 1, "four concurrent readers share a single in-flight load");
   assert.deepEqual(values, ["value", "value", "value", "value"]);
+});
+
+test("stableKey distinguishes dates, regexps, maps and views", () => {
+  assert.notEqual(stableKey(new Date("2025-01-01T00:00:00Z")), stableKey(new Date("2026-01-01T00:00:00Z")));
+  assert.notEqual(stableKey(/a/g), stableKey(/a/i));
+  assert.notEqual(stableKey(new Uint8Array([1, 2])), stableKey(new Uint8Array([2, 1])));
+  assert.notEqual(stableKey(new Map([["a", 1]])), stableKey(new Map([["a", 2]])));
+  assert.equal(stableKey(new Date("2026-01-01T00:00:00Z")), stableKey(new Date("2026-01-01T00:00:00Z")));
+});
+
+test("createSingleFlight shares concurrent calls and forgets after settling", async () => {
+  let release;
+  const gate = new Promise((resolve) => {
+    release = resolve;
+  });
+  let calls = 0;
+  const load = createSingleFlight(async (id) => {
+    calls += 1;
+    await gate;
+    return id;
+  });
+
+  const first = load("usr_42");
+  const second = load("usr_42");
+  assert.equal(load.size, 1, "the second call joins the in-flight key");
+  release();
+  assert.deepEqual(await Promise.all([first, second]), ["usr_42", "usr_42"]);
+  assert.equal(calls, 1);
+  assert.equal(load.size, 0, "the resolved entry is removed");
+
+  assert.equal(await load("usr_42"), "usr_42");
+  assert.equal(calls, 2, "the next call runs the loader again");
+});
+
+test("createSingleFlight does not cache rejections", async () => {
+  let fail = true;
+  const load = createSingleFlight(async () => {
+    if (fail) throw new Error("transient");
+    return "ok";
+  });
+
+  await assert.rejects(load(), /transient/);
+  fail = false;
+  assert.equal(await load(), "ok");
+  assert.equal(load.size, 0);
 });
