@@ -52,6 +52,7 @@
     </a>
     <nav class="topnav-links" aria-label="SolveJS links">
       <a href="../index.html">Cookbook</a>
+      <a href="#suite-guide">Guide</a>
       <a href="#package-explorer">Packages</a>
       <a href="#form-lab">Form Lab</a>
       <a href="https://www.npmjs.com/package/@jdsalasc/solvejs" target="_blank" rel="noreferrer">npm</a>
@@ -93,6 +94,55 @@
         </div>
         <div class="glow glow-one"></div>
         <div class="glow glow-two"></div>
+      </div>
+    </section>
+
+    <section class="panel suite-guide" id="suite-guide">
+      <div class="guide-head">
+        <div>
+          <p class="panel-kicker">START HERE</p>
+          <h2>How to use the suite</h2>
+          <p class="live-caption">One package per job. Install only what you need, or install the meta package when you want every utility behind one import.</p>
+        </div>
+        <a class="hero-link" href="#package-explorer">Open the package explorer →</a>
+      </div>
+      <div class="guide-steps">
+        <article class="guide-step">
+          <span class="guide-number">01</span>
+          <h3>Find the job, not the function</h3>
+          <p>Pick the row below that matches what you are building. Each package has one domain and a stable API.</p>
+        </article>
+        <article class="guide-step">
+          <span class="guide-number">02</span>
+          <h3>Install one package</h3>
+          <p><code>npm i @jdsalasc/solvejs-date</code> keeps the dependency graph at zero. Use <code>@jdsalasc/solvejs</code> only when you want the whole suite.</p>
+        </article>
+        <article class="guide-step">
+          <span class="guide-number">03</span>
+          <h3>Import named functions</h3>
+          <p>Every export is tree-shakeable and typed. ESM, CommonJS and TypeScript declarations ship in the same tarball.</p>
+        </article>
+        <article class="guide-step">
+          <span class="guide-number">04</span>
+          <h3>Run it here first</h3>
+          <p>Every tab in the explorer executes the published build. Copy the snippet, then open the API reference for the full surface.</p>
+        </article>
+      </div>
+      <div class="guide-table" role="table" aria-label="Choose a SolveJS package by job">
+        <div class="guide-row guide-row-head" role="row">
+          <span role="columnheader">When you need to…</span>
+          <span role="columnheader">Install</span>
+        </div>
+        <div class="guide-row" role="row"><span>Parse dates, add business days or compare in UTC</span><a href="#pkg-date"><code>solvejs-date</code></a></div>
+        <div class="guide-row" role="row"><span>Validate emails, URLs, cards, passwords or postal codes</span><a href="#pkg-validators"><code>solvejs-validators</code></a></div>
+        <div class="guide-row" role="row"><span>Round money, split amounts or format currency safely</span><a href="#pkg-money"><code>solvejs-money</code></a></div>
+        <div class="guide-row" role="row"><span>Parse JSON safely, clone deeply or compare objects</span><a href="#pkg-json"><code>solvejs-json</code></a></div>
+        <div class="guide-row" role="row"><span>Retry HTTP calls, read status text or negotiate content types</span><a href="#pkg-http"><code>solvejs-http</code></a></div>
+        <div class="guide-row" role="row"><span>Generate UUID v7, ULID, NanoID or prefixed IDs</span><a href="#pkg-id"><code>solvejs-id</code></a></div>
+        <div class="guide-row" role="row"><span>Validate a request body against a schema</span><a href="#pkg-schema"><code>solvejs-schema</code></a></div>
+        <div class="guide-row" role="row"><span>Build a PDF with images, watermarks and stamps</span><a href="#pkg-pdf"><code>solvejs-pdf</code></a></div>
+        <div class="guide-row" role="row"><span>Write or read an Excel workbook</span><a href="#pkg-xlsx"><code>solvejs-xlsx</code></a></div>
+        <div class="guide-row" role="row"><span>Cache a value, memoize async work or dedupe requests</span><a href="#pkg-cache"><code>solvejs-cache</code></a></div>
       </div>
     </section>
 

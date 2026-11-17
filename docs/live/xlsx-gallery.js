@@ -270,6 +270,33 @@ function jsonWorkbook() {
   });
 }
 
+function metadataWorkbook() {
+  return writeXlsx({
+    title: "Pipeline metadata",
+    creator: "SolveJS",
+    sheets: [
+      {
+        name: "Pipeline",
+        columns: [
+          { header: "Account", width: 20 },
+          { header: "Stage", width: 12 },
+          { header: "Owner", width: 16 },
+          { header: "Internal note", width: 24, hidden: true }
+        ],
+        rows: [
+          { cells: ["Northwind", "Won", "Ada", "renewal"] },
+          { cells: ["Contoso", "Open", "Grace", "budget review"] },
+          { cells: ["Fabrikam", "Open", "Linus", "waiting"], hidden: true },
+          { cells: ["Initech", "Won", "Margaret", "case study"] }
+        ],
+        freeze: { rows: 1 },
+        autoFilter: "A1:C5",
+        filterColumns: [{ column: 1, values: ["Won"] }]
+      }
+    ]
+  });
+}
+
 const WORKBOOKS = {
   revenue: { title: "Revenue report", description: "Merged title, colored header, row styles, formulas with cached values, validation and an empty cell rendered as zero.", build: revenueWorkbook },
   inventory: { title: "Inventory", description: "Borders, row fills, number formats, a defined name, freeze panes, print setup and conditional-looking low-stock rows.", build: inventoryWorkbook },
@@ -289,6 +316,25 @@ writeXlsx({
       { range: "D2:D5", type: "dataBar", color: Colors.Blue }
     ] }]
 })`
+  },
+  metadata: {
+    title: "Round-trip metadata",
+    description: "A hidden column, a hidden row and checked filter values are written, read back and shown faded so you can see what survived the round trip.",
+    build: metadataWorkbook,
+    code: `const bytes = writeXlsx({
+  sheets: [{ name: "Pipeline",
+    columns: [{ header: "Account" }, { header: "Stage" }, { header: "Internal note", hidden: true }],
+    rows: [
+      { cells: ["Northwind", "Won", "Ada", "renewal"] },
+      { cells: ["Fabrikam", "Open", "Linus", "waiting"], hidden: true }
+    ],
+    autoFilter: "A1:C5",
+    filterColumns: [{ column: 1, values: ["Won"] }]
+  }]
+});
+const sheet = (await readXlsx(bytes)).sheets[0];
+sheet.hiddenRows;    // [3]
+sheet.filterColumns; // [{ column: 1, values: ["Won"] }]`
   }
 };
 
@@ -369,6 +415,7 @@ function sheetPreview(sheet) {
     const element = el("col");
     const width = sheet.columns?.[col]?.width;
     if (width) element.style.width = `${Math.max(74, width * 8 + 12)}px`;
+    if (sheet.columns?.[col]?.hidden) element.classList.add("is-hidden");
     colgroup.append(element);
   }
   table.append(colgroup);
@@ -376,6 +423,10 @@ function sheetPreview(sheet) {
   sheet.rows.forEach((row, rowIndex) => {
     const tr = el("tr");
     if (sheet.rowHeights?.[String(rowIndex + 1)]) tr.style.height = `${sheet.rowHeights[String(rowIndex + 1)]}px`;
+    if (sheet.hiddenRows?.includes(rowIndex + 1)) {
+      tr.classList.add("is-hidden");
+      tr.title = "Hidden row";
+    }
     for (let col = 0; col < columns; col += 1) {
       if (covered.has(`${rowIndex},${col}`)) continue;
       const merged = origins.get(`${rowIndex},${col}`);
@@ -419,6 +470,10 @@ function badges(sheet, extra = []) {
   if (sheet.dataValidations?.length) items.push(`${sheet.dataValidations.length} validations`);
   if (sheet.freeze) items.push("frozen panes");
   if (sheet.autoFilter) items.push("autoFilter");
+  if (sheet.filterColumns?.length) items.push(`${sheet.filterColumns.length} filter column${sheet.filterColumns.length === 1 ? "" : "s"}`);
+  if (sheet.hiddenRows?.length) items.push(`${sheet.hiddenRows.length} hidden row${sheet.hiddenRows.length === 1 ? "" : "s"}`);
+  const hiddenColumns = (sheet.columns ?? []).filter((column) => column.hidden).length;
+  if (hiddenColumns) items.push(`${hiddenColumns} hidden column${hiddenColumns === 1 ? "" : "s"}`);
   if (sheet.pageSetup) items.push("print setup");
   if (sheet.rowHeights && Object.keys(sheet.rowHeights).length) items.push("custom heights");
   return items;

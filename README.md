@@ -43,8 +43,8 @@ SolveJS is a monorepo of 21 focused packages. Install the whole ecosystem with o
 | Use common regex patterns for email, phone, URL, UUID, IPv4, and ISO dates | `@jdsalasc/solvejs-regex` | `npm i @jdsalasc/solvejs-regex` |
 | Parse numbers, compute percentages, format currency, or round safely | `@jdsalasc/solvejs-numbers` | `npm i @jdsalasc/solvejs-numbers` |
 | Use time, file-size, HTTP method, status, and content-type constants | `@jdsalasc/solvejs-constants` | `npm i @jdsalasc/solvejs-constants` |
-| Export or read XLSX with JSX components, formulas, JSON conversion, conditional formatting, filters and metadata | `@jdsalasc/solvejs-xlsx` | `npm i @jdsalasc/solvejs-xlsx` |
-| Generate PDFs with JSX components, charts, formulas, watermarks and AcroForm fields | `@jdsalasc/solvejs-pdf` | `npm i @jdsalasc/solvejs-pdf` |
+| Export or read XLSX with JSX components, formulas, JSON conversion, conditional formatting, filters, hidden rows/columns and metadata | `@jdsalasc/solvejs-xlsx` | `npm i @jdsalasc/solvejs-xlsx` |
+| Generate PDFs with JSX components, PNG/JPEG images, image watermarks, custom stamps, charts, formulas and AcroForm fields | `@jdsalasc/solvejs-pdf` | `npm i @jdsalasc/solvejs-pdf` |
 | Import any of the above from one entry point | `@jdsalasc/solvejs` | `npm i @jdsalasc/solvejs` |
 
 ## Install

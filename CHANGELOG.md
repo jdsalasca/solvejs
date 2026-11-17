@@ -1,5 +1,17 @@
 # Changelog
 
+## 1.12.16 - 2026-11-17
+
+- PDF `0.1.14`: `Image` now accepts PNG (8-bit, non-interlaced, color types 0/2/3/4/6) with alpha written as a PDF `SMask`; JPEG still uses `DCTDecode`. Migration impact: none.
+- PDF `0.1.14`: watermarks accept `image`, `imageWidth` and `imageHeight`, alone or combined with text, with rotation and opacity. Migration impact: none.
+- PDF `0.1.14`: `Stamp` adds `background`, `borderColor`, `fontFamily`, `bold`, `italic` and `uppercase`. Migration impact: none.
+- PDF `0.1.14`: added `Title`, `hero`/`section`/`lead`/`quote` presets, `preset` support on `Heading`/`Paragraph`, and `maxLines` clamping with an ellipsis. Migration impact: none.
+- PDF `0.1.14`: hardened parsing with progress guards for arrays and dictionaries, AcroForm cycle/depth limits, object-stream cumulative budgets and an object count cap. Invalid files now fail with `PDF_INVALID_INPUT` or `PDF_LIMIT_EXCEEDED` instead of looping. Migration impact: none for valid files.
+- XLSX `0.3.3`: read parity for hidden rows, hidden columns and `filterColumns`; ZIP entries inflate concurrently, each capped at its declared size so the total decompression budget is unchanged. Migration impact: none.
+- `solvejs-env`: `getEnvNumber` now validates `defaultValue` against `integer`, `min`, `max` and finiteness. Migration impact: none unless an invalid default was silently accepted.
+- Live Lab: start-here guide, PNG badge and custom-stamp PDF proof, XLSX metadata round-trip example, hidden row/column preview. Migration impact: none.
+- Meta package `1.12.16` re-exports `Title` and depends on PDF `0.1.14` and XLSX `0.3.3`. Migration impact: none.
+
 ## 1.12.15 - 2026-11-17
 
 - Added `@jdsalasc/solvejs-id@0.1.0`: zero-dependency UUID v4, time-ordered UUID v7, ULID, NanoID, prefixed IDs, random tokens, validators and timestamp extraction, with injectable clock/randomness. Migration impact: none; new package.

@@ -812,6 +812,133 @@ solvejs-pdf-viewer {
   }
 }
 
+/* Start-here guide */
+.suite-guide {
+  margin-top: 18px;
+  padding: 26px;
+}
+
+.guide-head {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 20px;
+  margin-bottom: 20px;
+}
+
+.guide-head h2 {
+  margin: 4px 0 6px;
+  font-size: clamp(1.45rem, 2vw, 2rem);
+  letter-spacing: -0.03em;
+}
+
+.guide-steps {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.guide-step {
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  padding: 16px;
+  background: rgba(255, 255, 255, 0.025);
+}
+
+.guide-number {
+  color: #4f8cff;
+  font-size: 0.62rem;
+  font-weight: 800;
+  letter-spacing: 0.16em;
+}
+
+.guide-step h3 {
+  margin: 8px 0 6px;
+  font-size: 0.95rem;
+  letter-spacing: -0.01em;
+}
+
+.guide-step p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.8rem;
+  line-height: 1.55;
+}
+
+.guide-step code {
+  color: #bfdbfe;
+  font-size: 0.74rem;
+}
+
+.guide-table {
+  margin-top: 18px;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  overflow: hidden;
+}
+
+.guide-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 240px;
+  gap: 16px;
+  align-items: center;
+  padding: 10px 14px;
+  border-top: 1px solid var(--line);
+  font-size: 0.82rem;
+}
+
+.guide-row:first-child {
+  border-top: 0;
+}
+
+.guide-row-head {
+  background: rgba(79, 140, 255, 0.08);
+  color: var(--muted);
+  font-size: 0.62rem;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.guide-row a {
+  color: #93c5fd;
+  text-decoration: none;
+}
+
+.guide-row a:hover {
+  text-decoration: underline;
+}
+
+.guide-row code {
+  color: inherit;
+  font-size: 0.76rem;
+}
+
+@media (max-width: 980px) {
+  .guide-steps {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 620px) {
+  .suite-guide {
+    padding: 18px;
+  }
+
+  .guide-head {
+    display: block;
+  }
+
+  .guide-steps {
+    grid-template-columns: 1fr;
+  }
+
+  .guide-row {
+    grid-template-columns: 1fr;
+    gap: 4px;
+  }
+}
+
 /* Package explorer with a real sidebar */
 .docs-shell {
   display: grid;
@@ -1254,6 +1381,15 @@ solvejs-pdf-viewer {
   padding: 5px 8px;
   vertical-align: middle;
   white-space: pre-wrap;
+}
+
+.sheet-table tr.is-hidden td {
+  opacity: 0.45;
+  background-image: repeating-linear-gradient(135deg, rgba(100, 116, 139, 0.08) 0 6px, transparent 6px 12px);
+}
+
+.sheet-table col.is-hidden {
+  background: rgba(100, 116, 139, 0.12);
 }
 
 .sheet-table td.has-formula {

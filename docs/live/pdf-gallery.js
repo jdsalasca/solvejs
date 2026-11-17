@@ -16,9 +16,11 @@ import {
   Receipt,
   Row,
   Spacer,
+  Stamp,
   Subtitle,
   Table,
   Text,
+  Title,
   View,
   fillPdfForm,
   readPdfForm,
@@ -378,8 +380,120 @@ function visualDoc(preset) {
   });
 }
 
-function receiptDoc(preset) {
+function badgePng() {
+  const canvas = document.createElement("canvas");
+  canvas.width = 240;
+  canvas.height = 240;
+  const context = canvas.getContext("2d");
+  if (!context) return LOGO;
+  const gradient = context.createLinearGradient(24, 24, 216, 216);
+  gradient.addColorStop(0, "#2563EB");
+  gradient.addColorStop(1, "#0F172A");
+  context.fillStyle = gradient;
+  context.beginPath();
+  context.arc(120, 120, 112, 0, Math.PI * 2);
+  context.fill();
+  context.fillStyle = "#FFFFFF";
+  context.font = "700 92px Helvetica, Arial, sans-serif";
+  context.textAlign = "center";
+  context.textBaseline = "middle";
+  context.fillText("SJ", 120, 126);
+  return canvas.toDataURL("image/png");
+}
+
+function studioDoc(preset) {
+  const badge = badgePng();
   return Pdf({
+    title: "Studio proof",
+    author: "SolveJS",
+    page: "a4",
+    margin: { top: 54, bottom: 54, left: 54, right: 54 },
+    watermark: { image: badge, imageWidth: 320, opacity: 0.06 },
+    ...(preset === "none" ? {} : { pageNumbers: { preset } }),
+    children: [
+      PdfPage({
+        children: [
+          Row({
+            valign: "middle",
+            gap: 14,
+            children: [
+              Image({ src: badge, width: 54, height: 54 }),
+              View({
+                children: [
+                  Text({ preset: "eyebrow", children: "STUDIO PROOF" }),
+                  Title({ children: "Transparent PNG. Custom stamp." }),
+                  Subtitle({ children: "The first page carries an image watermark; the second layers text on top." })
+                ]
+              })
+            ]
+          }),
+          Divider({ marginTop: 14, marginBottom: 14 }),
+          Paragraph({
+            preset: "lead",
+            children:
+              "PNG images keep their alpha channel through a PDF SMask, so a round badge sits cleanly on the page instead of on a white square."
+          }),
+          View({
+            padding: 14,
+            background: PdfColors.SoftGray,
+            radius: 8,
+            marginTop: 10,
+            children: [
+              Paragraph({ preset: "quote", children: "A watermark is part of the page furniture, not a sticker on top of the copy." }),
+              Paragraph({
+                preset: "body",
+                maxLines: 3,
+                children:
+                  "Paragraph controls include presets, justification, line height, padding and maxLines. This block is clamped to three lines, which keeps cards and previews predictable while the source text stays complete."
+              })
+            ]
+          }),
+          Spacer({ height: 18 }),
+          Row({
+            valign: "middle",
+            gap: 18,
+            children: [
+              Stamp({
+                text: "Approved",
+                color: "#047857",
+                background: "#ECFDF5",
+                borderColor: "#059669",
+                fontFamily: "times",
+                italic: true,
+                uppercase: false,
+                angle: -8,
+                borderWidth: 2
+              }),
+              View({
+                children: [
+                  Text({ value: "Signed by the document owner", fontSize: 10, bold: true }),
+                  Text({ preset: "caption", children: "Colors, font, casing and rotation are independent." })
+                ]
+              })
+            ]
+          })
+        ]
+      }),
+      PdfPage({
+        watermark: { image: badge, text: "CONFIDENTIAL", angle: 0, opacity: 0.08 },
+        children: [
+          Title({ children: "Both layers, one watermark." }),
+          Paragraph({
+            preset: "lead",
+            children: "An image and a text label can share the watermark slot. The image is centered and scaled, while the text keeps its own font and opacity."
+          }),
+          Paragraph({
+            align: "justify",
+            children:
+              "Because the watermark is inserted behind the page ops, every paragraph, table and chart stays readable. Override it per page, disable it with false, or return a different watermark per page from a factory."
+          })
+        ]
+      })
+    ]
+  });
+}
+
+function receiptDoc(preset) {  return Pdf({
     title: "Receipt 1042",
     author: "Acme Hardware",
     page: "a4",
@@ -425,6 +539,7 @@ const DOCS = {
   invoice: { title: "Invoice with custom furniture", description: "A branded header, a custom footer with contact details and its own page numbers.", build: invoiceDoc, pages: false },
   letter: { title: "Editorial letter", description: "Title, subtitle, body and signature with the built-in page-number footer.", build: letterDoc, pages: true },
   visual: { title: "Visual systems", description: "Logo and text alignment, justified copy, a LaTeX formula, vector icons, charts and a per-page watermark.", build: visualDoc, pages: true },
+  studio: { title: "PNG badge and custom stamp", description: "Transparent PNG logo, image and text watermarks, titles, paragraph presets, maxLines and a customized stamp.", build: studioDoc, pages: true },
   receipt: { title: "Thermal receipt", description: "Monospace receipt typography, dashed rules, item table, totals, barcode, PAID stamp and a paper background.", build: receiptDoc, pages: true }
 };
 
@@ -465,6 +580,32 @@ function snippet(kind, preset) {
       LineChart({ data: retention }),
       PieChart({ data: mix })
     ]})
+  ]
+})`;
+  }
+  if (kind === "studio") {
+    return `Pdf({
+  watermark: { image: badgePng, imageWidth: 320, opacity: 0.06 },
+  children: [
+    PdfPage({ children: [
+      Image({ src: badgePng, width: 54, height: 54 }),
+      Title({ children: "Transparent PNG. Custom stamp." }),
+      Paragraph({ preset: "lead", children: lead }),
+      Paragraph({ maxLines: 3, children: longCopy }),
+      Stamp({
+        text: "Approved",
+        background: "#ECFDF5",
+        borderColor: "#059669",
+        color: "#047857",
+        fontFamily: "times",
+        italic: true,
+        uppercase: false
+      })
+    ]}),
+    PdfPage({
+      watermark: { image: badgePng, text: "CONFIDENTIAL", angle: 0 },
+      children: Title({ children: "Both layers, one watermark." })
+    })
   ]
 })`;
   }
@@ -555,9 +696,11 @@ export function renderPdfDemo(container) {
           ? ["Display and title presets", "Subtitle + paragraph rhythm", "Signature preset", "Built-in page-number footer"]
           : doc === "visual"
             ? ["Logo aligned with text", "Justified paragraph", "LaTeX fraction, root and sum", "Vector icons + bar, line and pie charts", "Per-page watermark"]
-            : doc === "receipt"
-              ? ["Courier receipt typography", "Dashed rules and dense rows", "Code 39 barcode", "Rotated PAID stamp", "Paper background"]
-              : ["Native PDF header", "Display / title / body presets", "Bookmarks for each section", "Page-number presets"];
+            : doc === "studio"
+              ? ["PNG alpha through PDF SMask", "Image + text watermark", "Title, lead and quote presets", "maxLines paragraph clamp", "Custom stamp colors and font"]
+              : doc === "receipt"
+                ? ["Courier receipt typography", "Dashed rules and dense rows", "Code 39 barcode", "Rotated PAID stamp", "Paper background"]
+                : ["Native PDF header", "Display / title / body presets", "Bookmarks for each section", "Page-number presets"];
     features.replaceChildren(...items.map((item) => el("li", undefined, item)));
   }
 

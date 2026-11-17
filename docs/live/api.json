@@ -3,7 +3,7 @@
   "packages": [
     {
       "name": "@jdsalasc/solvejs",
-      "version": "1.12.15",
+      "version": "1.12.16",
       "entries": [
         {
           "name": "AcceptOptions",
@@ -1534,13 +1534,13 @@
         {
           "name": "PdfTextPreset",
           "kind": "type",
-          "signature": "type PdfTextPreset = \"display\" | \"title\" | \"subtitle\" | \"body\" | \"caption\" | \"eyebrow\" | \"signature\" | \"receipt\" | \"receiptTitle\";"
+          "signature": "type PdfTextPreset = \"hero\" | \"display\" | \"title\" | \"section\" | \"subtitle\" | \"lead\" | \"body\" | \"quote\" | \"caption\" | \"eyebrow\" | \"signature\" | \"receipt\" | \"receiptTitle\";"
         },
         {
           "name": "PdfWatermark",
           "kind": "type",
-          "signature": "type PdfWatermark = { text: string; fontFamily?: PdfFontFamily; fontSize?: number; color?: PdfColor; /** Rotation in degrees. Defaults to -35. */ angle?: number; /** 0 to 1. Defaults to 0.12. */ opacity?: number; bold?: boolean; };",
-          "doc": "A diagonal text watermark drawn behind the page content."
+          "signature": "type PdfWatermark = { text?: string; /** PNG or JPEG bytes, data URL or base64. */ image?: Uint8Array | string; imageWidth?: number; imageHeight?: number; fontFamily?: PdfFontFamily; fontSize?: number; color?: PdfColor; /** Rotation in degrees for text. Defaults to -35. */ angle?",
+          "doc": "A watermark drawn behind the page content: text, image, or both."
         },
         {
           "name": "PdfWatermarkInput",
@@ -2053,7 +2053,7 @@
         {
           "name": "TextProps",
           "kind": "type",
-          "signature": "type TextProps = PdfStyle & { value?: string | number | boolean | Date | null; href?: string; /** Named typographic preset; explicit props override it. */ preset?: PdfTextPreset; children?: PdfNode | PdfNode[]; };"
+          "signature": "type TextProps = PdfStyle & { value?: string | number | boolean | Date | null; href?: string; /** Named typographic preset; explicit props override it. */ preset?: PdfTextPreset; /** Clamp the paragraph to this many lines and end the last one with an ellipsis. */ maxLines?: numbe"
         },
         {
           "name": "throttlePromise",
@@ -2082,6 +2082,12 @@
           "kind": "function",
           "signature": "<T>(operation: PromiseLike<T>, ms: number, fallback: T) => Promise<T>",
           "doc": "Runs an async operation with a timeout and returns a fallback when it times out."
+        },
+        {
+          "name": "Title",
+          "kind": "function",
+          "signature": "(props: TextProps) => PdfElement",
+          "doc": "Preset title: bold and larger than body text."
         },
         {
           "name": "toCamelCase",
@@ -2574,7 +2580,7 @@
         {
           "name": "XlsxSheetData",
           "kind": "type",
-          "signature": "type XlsxSheetData = { name: string; rows: XlsxCellValue[][]; merges?: string[]; columns?: Array<{ width?: number; style?: XlsxReadStyle; }>; rowHeights?: Record<number, number>; rowStyles?: Record<number, XlsxReadStyle>; freeze?: { rows: number; columns: number; }; autoFilter?: ",
+          "signature": "type XlsxSheetData = { name: string; rows: XlsxCellValue[][]; merges?: string[]; columns?: Array<{ width?: number; style?: XlsxReadStyle; hidden?: boolean; }>; rowHeights?: Record<number, number>; rowStyles?: Record<number, XlsxReadStyle>; /** 1-based indexes of hidden rows. */ h",
           "doc": "A worksheet returned by the reader."
         },
         {
@@ -3852,7 +3858,7 @@
     },
     {
       "name": "@jdsalasc/solvejs-pdf",
-      "version": "0.1.13",
+      "version": "0.1.14",
       "entries": [
         {
           "name": "BarChart",
@@ -4232,13 +4238,13 @@
         {
           "name": "PdfTextPreset",
           "kind": "type",
-          "signature": "type PdfTextPreset = | \"display\" | \"title\" | \"subtitle\" | \"body\" | \"caption\" | \"eyebrow\" | \"signature\" | \"receipt\" | \"receiptTitle\";"
+          "signature": "type PdfTextPreset = | \"hero\" | \"display\" | \"title\" | \"section\" | \"subtitle\" | \"lead\" | \"body\" | \"quote\" | \"caption\" | \"eyebrow\" | \"signature\" | \"receipt\" | \"receiptTitle\";"
         },
         {
           "name": "PdfWatermark",
           "kind": "type",
-          "signature": "type PdfWatermark = { text: string; fontFamily?: PdfFontFamily; fontSize?: number; color?: PdfColor; /** Rotation in degrees. Defaults to -35. */ angle?: number; /** 0 to 1. Defaults to 0.12. */ opacity?: number; bold?: boolean; };",
-          "doc": "A diagonal text watermark drawn behind the page content."
+          "signature": "type PdfWatermark = { text?: string; /** PNG or JPEG bytes, data URL or base64. */ image?: Uint8Array | string; imageWidth?: number; imageHeight?: number; fontFamily?: PdfFontFamily; fontSize?: number; color?: PdfColor; /** Rotation in degrees for text. Defaults to -35. */ angle?",
+          "doc": "A watermark drawn behind the page content: text, image, or both."
         },
         {
           "name": "PdfWatermarkInput",
@@ -4339,7 +4345,7 @@
         {
           "name": "StampProps",
           "kind": "type",
-          "signature": "type StampProps = { text: string; color?: PdfColor; angle?: number; fontSize?: number; borderWidth?: number; padding?: number; opacity?: number; };"
+          "signature": "type StampProps = { text: string; color?: PdfColor; background?: PdfColor; borderColor?: PdfColor; fontFamily?: PdfFontFamily; bold?: boolean; italic?: boolean; /** Defaults to true. Set false to keep the original casing. */ uppercase?: boolean; angle?: number; fontSize?: number;"
         },
         {
           "name": "Subtitle",
@@ -4372,7 +4378,13 @@
         {
           "name": "TextProps",
           "kind": "type",
-          "signature": "type TextProps = PdfStyle & { value?: string | number | boolean | Date | null; href?: string; /** Named typographic preset; explicit props override it. */ preset?: PdfTextPreset; children?: PdfNode | PdfNode[]; };"
+          "signature": "type TextProps = PdfStyle & { value?: string | number | boolean | Date | null; href?: string; /** Named typographic preset; explicit props override it. */ preset?: PdfTextPreset; /** Clamp the paragraph to this many lines and end the last one with an ellipsis. */ maxLines?: numbe"
+        },
+        {
+          "name": "Title",
+          "kind": "function",
+          "signature": "(props: TextProps) => PdfElement",
+          "doc": "Preset title: bold and larger than body text."
         },
         {
           "name": "View",
@@ -4944,7 +4956,7 @@
     },
     {
       "name": "@jdsalasc/solvejs-xlsx",
-      "version": "0.3.2",
+      "version": "0.3.3",
       "entries": [
         {
           "name": "Cell",
@@ -5355,7 +5367,7 @@
         {
           "name": "XlsxSheetData",
           "kind": "type",
-          "signature": "type XlsxSheetData = { name: string; rows: XlsxCellValue[][]; merges?: string[]; columns?: Array<{ width?: number; style?: XlsxReadStyle }>; rowHeights?: Record<number, number>; rowStyles?: Record<number, XlsxReadStyle>; freeze?: { rows: number; columns: number }; autoFilter?: st",
+          "signature": "type XlsxSheetData = { name: string; rows: XlsxCellValue[][]; merges?: string[]; columns?: Array<{ width?: number; style?: XlsxReadStyle; hidden?: boolean }>; rowHeights?: Record<number, number>; rowStyles?: Record<number, XlsxReadStyle>; /** 1-based indexes of hidden rows. */ hi",
           "doc": "A worksheet returned by the reader."
         },
         {

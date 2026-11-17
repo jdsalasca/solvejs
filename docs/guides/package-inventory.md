@@ -4,7 +4,7 @@ Generated on 2026-11-17.
 
 | Package | Version | Functions | Consts | Types | Tests |
 |---|---:|---:|---:|---:|---:|
-| @jdsalasc/solvejs | 1.12.15 | 0 | 0 | 0 | 5 |
+| @jdsalasc/solvejs | 1.12.16 | 0 | 0 | 0 | 5 |
 | @jdsalasc/solvejs-async | 1.10.1 | 10 | 0 | 8 | 26 |
 | @jdsalasc/solvejs-cache | 0.2.2 | 5 | 0 | 7 | 32 |
 | @jdsalasc/solvejs-constants | 1.10.1 | 1 | 8 | 0 | 9 |
@@ -19,14 +19,14 @@ Generated on 2026-11-17.
 | @jdsalasc/solvejs-numbers | 1.10.1 | 16 | 0 | 0 | 18 |
 | @jdsalasc/solvejs-objects | 1.10.1 | 7 | 0 | 0 | 9 |
 | @jdsalasc/solvejs-pagination | 0.2.2 | 8 | 0 | 5 | 15 |
-| @jdsalasc/solvejs-pdf | 0.1.13 | 0 | 0 | 0 | 55 |
+| @jdsalasc/solvejs-pdf | 0.1.14 | 0 | 0 | 0 | 62 |
 | @jdsalasc/solvejs-regex | 1.10.1 | 5 | 1 | 1 | 15 |
 | @jdsalasc/solvejs-schema | 1.10.1 | 1 | 1 | 5 | 20 |
 | @jdsalasc/solvejs-semver | 0.2.2 | 9 | 0 | 4 | 34 |
 | @jdsalasc/solvejs-string | 1.10.2 | 9 | 0 | 0 | 10 |
 | @jdsalasc/solvejs-url | 0.2.2 | 8 | 0 | 3 | 20 |
 | @jdsalasc/solvejs-validators | 1.10.1 | 31 | 0 | 7 | 45 |
-| @jdsalasc/solvejs-xlsx | 0.3.2 | 0 | 0 | 0 | 73 |
+| @jdsalasc/solvejs-xlsx | 0.3.3 | 0 | 0 | 0 | 74 |
 
 ## Notes
 
