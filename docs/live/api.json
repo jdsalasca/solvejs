@@ -3,7 +3,7 @@
   "packages": [
     {
       "name": "@jdsalasc/solvejs",
-      "version": "1.12.12",
+      "version": "1.12.13",
       "entries": [
         {
           "name": "AcceptOptions",
@@ -2514,7 +2514,7 @@
     },
     {
       "name": "@jdsalasc/solvejs-async",
-      "version": "1.10.0",
+      "version": "1.10.1",
       "entries": [
         {
           "name": "createRateLimiter",
@@ -2620,7 +2620,7 @@
     },
     {
       "name": "@jdsalasc/solvejs-cache",
-      "version": "0.2.1",
+      "version": "0.2.2",
       "entries": [
         {
           "name": "CacheError",
@@ -2710,7 +2710,7 @@
     },
     {
       "name": "@jdsalasc/solvejs-constants",
-      "version": "1.10.0",
+      "version": "1.10.1",
       "entries": [
         {
           "name": "BOOLEAN_STRINGS",
@@ -2762,7 +2762,7 @@
     },
     {
       "name": "@jdsalasc/solvejs-date",
-      "version": "1.10.1",
+      "version": "1.10.2",
       "entries": [
         {
           "name": "addBusinessDays",
@@ -2881,7 +2881,7 @@
     },
     {
       "name": "@jdsalasc/solvejs-env",
-      "version": "1.10.0",
+      "version": "1.10.1",
       "entries": [
         {
           "name": "EnvSource",
@@ -2952,7 +2952,7 @@
     },
     {
       "name": "@jdsalasc/solvejs-errors",
-      "version": "0.2.1",
+      "version": "0.2.2",
       "entries": [
         {
           "name": "aggregateErrors",
@@ -3066,7 +3066,7 @@
     },
     {
       "name": "@jdsalasc/solvejs-http",
-      "version": "0.2.1",
+      "version": "0.2.2",
       "entries": [
         {
           "name": "AcceptOptions",
@@ -3150,7 +3150,7 @@
     },
     {
       "name": "@jdsalasc/solvejs-json",
-      "version": "0.2.0",
+      "version": "0.2.1",
       "entries": [
         {
           "name": "deepClone",
@@ -3240,7 +3240,7 @@
     },
     {
       "name": "@jdsalasc/solvejs-list",
-      "version": "1.10.0",
+      "version": "1.10.1",
       "entries": [
         {
           "name": "chunk",
@@ -3318,7 +3318,7 @@
     },
     {
       "name": "@jdsalasc/solvejs-money",
-      "version": "0.2.1",
+      "version": "0.2.2",
       "entries": [
         {
           "name": "addMoney",
@@ -3426,7 +3426,7 @@
     },
     {
       "name": "@jdsalasc/solvejs-numbers",
-      "version": "1.10.0",
+      "version": "1.10.1",
       "entries": [
         {
           "name": "applyDiscount",
@@ -3528,7 +3528,7 @@
     },
     {
       "name": "@jdsalasc/solvejs-objects",
-      "version": "1.10.0",
+      "version": "1.10.1",
       "entries": [
         {
           "name": "deepMerge",
@@ -3576,7 +3576,7 @@
     },
     {
       "name": "@jdsalasc/solvejs-pagination",
-      "version": "0.2.1",
+      "version": "0.2.2",
       "entries": [
         {
           "name": "clampPage",
@@ -3666,7 +3666,7 @@
     },
     {
       "name": "@jdsalasc/solvejs-pdf",
-      "version": "0.1.12",
+      "version": "0.1.13",
       "entries": [
         {
           "name": "BarChart",
@@ -4203,7 +4203,7 @@
     },
     {
       "name": "@jdsalasc/solvejs-regex",
-      "version": "1.10.0",
+      "version": "1.10.1",
       "entries": [
         {
           "name": "escapeRegex",
@@ -4249,7 +4249,7 @@
     },
     {
       "name": "@jdsalasc/solvejs-schema",
-      "version": "1.10.0",
+      "version": "1.10.1",
       "entries": [
         {
           "name": "Infer",
@@ -4303,7 +4303,7 @@
     },
     {
       "name": "@jdsalasc/solvejs-semver",
-      "version": "0.2.1",
+      "version": "0.2.2",
       "entries": [
         {
           "name": "compareVersions",
@@ -4393,7 +4393,7 @@
     },
     {
       "name": "@jdsalasc/solvejs-string",
-      "version": "1.10.1",
+      "version": "1.10.2",
       "entries": [
         {
           "name": "capitalize",
@@ -4453,7 +4453,7 @@
     },
     {
       "name": "@jdsalasc/solvejs-url",
-      "version": "0.2.1",
+      "version": "0.2.2",
       "entries": [
         {
           "name": "buildUrl",
@@ -4531,7 +4531,7 @@
     },
     {
       "name": "@jdsalasc/solvejs-validators",
-      "version": "1.10.0",
+      "version": "1.10.1",
       "entries": [
         {
           "name": "DirectionLocale",
@@ -4758,7 +4758,7 @@
     },
     {
       "name": "@jdsalasc/solvejs-xlsx",
-      "version": "0.3.1",
+      "version": "0.3.2",
       "entries": [
         {
           "name": "Cell",

@@ -28,4 +28,4 @@ if ($status -ne "200") {
   throw "Deploy finished but https://solvejs-documentation.eridu.top/live/ returned $status"
 }
 
-Write-Host "Docs deployed: https://solvejs-documentation.eridu.top/live/" -ForegroundColor Green
+Write-Host "Docs mirror deployed: https://solvejs-documentation.eridu.top/live/ (canonical: https://jdsalasca.github.io/solvejs/live/)" -ForegroundColor Green

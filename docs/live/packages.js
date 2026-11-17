@@ -422,6 +422,8 @@ const packageTitle = document.querySelector("#package-title");
 const packageLevel = document.querySelector("#package-level");
 const packageNpm = document.querySelector("#package-npm");
 const packageLink = document.querySelector("#package-link");
+const packageInstall = document.querySelector("#package-install");
+const packageSource = document.querySelector("#package-source");
 if (packageLink) {
   packageLink.addEventListener("click", () => {
     const result = navigator.clipboard?.writeText(location.href);
@@ -429,6 +431,18 @@ if (packageLink) {
       packageLink.textContent = "Copied";
       setTimeout(() => {
         packageLink.textContent = "Copy link";
+      }, 1200);
+    });
+  });
+}
+if (packageInstall) {
+  packageInstall.addEventListener("click", () => {
+    const result = navigator.clipboard?.writeText(packageInstall.textContent ?? "");
+    result?.then(() => {
+      const previous = packageInstall.textContent;
+      packageInstall.textContent = "Copied";
+      setTimeout(() => {
+        packageInstall.textContent = previous;
       }, 1200);
     });
   });
@@ -535,11 +549,21 @@ function enhanceCodeBlocks(root) {
   }
 }
 
+// eslint-disable-next-line complexity -- package header, nav state and demo cleanup
 function setActive(pkg) {
   active = pkg;
   apiActive = false;
   packageNpm.hidden = false;
   if (packageLink) packageLink.hidden = false;
+  if (packageInstall) {
+    packageInstall.hidden = false;
+    packageInstall.textContent = `npm i ${pkg.name}`;
+  }
+  if (packageSource) {
+    packageSource.hidden = false;
+    const folder = pkg.name === "@jdsalasc/solvejs" ? "solvejs" : `solvejs-${pkg.id}`;
+    packageSource.href = `https://github.com/jdsalasca/solvejs/tree/main/packages/${folder}`;
+  }
   for (const button of nav.querySelectorAll(".nav-item")) {
     const selected = button.dataset.id === pkg.id;
     button.classList.toggle("is-active", selected);
@@ -575,6 +599,8 @@ function selectApi(updateHash = true) {
   packageLevel.textContent = "REFERENCE";
   packageNpm.hidden = true;
   if (packageLink) packageLink.hidden = true;
+  if (packageInstall) packageInstall.hidden = true;
+  if (packageSource) packageSource.hidden = true;
   cleanup();
   content.replaceChildren();
   cleanup = () => {};

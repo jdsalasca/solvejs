@@ -1797,3 +1797,14 @@ solvejs-pdf-viewer {
   gap: 6px;
   margin-bottom: 12px;
 }
+
+.install-pill {
+  cursor: copy;
+  font-family: "JetBrains Mono", ui-monospace, monospace;
+  font-size: 0.6rem;
+}
+
+.install-pill:hover {
+  color: var(--cyan);
+  border-color: rgba(34, 211, 238, 0.4);
+}
