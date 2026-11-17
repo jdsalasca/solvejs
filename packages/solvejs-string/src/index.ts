@@ -136,3 +136,67 @@ export function mask(value: string, visibleEnd = 4, maskChar = "*"): string {
   }
   return `${maskChar.repeat(value.length - visibleEnd)}${value.slice(-visibleEnd)}`;
 }
+
+/**
+ * Builds initials from the words in a name.
+ *
+ * @param value - Input name or phrase.
+ * @param max - Maximum number of initials to return. Defaults to 2.
+ * @returns Uppercase initials, or an empty string when no letters are present.
+ * @throws {TypeError} If `max` is not a positive integer.
+ */
+export function initials(value: string, max = 2): string {
+  if (!Number.isInteger(max) || max < 1) {
+    throw new TypeError("Expected max to be a positive integer.");
+  }
+  const letters: string[] = [];
+  for (const word of normalizeWhitespace(value).split(" ")) {
+    const letter = Array.from(word).find((character) => /\p{L}|\p{N}/u.test(character));
+    if (letter) letters.push(letter.toUpperCase());
+    if (letters.length === max) break;
+  }
+  return letters.join("");
+}
+
+/**
+ * Truncates the middle of a string, keeping both ends readable.
+ *
+ * Useful for emails, URLs, file paths and IDs where the prefix and suffix both matter.
+ *
+ * @param value - Input text.
+ * @param maxLength - Maximum final string length.
+ * @param suffix - Marker inserted in the middle. Defaults to `"..."`.
+ * @returns Truncated string.
+ * @throws {TypeError} If `maxLength` is not a non-negative integer.
+ */
+export function truncateMiddle(value: string, maxLength: number, suffix = "..."): string {
+  if (!Number.isInteger(maxLength) || maxLength < 0) {
+    throw new TypeError("Expected maxLength to be a non-negative integer.");
+  }
+  if (value.length <= maxLength) {
+    return value;
+  }
+  if (maxLength <= suffix.length) {
+    return suffix.slice(0, maxLength);
+  }
+  const keep = maxLength - suffix.length;
+  const start = Math.ceil(keep / 2);
+  const end = keep - start;
+  return `${value.slice(0, start)}${suffix}${end === 0 ? "" : value.slice(-end)}`;
+}
+
+/**
+ * Picks the singular or plural label for a count.
+ *
+ * @param count - Numeric count.
+ * @param singular - Label used when the count is exactly 1.
+ * @param plural - Label used otherwise. Defaults to `singular + "s"`.
+ * @returns The matching label.
+ * @throws {TypeError} If `count` is not a finite number.
+ */
+export function pluralize(count: number, singular: string, plural = `${singular}s`): string {
+  if (!Number.isFinite(count)) {
+    throw new TypeError("Expected count to be a finite number.");
+  }
+  return count === 1 ? singular : plural;
+}

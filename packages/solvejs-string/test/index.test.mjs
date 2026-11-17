@@ -2,14 +2,17 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import {
   capitalize,
+  initials,
   mask,
   normalizeWhitespace,
+  pluralize,
   slugify,
   stripHtml,
   toCamelCase,
   toKebabCase,
   toTitleCase,
-  truncate
+  truncate,
+  truncateMiddle
 } from "../dist/esm/index.js";
 
 // Unicode combining diacritical marks, U+0300 to U+036F. A slug must never
@@ -129,4 +132,31 @@ test("mask", () => {
   assert.equal(mask("1234567890", 3), "*******890");
   assert.equal(mask(""), "");
   assert.throws(() => mask("123", -1), /non-negative integer/);
+});
+
+test("initials", () => {
+  assert.equal(initials("Ada Lovelace"), "AL");
+  assert.equal(initials("  ada   lovelace  ", 1), "A");
+  assert.equal(initials("John Ronald Reuel Tolkien", 3), "JRR");
+  assert.equal(initials("👋 42 apples"), "4A", "emoji are skipped and numbers are kept");
+  assert.equal(initials(""), "");
+  assert.equal(initials("Lovelace"), "L");
+  assert.throws(() => initials("Ada", 0), /positive integer/);
+});
+
+test("truncateMiddle", () => {
+  assert.equal(truncateMiddle("user@example.com", 10), "user...com");
+  assert.equal(truncateMiddle("abcdef", 5), "a...f");
+  assert.equal(truncateMiddle("abcdef", 2), "..", "a tiny limit degrades to the suffix");
+  assert.equal(truncateMiddle("short", 10), "short");
+  assert.equal(truncateMiddle("abcdefgh", 6, "…"), "abc…gh");
+  assert.throws(() => truncateMiddle("abc", -1), /non-negative integer/);
+});
+
+test("pluralize", () => {
+  assert.equal(pluralize(1, "item"), "item");
+  assert.equal(pluralize(0, "item"), "items");
+  assert.equal(pluralize(2, "person", "people"), "people");
+  assert.equal(pluralize(-1, "item"), "items");
+  assert.throws(() => pluralize(Number.NaN, "item"), /finite number/);
 });

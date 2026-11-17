@@ -6,7 +6,7 @@
 
 > **Live documentation:** [run this package's examples in your browser](https://jdsalasca.github.io/solvejs/live/#pkg-string).
 
-Zero-dependency string utilities for APIs and UI: slugify, normalize whitespace, strip HTML, title/kebab/camel/snake case, truncate, and mask. Typed, deterministic, and ready for user-generated content.
+Zero-dependency string utilities for APIs and UI: slugify, normalize whitespace, strip HTML, title/kebab/camel/snake case, truncate, initials, middle truncation, plural labels and mask. Typed, deterministic, and ready for user-generated content.
 
 ## Utilities
 
@@ -15,7 +15,10 @@ Zero-dependency string utilities for APIs and UI: slugify, normalize whitespace,
 - `slugify`
 - `stripHtml`
 - `mask`
-- `truncate`
+- `truncate`, `truncateMiddle`
+- `initials`
+- `pluralize`
+- `capitalize`
 
 ## When to use this package
 
@@ -64,12 +67,27 @@ npm i @jdsalasc/solvejs-string
 ## Quick example
 
 ```ts
-import { normalizeWhitespace, slugify, stripHtml, truncate } from "@jdsalasc/solvejs-string";
+import {
+  initials,
+  normalizeWhitespace,
+  pluralize,
+  slugify,
+  stripHtml,
+  truncate,
+  truncateMiddle
+} from "@jdsalasc/solvejs-string";
 
 const plain = normalizeWhitespace(stripHtml("<p>Hello   <b>world</b></p>"));
 const slug = slugify(plain); // "hello-world"
 truncate(plain, 5); // "Hello..."
+initials("Ada Lovelace"); // "AL"
+truncateMiddle("ada@analytical-engines.example", 18); // "ada@anal...example"
+pluralize(2, "invoice"); // "invoices"
 ```
+
+## UI labels and safe previews
+
+`initials` skips emoji and punctuation, takes the first letter or digit of each word and caps the result at `max` (default 2). `truncateMiddle` keeps both ends of emails, file paths and URLs readable, while `truncate` keeps the prefix. `pluralize` returns the singular only for exactly `1`, so `0` and negative counts use the plural label.
 
 ## Review notes
 
