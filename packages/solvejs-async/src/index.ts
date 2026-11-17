@@ -512,3 +512,46 @@ export function createTokenBucketLimiter(
   return <T>(task: () => Promise<T> | T, tokenCost = 1): Promise<T> =>
     enqueueBucketTask(bucket, task, tokenCost);
 }
+
+/** A serialized critical section. */
+export type Mutex = {
+  /** Runs one task after the previously queued tasks settle. */
+  run<T>(task: () => Promise<T> | T): Promise<T>;
+  /** Number of tasks that are running or waiting. */
+  readonly pending: number;
+  /** `true` while at least one task is running or waiting. */
+  isLocked(): boolean;
+};
+
+/**
+ * Creates a FIFO mutex for serializing async critical sections.
+ *
+ * A rejected task does not break the chain: the next queued task still runs. The mutex is
+ * process-local and does not coordinate across workers or machines.
+ *
+ * @returns A mutex with `run`, `pending` and `isLocked`.
+ */
+export function createMutex(): Mutex {
+  let tail: Promise<unknown> = Promise.resolve();
+  let pending = 0;
+
+  return {
+    run<T>(task: () => Promise<T> | T): Promise<T> {
+      pending += 1;
+      const result = tail.then(() => task());
+      tail = result.then(
+        () => undefined,
+        () => undefined
+      );
+      return result.finally(() => {
+        pending -= 1;
+      });
+    },
+    get pending(): number {
+      return pending;
+    },
+    isLocked(): boolean {
+      return pending > 0;
+    }
+  };
+}

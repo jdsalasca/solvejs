@@ -1,6 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import {
+  createMutex,
   createRateLimiter,
   createTaskQueue,
   createTokenBucketLimiter,
@@ -448,4 +449,36 @@ test("createRateLimiter keeps its chain usable after a task rejects", async () =
     "and it keeps failing the same way"
   );
   assert.equal(await limited(() => "still fine"), "still fine");
+});
+
+test("createMutex serializes tasks in FIFO order", async () => {
+  const mutex = createMutex();
+  const events = [];
+  const first = mutex.run(async () => {
+    events.push("first:start");
+    await sleep(10);
+    events.push("first:end");
+    return 1;
+  });
+  const second = mutex.run(() => {
+    events.push("second");
+    return 2;
+  });
+  assert.equal(mutex.isLocked(), true);
+  assert.equal(mutex.pending, 2);
+  assert.deepEqual(await Promise.all([first, second]), [1, 2]);
+  assert.deepEqual(events, ["first:start", "first:end", "second"]);
+  assert.equal(mutex.isLocked(), false);
+  assert.equal(mutex.pending, 0);
+});
+
+test("createMutex keeps running after a rejection", async () => {
+  const mutex = createMutex();
+  await assert.rejects(
+    mutex.run(() => {
+      throw new Error("boom");
+    }),
+    /boom/
+  );
+  assert.equal(await mutex.run(() => "next"), "next");
 });

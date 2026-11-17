@@ -18,6 +18,7 @@ Zero-dependency async control for Node.js and the browser: sleep, timeout, fallb
 - `createTaskQueue`
 - `createRateLimiter`
 - `createTokenBucketLimiter`
+- `createMutex`
 
 ## When to use this package
 
@@ -66,7 +67,7 @@ npm i @jdsalasc/solvejs-async
 ## Quick example
 
 ```ts
-import { createTaskQueue, createRateLimiter, createTokenBucketLimiter, retry, timeout, timeoutFallback, pMap } from "@jdsalasc/solvejs-async";
+import { createMutex, createTaskQueue, createRateLimiter, createTokenBucketLimiter, retry, timeout, timeoutFallback, pMap } from "@jdsalasc/solvejs-async";
 
 const data = await retry(
   () => timeout(fetch("https://api.example.com/items").then((r) => r.json()), 3000),
@@ -78,9 +79,15 @@ const cached = await timeoutFallback(fetch("https://api.example.com/cache").then
 const queue = createTaskQueue({ concurrency: 2 });
 const limiter = createRateLimiter({ maxCalls: 5, windowMs: 1000 });
 const burstLimiter = createTokenBucketLimiter({ capacity: 10, refillTokens: 2, refillIntervalMs: 1000 });
+const mutex = createMutex();
+await mutex.run(async () => {
+  // serialized critical section
+});
 await queue.add(() => limiter(() => fetch("https://api.example.com/reindex")));
 await burstLimiter(() => fetch("https://api.example.com/heavy-sync"), 3);
 ```
+
+`createMutex` queues work FIFO, exposes `pending` and `isLocked()`, and keeps running after a task rejects. It is process-local; use a distributed lock when multiple workers share the resource.
 
 ## Endpoint tier token costs (token-bucket)
 
