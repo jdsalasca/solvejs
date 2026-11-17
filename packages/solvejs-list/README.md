@@ -13,7 +13,7 @@ Zero-dependency array utilities for analytics, dashboards, and forms: `uniqueBy`
 - `unique`, `uniqueBy`, `compact`, `chunk`
 - `groupBy`, `countBy`, `keyBy`, `pluck`, `partition`
 - `intersection`, `difference`
-- `sortBy`
+- `sortBy`, `maxBy`, `minBy`
 
 ## When to use this package
 
@@ -55,7 +55,7 @@ npm i @jdsalasc/solvejs-list
 ## Quick example
 
 ```ts
-import { uniqueBy, groupBy, countBy, pluck, sortBy } from "@jdsalasc/solvejs-list";
+import { uniqueBy, groupBy, countBy, pluck, sortBy, maxBy, minBy } from "@jdsalasc/solvejs-list";
 
 const rows = [{ id: "a", team: "x", score: 2 }, { id: "a", team: "x", score: 2 }, { id: "b", team: "y", score: 1 }];
 const uniqueRows = uniqueBy(rows, (r) => r.id);
@@ -63,6 +63,8 @@ const byTeam = groupBy(uniqueRows, (r) => r.team);
 const totals = countBy(rows, (r) => r.team);
 const ids = pluck(uniqueRows, "id");
 sortBy(byTeam.x, (r) => r.score, "desc");
+maxBy(rows, (r) => r.score); // highest-scoring row
+minBy(rows, (r) => r.score); // lowest-scoring row
 ```
 
 ## Scale note

@@ -199,3 +199,53 @@ export function sortBy<T, K extends number | string>(
     return left > right ? factor : -factor;
   });
 }
+
+/**
+ * Returns the item with the highest numeric score.
+ *
+ * Non-finite scores are ignored. The first item wins a tie.
+ *
+ * @param values - Input collection.
+ * @param selector - Function returning the comparable score.
+ * @returns The winning item, or `undefined` for an empty or all-invalid collection.
+ */
+export function maxBy<T>(values: readonly T[], selector: (value: T) => number): T | undefined {
+  let winner: T | undefined;
+  let best = Number.NEGATIVE_INFINITY;
+  let found = false;
+  for (const value of values) {
+    const score = selector(value);
+    if (!Number.isFinite(score)) continue;
+    if (!found || score > best) {
+      winner = value;
+      best = score;
+      found = true;
+    }
+  }
+  return winner;
+}
+
+/**
+ * Returns the item with the lowest numeric score.
+ *
+ * Non-finite scores are ignored. The first item wins a tie.
+ *
+ * @param values - Input collection.
+ * @param selector - Function returning the comparable score.
+ * @returns The winning item, or `undefined` for an empty or all-invalid collection.
+ */
+export function minBy<T>(values: readonly T[], selector: (value: T) => number): T | undefined {
+  let winner: T | undefined;
+  let best = Number.POSITIVE_INFINITY;
+  let found = false;
+  for (const value of values) {
+    const score = selector(value);
+    if (!Number.isFinite(score)) continue;
+    if (!found || score < best) {
+      winner = value;
+      best = score;
+      found = true;
+    }
+  }
+  return winner;
+}

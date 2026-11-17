@@ -8,6 +8,8 @@ import {
   groupBy,
   intersection,
   keyBy,
+  maxBy,
+  minBy,
   partition,
   pluck,
   sortBy,
@@ -192,4 +194,29 @@ test("sortBy is stable for equal keys", () => {
 
   const repeated = sortBy(rows, (row) => row.order);
   assert.deepEqual(repeated, ascending, "sorting twice gives the same result");
+});
+
+test("maxBy and minBy pick the scored winner", () => {
+  const rows = [
+    { name: "a", score: 4 },
+    { name: "b", score: 9 },
+    { name: "c", score: 2 }
+  ];
+  assert.deepEqual(maxBy(rows, (row) => row.score), rows[1]);
+  assert.deepEqual(minBy(rows, (row) => row.score), rows[2]);
+  assert.equal(maxBy([], (value) => value), undefined);
+  assert.equal(minBy([], (value) => value), undefined);
+});
+
+test("maxBy and minBy ignore non-finite scores and keep the first tie", () => {
+  const rows = [
+    { name: "first", score: 5 },
+    { name: "tie", score: 5 },
+    { name: "nan", score: Number.NaN }
+  ];
+  assert.equal(maxBy(rows, (row) => row.score).name, "first");
+  assert.equal(minBy(rows, (row) => row.score).name, "first");
+  assert.equal(maxBy([{ score: Number.NaN }], (row) => row.score), undefined);
+  assert.equal(maxBy([undefined, 5], (value) => (value === undefined ? 10 : 1)), undefined, "undefined can be the winning item");
+  assert.equal(minBy([undefined, 5], (value) => (value === undefined ? 1 : 10)), undefined, "and the lowest item too");
 });
