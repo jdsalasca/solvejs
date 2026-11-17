@@ -8,7 +8,7 @@
 
 One import surface for every SolveJS utility: dates, validation, money, identifiers, caching, HTTP, JSON, URLs, pagination, semver, errors, environment config, XLSX, PDF, and more. Install once and tree-shake what you use; zero runtime dependencies, ESM + CJS + TypeScript declarations.
 
-Includes date, string, list, regex, constants, numbers, validators, identifiers, object, async, env, schema, XLSX and PDF utilities, with declarative components, rich styling and a browser PDF viewer.
+Includes date, string, list, regex, constants, numbers, validators, identifiers, object, async, env, schema, XLSX and PDF utilities, with declarative components, rich styling, PNG/JPEG images, text or image watermarks and a browser PDF viewer.
 
 ## When to use this package
 

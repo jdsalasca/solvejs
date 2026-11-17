@@ -33,6 +33,7 @@ export {
   Divider,
   Spacer,
   Subtitle,
+  Title,
   BarChart,
   Formula,
   Icon,
