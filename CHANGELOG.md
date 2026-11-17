@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.12.12 - 2026-11-17
+
+- Fixed CommonJS type resolution across the workspace: every package now mirrors its declaration tree to `dist/cjs/**/*.d.cts`, exposes separate `import.types` and `require.types` conditions, and passes `publint`. This removes the “types are interpreted as ESM when resolving require” warning and gives `require()` consumers correct types. Migration impact: none.
+- Added `npm run check:publint` to the quality gate and CI, plus a Node 20/22/24 test matrix. The health and inventory reports are regenerated from current workspaces. Migration impact: none.
+- Bumped `@jdsalasc/solvejs-pdf@0.1.12`, `@jdsalasc/solvejs-xlsx@0.3.1` and the meta package to `1.12.12`. Migration impact: none.
+
 ## 1.12.11 - 2026-11-16
 
 - Added `@jdsalasc/solvejs-xlsx@0.3.0` reporting tools: `jsonToSheet`/`jsonToXlsx` convert arrays of objects (including nested dotted keys) into workbooks; sheets accept `conditionalFormatting` (`cellIs`, `expression`, `containsText`, `colorScale`, `dataBar`), `filterColumns` for checked auto-filter values, hidden rows/columns, and full core metadata (subject, keywords, description, category, company, created, modified). Migration impact: none; additive API.

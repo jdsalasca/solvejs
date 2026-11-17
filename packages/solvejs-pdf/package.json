@@ -1,6 +1,6 @@
 {
   "name": "@jdsalasc/solvejs-pdf",
-  "version": "0.1.11",
+  "version": "0.1.12",
   "description": "Zero-dependency TypeScript PDF generator with declarative components, rich styling, and a browser PDF viewer.",
   "license": "MIT",
   "type": "module",
@@ -10,24 +10,44 @@
   "types": "./dist/esm/index.d.ts",
   "exports": {
     ".": {
-      "types": "./dist/esm/index.d.ts",
-      "import": "./dist/esm/index.js",
-      "require": "./dist/cjs/index.cjs"
+      "import": {
+        "types": "./dist/esm/index.d.ts",
+        "default": "./dist/esm/index.js"
+      },
+      "require": {
+        "types": "./dist/cjs/index.d.cts",
+        "default": "./dist/cjs/index.cjs"
+      }
     },
     "./viewer": {
-      "types": "./dist/esm/viewer.d.ts",
-      "import": "./dist/esm/viewer.js",
-      "require": "./dist/cjs/viewer.cjs"
+      "import": {
+        "types": "./dist/esm/viewer.d.ts",
+        "default": "./dist/esm/viewer.js"
+      },
+      "require": {
+        "types": "./dist/cjs/viewer.d.cts",
+        "default": "./dist/cjs/viewer.cjs"
+      }
     },
     "./jsx-runtime": {
-      "types": "./dist/esm/jsx-runtime.d.ts",
-      "import": "./dist/esm/jsx-runtime.js",
-      "require": "./dist/cjs/jsx-runtime.cjs"
+      "import": {
+        "types": "./dist/esm/jsx-runtime.d.ts",
+        "default": "./dist/esm/jsx-runtime.js"
+      },
+      "require": {
+        "types": "./dist/cjs/jsx-runtime.d.cts",
+        "default": "./dist/cjs/jsx-runtime.cjs"
+      }
     },
     "./jsx-dev-runtime": {
-      "types": "./dist/esm/jsx-dev-runtime.d.ts",
-      "import": "./dist/esm/jsx-dev-runtime.js",
-      "require": "./dist/cjs/jsx-dev-runtime.cjs"
+      "import": {
+        "types": "./dist/esm/jsx-dev-runtime.d.ts",
+        "default": "./dist/esm/jsx-dev-runtime.js"
+      },
+      "require": {
+        "types": "./dist/cjs/jsx-dev-runtime.d.cts",
+        "default": "./dist/cjs/jsx-dev-runtime.cjs"
+      }
     }
   },
   "files": [
@@ -37,7 +57,7 @@
   "scripts": {
     "build": "npm run clean && npm run build:esm && npm run build:cjs",
     "build:esm": "tsc -p tsconfig.esm.json",
-    "build:cjs": "tsc -p tsconfig.cjs.json && node ./scripts/rename-cjs.mjs",
+    "build:cjs": "tsc -p tsconfig.cjs.json && node ./scripts/rename-cjs.mjs && node ../../scripts/build-cjs-types.mjs",
     "clean": "node -e \"require('node:fs').rmSync('dist',{recursive:true,force:true})\"",
     "test": "npm run build && node --test test/*.test.mjs && npm run test:tsx",
     "test:tsx": "tsc --noEmit --strict --skipLibCheck --target ES2022 --lib ES2022,DOM --module NodeNext --moduleResolution NodeNext --jsx react-jsx --jsxImportSource @jdsalasc/solvejs-pdf test/fixtures/jsx-auto.tsx && tsc --noEmit --strict --skipLibCheck --target ES2022 --lib ES2022,DOM --module NodeNext --moduleResolution NodeNext --jsx react-jsxdev --jsxImportSource @jdsalasc/solvejs-pdf test/fixtures/jsx-dev.tsx",

@@ -54,14 +54,24 @@ for (const path of packages) {
   const required = ["package.json", "README.md"];
 
   const entry = manifest.exports?.["."] ?? {};
-  for (const field of ["types", "import", "require"]) {
-    const value = entry[field];
-    if (!value) {
+  const exportPaths = [];
+  const collect = (value) => {
+    if (typeof value === "string") exportPaths.push(value);
+    else if (value && typeof value === "object") Object.values(value).forEach(collect);
+  };
+  for (const field of ["import", "require"]) {
+    if (!(field in entry)) {
       problems.push(`${manifest.name}: exports["."].${field} is not declared`);
       continue;
     }
+    collect(entry[field]);
+  }
+  if (!entry.types && !entry.import?.types && !entry.require?.types) {
+    problems.push(`${manifest.name}: exports["."] has no types condition`);
+  }
+  for (const value of exportPaths) {
     if (!entries.has(value.replace(/^\.\//, ""))) {
-      problems.push(`${manifest.name}: exports["."].${field} points at ${value}, which is not in the tarball`);
+      problems.push(`${manifest.name}: exports["."] points at ${value}, which is not in the tarball`);
     }
   }
 

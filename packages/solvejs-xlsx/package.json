@@ -1,6 +1,6 @@
 {
   "name": "@jdsalasc/solvejs-xlsx",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "description": "Zero-dependency TypeScript XLSX reader and writer built from scratch, with declarative JSX components, rich styling, formulas, images, CSV and a metadata-rich reader.",
   "license": "MIT",
   "type": "module",
@@ -10,19 +10,34 @@
   "types": "./dist/esm/index.d.ts",
   "exports": {
     ".": {
-      "types": "./dist/esm/index.d.ts",
-      "import": "./dist/esm/index.js",
-      "require": "./dist/cjs/index.cjs"
+      "import": {
+        "types": "./dist/esm/index.d.ts",
+        "default": "./dist/esm/index.js"
+      },
+      "require": {
+        "types": "./dist/cjs/index.d.cts",
+        "default": "./dist/cjs/index.cjs"
+      }
     },
     "./jsx-runtime": {
-      "types": "./dist/esm/jsx-runtime.d.ts",
-      "import": "./dist/esm/jsx-runtime.js",
-      "require": "./dist/cjs/jsx-runtime.cjs"
+      "import": {
+        "types": "./dist/esm/jsx-runtime.d.ts",
+        "default": "./dist/esm/jsx-runtime.js"
+      },
+      "require": {
+        "types": "./dist/cjs/jsx-runtime.d.cts",
+        "default": "./dist/cjs/jsx-runtime.cjs"
+      }
     },
     "./jsx-dev-runtime": {
-      "types": "./dist/esm/jsx-dev-runtime.d.ts",
-      "import": "./dist/esm/jsx-dev-runtime.js",
-      "require": "./dist/cjs/jsx-dev-runtime.cjs"
+      "import": {
+        "types": "./dist/esm/jsx-dev-runtime.d.ts",
+        "default": "./dist/esm/jsx-dev-runtime.js"
+      },
+      "require": {
+        "types": "./dist/cjs/jsx-dev-runtime.d.cts",
+        "default": "./dist/cjs/jsx-dev-runtime.cjs"
+      }
     }
   },
   "files": [
@@ -32,7 +47,7 @@
   "scripts": {
     "build": "npm run clean && npm run build:esm && npm run build:cjs",
     "build:esm": "tsc -p tsconfig.esm.json",
-    "build:cjs": "tsc -p tsconfig.cjs.json && node ./scripts/rename-cjs.mjs",
+    "build:cjs": "tsc -p tsconfig.cjs.json && node ./scripts/rename-cjs.mjs && node ../../scripts/build-cjs-types.mjs",
     "clean": "node -e \"require('node:fs').rmSync('dist',{recursive:true,force:true})\"",
     "test": "npm run build && node --test test/*.test.mjs && npm run test:tsx",
     "test:tsx": "tsc --noEmit --strict --skipLibCheck --target ES2022 --lib ES2022,DOM --module NodeNext --moduleResolution NodeNext --jsx react-jsx --jsxImportSource @jdsalasc/solvejs-xlsx test/fixtures/jsx-auto.tsx && tsc --noEmit --strict --skipLibCheck --target ES2022 --lib ES2022,DOM --module NodeNext --moduleResolution NodeNext --jsx react-jsxdev --jsxImportSource @jdsalasc/solvejs-xlsx test/fixtures/jsx-dev.tsx",

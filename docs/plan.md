@@ -188,6 +188,13 @@ Competitor study:
 - PDF gaps ranked: PNG with transparency, page templates/watermarks, outlines/bookmarks and custom TTF fonts. Reading/editing existing PDFs stays out of scope.
 - Both package READMEs now include a capability matrix with the honest gaps and use-case guidance.
 
+## Round 17: CommonJS type parity and CI trust - done
+
+- Mirrored ESM declarations into `dist/cjs/**/*.d.cts` during every CJS build and split `exports` into `import.types` / `require.types`.
+- `publint` passes for all 22 packages; added `check:publint` to the quality gate and CI.
+- Added a Node 20/22/24 test matrix, regenerated package inventory and performance/health reports.
+- Bumped PDF to `0.1.12`, XLSX to `0.3.1` and meta to `1.12.12`.
+
 ## Round 16: Receipts and reporting workbooks - done
 
 - PDF `0.1.11`: `Receipt` template with Courier typography, dashed rules, item table, totals, Code 39 `Barcode` and rotated `Stamp`; added `receipt`/`receiptTitle` presets and dashed `Divider`s.

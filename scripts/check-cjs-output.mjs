@@ -29,7 +29,8 @@ let checked = 0;
 
 for (const path of packages) {
   const manifest = JSON.parse(readFileSync(join(path, "package.json"), "utf8"));
-  const entry = manifest.exports?.["."]?.require;
+  const requireCondition = manifest.exports?.["."]?.require;
+  const entry = typeof requireCondition === "string" ? requireCondition : requireCondition?.default;
   if (!entry) {
     problems.push(`${manifest.name}: no CommonJS entry point declared in exports`);
     continue;
@@ -39,6 +40,24 @@ for (const path of packages) {
   if (!existsSync(entryPath)) {
     problems.push(`${manifest.name}: missing ${entry}, run npm run build`);
     continue;
+  }
+
+  const typeEntries = [];
+  for (const [subpath, value] of Object.entries(manifest.exports ?? {})) {
+    if (value && typeof value === "object" && value.require && typeof value.require === "object" && value.require.types) {
+      typeEntries.push({ subpath, types: value.require.types, source: value.import?.types });
+    }
+  }
+  if (typeEntries.length === 0) {
+    problems.push(`${manifest.name}: no require.types condition declared in exports`);
+  }
+  for (const item of typeEntries) {
+    if (!existsSync(join(path, item.types))) {
+      problems.push(`${manifest.name} (${item.subpath}): missing CommonJS declarations at ${item.types}`);
+    }
+    if (item.source && !existsSync(join(path, item.source))) {
+      problems.push(`${manifest.name} (${item.subpath}): missing ESM declarations at ${item.source}`);
+    }
   }
 
   let loaded;
