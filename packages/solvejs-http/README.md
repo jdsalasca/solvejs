@@ -5,10 +5,11 @@
 
 > **Live documentation:** [run this package's examples in your browser](https://jdsalasca.github.io/solvejs/live/#pkg-http).
 
-Zero-dependency HTTP helpers for resilient clients: status text, retryable status and error classification, exponential backoff with jitter, header normalization, and content-type negotiation. Works with `fetch`, Axios, or any client that exposes a status code.
+Zero-dependency HTTP helpers for resilient clients: a typed JSON `fetch` wrapper with timeout and abort support, status text, retryable status and error classification, exponential backoff with jitter, header normalization, and content-type negotiation. Works with `fetch`, Axios, or any client that exposes a status code.
 
 ## Utilities
 
+- `fetchJson`
 - `getStatusText`
 - `isIdempotentMethod`
 - `isRetryableStatus`
@@ -34,7 +35,13 @@ npm i @jdsalasc/solvejs-http
 ## Quick example
 
 ```ts
-import { isRetryableStatus, isRetryableError, calculateBackoffDelay, negotiateContentType } from "@jdsalasc/solvejs-http";
+import { calculateBackoffDelay, fetchJson, isRetryableStatus, isRetryableError, negotiateContentType } from "@jdsalasc/solvejs-http";
+
+const { data, status } = await fetchJson<{ id: string }>("https://api.example.com/users/1");
+await fetchJson("https://api.example.com/users", {
+  body: { name: "Ada" },
+  timeoutMs: 5_000
+});
 
 isRetryableStatus(503);                       // true
 isRetryableStatus(400);                       // false
@@ -45,6 +52,24 @@ calculateBackoffDelay(0, { baseMs: 100, factor: 2, maxMs: 30_000 });  // 50 to 1
 negotiateContentType(["application/json"], { accept: "text/html,application/json;q=0.9" });
 // "application/json"
 ```
+
+## JSON requests with `fetchJson`
+
+`fetchJson` wraps the platform `fetch`: it serialises object bodies as JSON, sets `Accept` and `Content-Type`, applies a timeout, forwards an external `AbortSignal`, and returns `{ data, status, headers, url }`. A body without an explicit method uses `POST`; otherwise the default is `GET`.
+
+```ts
+const { data } = await fetchJson<{ id: string; name: string }>(
+  "https://api.example.com/users",
+  {
+    method: "POST",
+    headers: { Authorization: `Bearer ${token}` },
+    body: { name: "Ada" },
+    timeoutMs: 8_000
+  }
+);
+```
+
+Non-2xx responses throw `HttpError` with `code: "HTTP_REQUEST_FAILED"` and `details.status` plus a bounded response body. A timeout is `HTTP_TIMEOUT`, malformed JSON is `HTTP_INVALID_RESPONSE`, and transport failures are `HTTP_REQUEST_FAILED`. Empty `204` responses return `data: undefined`. Use `@jdsalasc/solvejs-async` `retry` with `isRetryableStatus` or `isRetryableError` when you want retries; `fetchJson` deliberately performs one request.
 
 ## Retryable statuses
 

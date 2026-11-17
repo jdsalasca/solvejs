@@ -4,7 +4,10 @@ export type HttpErrorCode =
   | "HTTP_INVALID_ATTEMPT"
   | "HTTP_INVALID_OPTION"
   | "HTTP_INVALID_ACCEPT"
-  | "HTTP_INVALID_LIST";
+  | "HTTP_INVALID_LIST"
+  | "HTTP_REQUEST_FAILED"
+  | "HTTP_TIMEOUT"
+  | "HTTP_INVALID_RESPONSE";
 
 /**
  * Error thrown by the HTTP utilities.
@@ -410,4 +413,256 @@ export function negotiateContentType(
 
   const ranges = parseAcceptRanges(resolved.raw);
   return bestCandidate(resolved.available, ranges)?.media ?? null;
+}
+
+/** Options for {@link fetchJson}. */
+export type FetchJsonOptions = {
+  /** HTTP method. Defaults to `GET`, or `POST` when a body is present. */
+  method?: string;
+  /** Request headers. */
+  headers?: Record<string, string>;
+  /** JSON body, or a raw `BodyInit` value such as `FormData`, `Blob`, `URLSearchParams` or text. */
+  body?: unknown;
+  /** Abort the request after this many milliseconds. Defaults to 30000; `0` disables it. */
+  timeoutMs?: number;
+  /** Caller abort signal. */
+  signal?: AbortSignal;
+  /** Fetch credentials mode. */
+  credentials?: RequestCredentials;
+};
+
+/** A parsed JSON response with the transport metadata callers usually log. */
+export type FetchJsonResult<T> = {
+  data: T;
+  status: number;
+  headers: Headers;
+  url: string;
+};
+
+const BODY_TAGS = new Set([
+  "[object Blob]",
+  "[object FormData]",
+  "[object URLSearchParams]",
+  "[object ArrayBuffer]",
+  "[object ReadableStream]"
+]);
+
+function isRawBody(value: unknown): boolean {
+  if (typeof value === "string") return true;
+  if (value === null || typeof value !== "object") return false;
+  return BODY_TAGS.has(Object.prototype.toString.call(value)) || ArrayBuffer.isView(value as ArrayBufferView);
+}
+
+function hasHeader(headers: Record<string, string>, name: string): boolean {
+  const target = name.toLowerCase();
+  return Object.keys(headers).some((header) => header.toLowerCase() === target);
+}
+
+function requestBody(body: unknown, headers: Record<string, string>): BodyInit | undefined {
+  if (body === undefined) return undefined;
+  if (isRawBody(body)) return body as BodyInit;
+  const text = JSON.stringify(body);
+  if (text === undefined) {
+    fail("HTTP_INVALID_OPTION", "Expected the request body to be JSON-serialisable.", { received: typeof body });
+  }
+  if (!hasHeader(headers, "content-type")) headers["Content-Type"] = "application/json";
+  return text;
+}
+
+function timeoutOf(value: number | undefined): number {
+  const timeoutMs = value ?? 30_000;
+  if (!Number.isFinite(timeoutMs) || timeoutMs < 0) {
+    fail("HTTP_INVALID_OPTION", "Expected timeoutMs to be a non-negative finite number.", { timeoutMs });
+  }
+  return timeoutMs;
+}
+
+async function errorBody(response: Response): Promise<string> {
+  try {
+    return (await response.text()).slice(0, 8_192);
+  } catch {
+    return "";
+  }
+}
+
+/**
+ * Performs a `fetch` request and parses the response as JSON.
+ *
+ * JSON bodies are serialised and given a `Content-Type: application/json` header. Non-2xx
+ * responses throw `HttpError` with the status and a bounded response body in `details`.
+ * A timeout aborts the request with `HTTP_TIMEOUT`; malformed JSON is `HTTP_INVALID_RESPONSE`.
+ *
+ * @param input - Absolute URL or `URL` object.
+ * @param options - Request options.
+ * @returns Parsed data plus status, headers and final URL.
+ * @throws {HttpError} `HTTP_REQUEST_FAILED`, `HTTP_TIMEOUT`, `HTTP_INVALID_RESPONSE` or `HTTP_INVALID_OPTION`.
+ *
+ * @example
+ * const { data } = await fetchJson<{ id: string }>("https://api.example.com/users/1");
+ *
+ * @example
+ * await fetchJson("https://api.example.com/users", {
+ *   method: "POST",
+ *   body: { name: "Ada" },
+ *   timeoutMs: 5000
+ * });
+ */
+export async function fetchJson<T = unknown>(
+  input: string | URL,
+  options: FetchJsonOptions = {}
+): Promise<FetchJsonResult<T>> {
+  const prepared = prepareRequest(options);
+  const { response, context } = await sendRequest(input, prepared, timeoutOf(options.timeoutMs), options.signal);
+  try {
+    return await parseJsonResponse<T>(response, String(input), context);
+  } finally {
+    context.cleanup();
+  }
+}
+
+type RequestContext = {
+  timeoutMs: number;
+  external: AbortSignal | undefined;
+  timedOut: () => boolean;
+  cleanup: () => void;
+};
+
+type ActiveResponse = { response: Response; context: RequestContext };
+
+type PreparedRequest = {
+  method: string;
+  headers: Record<string, string>;
+  body: BodyInit | undefined;
+  credentials?: RequestCredentials;
+};
+
+function prepareRequest(options: FetchJsonOptions): PreparedRequest {
+  const headers = { ...(options.headers ?? {}) };
+  const body = requestBody(options.body, headers);
+  if (!hasHeader(headers, "accept")) headers.Accept = "application/json";
+  return {
+    method: options.method ?? (body === undefined ? "GET" : "POST"),
+    headers,
+    body,
+    ...(options.credentials === undefined ? {} : { credentials: options.credentials })
+  };
+}
+
+// eslint-disable-next-line max-lines-per-function -- timer, abort listener and fetch lifecycle
+async function sendRequest(
+  input: string | URL,
+  prepared: PreparedRequest,
+  timeoutMs: number,
+  external: AbortSignal | undefined
+): Promise<ActiveResponse> {
+  const controller = new AbortController();
+  let timedOut = false;
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  const forwardAbort = () => controller.abort(external?.reason);
+  const cleanup = () => {
+    if (timer !== undefined) clearTimeout(timer);
+    external?.removeEventListener("abort", forwardAbort);
+  };
+  const context: RequestContext = { timeoutMs, external, timedOut: () => timedOut, cleanup };
+
+  if (external) {
+    if (external.aborted) forwardAbort();
+    else external.addEventListener("abort", forwardAbort, { once: true });
+  }
+  if (timeoutMs > 0) {
+    timer = setTimeout(() => {
+      timedOut = true;
+      controller.abort();
+    }, timeoutMs);
+  }
+
+  try {
+    const response = await fetch(input, {
+      method: prepared.method,
+      headers: prepared.headers,
+      body: prepared.body,
+      signal: controller.signal,
+      ...(prepared.credentials === undefined ? {} : { credentials: prepared.credentials })
+    });
+    return { response, context };
+  } catch (error) {
+    cleanup();
+    if (timedOut) return fail("HTTP_TIMEOUT", `Request timed out after ${timeoutMs} ms.`, { timeoutMs, url: String(input) });
+    return fail("HTTP_REQUEST_FAILED", "Request failed before a response was received.", {
+      url: String(input),
+      cause: error instanceof Error ? error.message : String(error)
+    });
+  }
+}
+
+function failBodyRead(error: unknown, url: string, status: number, context: RequestContext): never {
+  if (context.timedOut()) {
+    return fail("HTTP_TIMEOUT", `Response body timed out after ${context.timeoutMs} ms.`, {
+      timeoutMs: context.timeoutMs,
+      url,
+      status
+    });
+  }
+  if (context.external?.aborted) {
+    return fail("HTTP_REQUEST_FAILED", "Request was aborted while reading the response.", {
+      url,
+      status,
+      aborted: true,
+      cause: error instanceof Error ? error.message : String(error)
+    });
+  }
+  return fail("HTTP_REQUEST_FAILED", "Response body could not be read.", {
+    url,
+    status,
+    cause: error instanceof Error ? error.message : String(error)
+  });
+}
+
+async function readBody(response: Response, url: string, context: RequestContext): Promise<string> {
+  try {
+    return await response.text();
+  } catch (error) {
+    return failBodyRead(error, url, response.status, context);
+  }
+}
+
+// eslint-disable-next-line complexity -- status, timeout and abort mapping
+async function parseJsonResponse<T>(
+  response: Response,
+  input: string,
+  context: RequestContext
+): Promise<FetchJsonResult<T>> {
+  const url = response.url || input;
+  if (!response.ok) {
+    const details = { status: response.status, url, body: await errorBody(response) };
+    if (context.timedOut()) {
+      fail("HTTP_TIMEOUT", `Response body timed out after ${context.timeoutMs} ms.`, {
+        timeoutMs: context.timeoutMs,
+        url,
+        status: response.status
+      });
+    }
+    if (context.external?.aborted) {
+      fail("HTTP_REQUEST_FAILED", "Request was aborted while reading the response.", {
+        url,
+        status: response.status,
+        aborted: true
+      });
+    }
+    fail("HTTP_REQUEST_FAILED", `Request failed with ${response.status} ${response.statusText}.`.trim(), details);
+  }
+  const text = await readBody(response, url, context);
+  if (text.trim().length === 0) {
+    return { data: undefined as T, status: response.status, headers: response.headers, url };
+  }
+  try {
+    return { data: JSON.parse(text) as T, status: response.status, headers: response.headers, url };
+  } catch (error) {
+    fail("HTTP_INVALID_RESPONSE", "Expected the response body to be valid JSON.", {
+      status: response.status,
+      url,
+      body: text.slice(0, 8_192),
+      cause: error instanceof Error ? error.message : String(error)
+    });
+  }
 }

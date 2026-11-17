@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 import {
   HttpError,
   calculateBackoffDelay,
+  fetchJson,
   getStatusText,
   isIdempotentMethod,
   isRetryableError,
@@ -300,4 +301,166 @@ test("normalizeHeaderName and parseContentType handle non-string input", () => {
     subtype: "json",
     parameters: {}
   }, "a parameter with no value is skipped");
+});
+
+async function withFetch(mock, run) {
+  const original = globalThis.fetch;
+  globalThis.fetch = mock;
+  try {
+    return await run();
+  } finally {
+    globalThis.fetch = original;
+  }
+}
+
+test("fetchJson parses JSON and sets request defaults", async () => {
+  let request;
+  await withFetch(
+    async (input, init) => {
+      request = { input: String(input), init };
+      return new Response('{"ok":true}', { status: 200, headers: { "content-type": "application/json" } });
+    },
+    async () => {
+      const result = await fetchJson("https://api.example.com/health");
+      assert.deepEqual(result.data, { ok: true });
+      assert.equal(result.status, 200);
+      assert.equal(request.init.method, "GET");
+      assert.equal(request.init.headers.Accept, "application/json");
+    }
+  );
+});
+
+test("fetchJson serialises JSON bodies and switches to POST", async () => {
+  let request;
+  await withFetch(
+    async (input, init) => {
+      request = { input: String(input), init };
+      return new Response('{"id":"u1"}', { status: 201 });
+    },
+    async () => {
+      const result = await fetchJson("https://api.example.com/users", { body: { name: "Ada" } });
+      assert.deepEqual(result.data, { id: "u1" });
+      assert.equal(request.init.method, "POST");
+      assert.equal(request.init.headers["Content-Type"], "application/json");
+      assert.equal(request.init.body, '{"name":"Ada"}');
+    }
+  );
+});
+
+test("fetchJson reports HTTP failures with status and body", async () => {
+  await withFetch(
+    async () => new Response("upstream unavailable", { status: 503, statusText: "Service Unavailable" }),
+    async () => {
+      await assert.rejects(
+        fetchJson("https://api.example.com/fail"),
+        (error) =>
+          error instanceof HttpError &&
+          error.code === "HTTP_REQUEST_FAILED" &&
+          error.details.status === 503 &&
+          error.details.body === "upstream unavailable"
+      );
+    }
+  );
+});
+
+test("fetchJson rejects malformed JSON responses", async () => {
+  await withFetch(
+    async () => new Response("<html>not json</html>", { status: 200 }),
+    async () => {
+      await assert.rejects(
+        fetchJson("https://api.example.com/html"),
+        (error) => error instanceof HttpError && error.code === "HTTP_INVALID_RESPONSE"
+      );
+    }
+  );
+});
+
+test("fetchJson times out and returns undefined for empty bodies", async () => {
+  await withFetch(
+    async (_input, init) =>
+      new Promise((_resolve, reject) => {
+        init.signal.addEventListener("abort", () => reject(new Error("aborted")), { once: true });
+      }),
+    async () => {
+      await assert.rejects(
+        fetchJson("https://api.example.com/slow", { timeoutMs: 10 }),
+        (error) => error instanceof HttpError && error.code === "HTTP_TIMEOUT"
+      );
+    }
+  );
+
+  await withFetch(
+    async () => new Response(null, { status: 204 }),
+    async () => {
+      const result = await fetchJson("https://api.example.com/empty");
+      assert.equal(result.data, undefined);
+      assert.equal(result.status, 204);
+    }
+  );
+});
+
+test("fetchJson keeps the timeout active while reading the body", async () => {
+  await withFetch(
+    async (_input, init) => {
+      const response = new Response(null, { status: 200 });
+      Object.defineProperty(response, "text", {
+        value: () =>
+          new Promise((_resolve, reject) => {
+            init.signal.addEventListener("abort", () => reject(new Error("aborted")), { once: true });
+          })
+      });
+      return response;
+    },
+    async () => {
+      await assert.rejects(
+        fetchJson("https://api.example.com/slow-body", { timeoutMs: 10 }),
+        (error) => error instanceof HttpError && error.code === "HTTP_TIMEOUT"
+      );
+    }
+  );
+});
+
+test("fetchJson normalises body read failures", async () => {
+  await withFetch(
+    async () => {
+      const response = new Response(null, { status: 200 });
+      Object.defineProperty(response, "text", { value: () => Promise.reject(new Error("socket reset")) });
+      return response;
+    },
+    async () => {
+      await assert.rejects(
+        fetchJson("https://api.example.com/reset"),
+        (error) =>
+          error instanceof HttpError &&
+          error.code === "HTTP_REQUEST_FAILED" &&
+          error.details.cause === "socket reset"
+      );
+    }
+  );
+});
+
+test("fetchJson forwards caller abort while reading the body", async () => {
+  const controller = new AbortController();
+  await withFetch(
+    async (_input, init) => {
+      const response = new Response(null, { status: 200 });
+      Object.defineProperty(response, "text", {
+        value: () =>
+          new Promise((_resolve, reject) => {
+            init.signal.addEventListener("abort", () => reject(new Error("aborted")), { once: true });
+            setTimeout(() => controller.abort(new Error("user cancel")), 5);
+          })
+      });
+      return response;
+    },
+    async () => {
+      await assert.rejects(
+        fetchJson("https://api.example.com/cancel", { signal: controller.signal }),
+        (error) =>
+          error instanceof HttpError &&
+          error.code === "HTTP_REQUEST_FAILED" &&
+          error.details.aborted === true
+      );
+    }
+  );
 });
