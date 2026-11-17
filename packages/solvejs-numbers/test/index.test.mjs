@@ -13,10 +13,12 @@ import {
   randomInt,
   roundTo,
   safeDivide,
+  standardDeviation,
   sum,
   toCurrency,
   toNumber,
-  toPercent
+  toPercent,
+  variance
 } from "../dist/esm/index.js";
 
 test("clamp", () => {
@@ -178,4 +180,16 @@ const finite = "9".repeat(15);
   assert.equal(toNumber(finite), Number(finite), "a long digit run that stays finite is still parsed");
   assert.equal(toNumber("123456789012345678"), Number("123456789012345678"),
     "precision beyond 2^53 is kept as the nearest double, not refused");
+});
+
+test("variance and standardDeviation compute population and sample values", () => {
+  const values = [2, 4, 4, 4, 5, 5, 7, 9];
+  assert.equal(variance(values), 4);
+  assert.equal(standardDeviation(values), 2);
+  assert.ok(Math.abs(variance([1, 2, 3, 4], true) - 5 / 3) < 1e-12);
+  assert.equal(variance([1e308, 1e308]), 0, "large equal values do not overflow the mean");
+  assert.equal(standardDeviation([1e308, 1e308]), 0);
+  assert.throws(() => variance([]), RangeError);
+  assert.throws(() => variance([1], true), RangeError);
+  assert.throws(() => variance([1, Number.NaN]), TypeError);
 });

@@ -10,7 +10,7 @@ Zero-dependency number utilities for forms, dashboards, and commerce: strict num
 
 ## Utilities
 
-- `clamp`, `roundTo`, `sum`, `average`, `median`
+- `clamp`, `roundTo`, `sum`, `average`, `median`, `variance`, `standardDeviation`
 - `percent`, `percentChange`
 - `calculateTaxAmount`, `applyDiscount`, `grossMargin`
 - `safeDivide`, `isBetween`
@@ -34,7 +34,7 @@ npm i @jdsalasc/solvejs-numbers
 ## Quick example
 
 ```ts
-import { toNumber, toPercent, safeDivide, percentChange, calculateTaxAmount, applyDiscount, grossMargin } from "@jdsalasc/solvejs-numbers";
+import { toNumber, toPercent, safeDivide, percentChange, calculateTaxAmount, applyDiscount, grossMargin, standardDeviation } from "@jdsalasc/solvejs-numbers";
 
 const revenue = toNumber("12,500");
 const invalid = toNumber("1,2,3"); // null
@@ -44,6 +44,7 @@ const growthLabel = toPercent(growth); // "20%"
 const tax = calculateTaxAmount(199.99, 19); // 38
 const discounted = applyDiscount(199.99, 15); // 169.99
 const margin = grossMargin(1000, 700); // 30
+standardDeviation([2, 4, 4, 4, 5, 5, 7, 9]); // 2
 ```
 
 ## Precision note

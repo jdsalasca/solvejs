@@ -115,6 +115,47 @@ export function median(values: readonly number[]): number {
 }
 
 /**
+ * Computes the variance of a numeric collection.
+ *
+ * @param values - Numeric collection.
+ * @param sample - Use the sample denominator (`n - 1`) instead of the population denominator (`n`).
+ * @returns Variance.
+ * @throws {TypeError} If any value is not finite.
+ * @throws {RangeError} If the collection is empty, or `sample` is true with fewer than two values.
+ */
+export function variance(values: readonly number[], sample = false): number {
+  if (values.length === 0) {
+    throw new RangeError("Expected at least one value to compute variance.");
+  }
+  if (sample && values.length < 2) {
+    throw new RangeError("Expected at least two values to compute sample variance.");
+  }
+  values.forEach((value, index) => assertFinite(value, `values[${index}]`));
+  let mean = 0;
+  let squared = 0;
+  values.forEach((value, index) => {
+    const count = index + 1;
+    const delta = value - mean;
+    mean += delta / count;
+    squared += delta * (value - mean);
+  });
+  return squared / (sample ? values.length - 1 : values.length);
+}
+
+/**
+ * Computes the standard deviation of a numeric collection.
+ *
+ * @param values - Numeric collection.
+ * @param sample - Use the sample denominator (`n - 1`) instead of the population denominator (`n`).
+ * @returns Standard deviation.
+ * @throws {TypeError} If any value is not finite.
+ * @throws {RangeError} If the collection is empty, or `sample` is true with fewer than two values.
+ */
+export function standardDeviation(values: readonly number[], sample = false): number {
+  return Math.sqrt(variance(values, sample));
+}
+
+/**
  * Calculates percentage as `(part / total) * 100`.
  *
  * @param part - Partial value.
