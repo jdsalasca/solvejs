@@ -758,6 +758,108 @@ export function isCreditCardNumber(value: string): boolean {
   return validateCreditCardNumber(value).ok;
 }
 
+const IBAN_FORMATS: Record<string, { length: number; bban: RegExp }> = {
+  AD: { length: 24, bban: /^\d{8}[A-Z0-9]{12}$/ },
+  AE: { length: 23, bban: /^\d{19}$/ },
+  AT: { length: 20, bban: /^\d{16}$/ },
+  BE: { length: 16, bban: /^\d{12}$/ },
+  BG: { length: 22, bban: /^[A-Z]{4}\d{6}[A-Z0-9]{8}$/ },
+  BR: { length: 29, bban: /^\d{23}[A-Z][A-Z0-9]$/ },
+  CH: { length: 21, bban: /^\d{5}[A-Z0-9]{12}$/ },
+  CY: { length: 28, bban: /^\d{8}[A-Z0-9]{16}$/ },
+  CZ: { length: 24, bban: /^\d{20}$/ },
+  DE: { length: 22, bban: /^\d{18}$/ },
+  DK: { length: 18, bban: /^\d{14}$/ },
+  EE: { length: 20, bban: /^\d{16}$/ },
+  ES: { length: 24, bban: /^\d{20}$/ },
+  FI: { length: 18, bban: /^\d{14}$/ },
+  FR: { length: 27, bban: /^\d{10}[A-Z0-9]{11}\d{2}$/ },
+  GB: { length: 22, bban: /^[A-Z]{4}\d{14}$/ },
+  GI: { length: 23, bban: /^[A-Z]{4}[A-Z0-9]{15}$/ },
+  GR: { length: 27, bban: /^\d{7}[A-Z0-9]{16}$/ },
+  HR: { length: 21, bban: /^\d{17}$/ },
+  HU: { length: 28, bban: /^\d{24}$/ },
+  IE: { length: 22, bban: /^[A-Z]{4}\d{14}$/ },
+  IL: { length: 23, bban: /^\d{19}$/ },
+  IS: { length: 26, bban: /^\d{22}$/ },
+  IT: { length: 27, bban: /^[A-Z]\d{10}[A-Z0-9]{12}$/ },
+  LI: { length: 21, bban: /^\d{5}[A-Z0-9]{12}$/ },
+  LT: { length: 20, bban: /^\d{16}$/ },
+  LU: { length: 20, bban: /^\d{3}[A-Z0-9]{13}$/ },
+  LV: { length: 21, bban: /^[A-Z]{4}[A-Z0-9]{13}$/ },
+  MC: { length: 27, bban: /^\d{10}[A-Z0-9]{11}\d{2}$/ },
+  MT: { length: 31, bban: /^[A-Z]{4}\d{5}[A-Z0-9]{18}$/ },
+  NL: { length: 18, bban: /^[A-Z]{4}\d{10}$/ },
+  NO: { length: 15, bban: /^\d{11}$/ },
+  PL: { length: 28, bban: /^\d{24}$/ },
+  PT: { length: 25, bban: /^\d{21}$/ },
+  RO: { length: 24, bban: /^[A-Z]{4}[A-Z0-9]{16}$/ },
+  SA: { length: 24, bban: /^\d{2}[A-Z0-9]{18}$/ },
+  SE: { length: 24, bban: /^\d{20}$/ },
+  SI: { length: 19, bban: /^\d{15}$/ },
+  SK: { length: 24, bban: /^\d{20}$/ },
+  SM: { length: 27, bban: /^[A-Z]\d{10}[A-Z0-9]{12}$/ },
+  TR: { length: 26, bban: /^\d{6}[A-Z0-9]{16}$/ },
+  UA: { length: 29, bban: /^\d{6}[A-Z0-9]{19}$/ }
+};
+
+function ibanChecksum(normalized: string): boolean {
+  const rearranged = `${normalized.slice(4)}${normalized.slice(0, 4)}`;
+  let remainder = 0;
+  for (const character of rearranged) {
+    const digits = character >= "A" ? String(character.charCodeAt(0) - 55) : character;
+    for (const digit of digits) remainder = (remainder * 10 + Number(digit)) % 97;
+  }
+  return remainder === 1;
+}
+
+/* eslint-disable complexity -- structured IBAN checks */
+/**
+ * Validates an International Bank Account Number (IBAN).
+ *
+ * Spaces are ignored and lowercase input is accepted. The country-specific length is checked for
+ * the countries in the built-in table, then the MOD-97 checksum is verified. Unknown countries are
+ * accepted only when the structural length and checksum are valid.
+ *
+ * @param value - IBAN candidate.
+ * @returns Structured validation result.
+ */
+export function validateIban(value: string): ValidationResult {
+  const typeError = requireString(value);
+  if (typeError) return typeError;
+
+  const normalized = value.replace(/\s+/g, "").toUpperCase();
+  if (!normalized) return fail("EMPTY", "IBAN cannot be empty.");
+  if (!/^[A-Z]{2}\d{2}[A-Z0-9]+$/.test(normalized)) {
+    return fail("INVALID_FORMAT", "IBAN must start with a country code, two check digits and alphanumeric characters.");
+  }
+  if (normalized.length < 15) return fail("TOO_SHORT", "IBAN must contain at least 15 characters.");
+  if (normalized.length > 34) return fail("TOO_LONG", "IBAN cannot contain more than 34 characters.");
+
+  const format = IBAN_FORMATS[normalized.slice(0, 2)];
+  if (format !== undefined && normalized.length !== format.length) {
+    return fail("INVALID_FORMAT", `IBAN length must be ${format.length} characters for this country.`);
+  }
+  if (format !== undefined && !format.bban.test(normalized.slice(4))) {
+    return fail("INVALID_FORMAT", "IBAN bank account structure does not match the country format.");
+  }
+  if (!ibanChecksum(normalized)) {
+    return fail("CHECKSUM_FAILED", "IBAN checksum is invalid.");
+  }
+  return ok("Valid IBAN.");
+}
+
+/**
+ * Boolean wrapper for `validateIban`.
+ *
+ * @param value - IBAN candidate.
+ * @returns `true` when the IBAN is valid.
+ */
+export function isIban(value: string): boolean {
+  return validateIban(value).ok;
+}
+/* eslint-enable complexity */
+
 /**
  * Validates UUID v4 strings.
  *

@@ -6,14 +6,14 @@
 
 > **Live documentation:** [run this package's examples in your browser](https://jdsalasca.github.io/solvejs/live/#pkg-validators).
 
-Zero-dependency validators for forms and API payloads: email, phone with 12 country presets plus ANY, postal codes, UUID v4, IPv4, ISO dates, domains, usernames, passwords, and addresses. Every validator returns a stable code, a human message, and EN/ES/PT translations.
+Zero-dependency validators for forms and API payloads: email, phone with 12 country presets plus ANY, postal codes, UUID v4, IPv4, ISO dates, domains, usernames, passwords, addresses, credit cards and IBAN. Every validator returns a stable code, a human message, and EN/ES/PT translations.
 
 ## Utilities
 
 - Structured validators returning `{ ok, code, message }`
 - `validateCellphoneNumber`, `validateEmail`, `validateHttpUrl`, `validateDomain`
 - `validateName`, `validateUsername`, `validateAddressLine`, `validatePostalCode` (country-aware)
-- `validateStrongPassword`, `validateCreditCardNumber`
+- `validateStrongPassword`, `validateCreditCardNumber`, `validateIban`
 - `validateUuidV4`, `validateIpv4`, `validateIsoDateString`
 - `validateAddressDirection` for EN and ES street-type prefixes
 - `translateValidationResult` for EN/ES/PT UI messages
@@ -40,6 +40,18 @@ Coverage is a whitelist, never a guess. An unsupported country returns `{ ok: fa
 validateCellphoneNumber("+447911123456", { country: "ANY" }); // ok
 validatePostalCode("K1A 0B1", { country: "CA" });             // ok
 validatePostalCode("12345", { country: "FR" });               // UNSUPPORTED_COUNTRY
+```
+
+### IBAN validation
+
+`validateIban` removes spaces, accepts lowercase, checks the country-specific length **and BBAN structure** for the built-in table (`GB`, `DE`, `FR`, `ES`, `NL`, `IT`, `PT`, `IE`, `BE`, `AT`, `CH`, `PL`, `SE`, `NO`, `DK`, `FI` and more), then verifies the MOD-97 checksum. Unknown countries are accepted only when the 15-34 character structure and checksum are valid.
+
+```ts
+validateIban("GB82 WEST 1234 5698 7654 32"); // ok
+validateIban("GB82 WEST 1234 5698 7654 31"); // CHECKSUM_FAILED
+validateIban("DE06ABCDEFGHIJKLMNOPQR");      // INVALID_FORMAT, German BBAN must be numeric
+validateIban("GB82");                         // TOO_SHORT
+validateIban("1BAN1234");                     // INVALID_FORMAT
 ```
 
 ### Non-string input returns `INVALID_TYPE`
@@ -122,11 +134,12 @@ npm i @jdsalasc/solvejs-validators
 ## Quick example
 
 ```ts
-import { validateCellphoneNumber, validateUuidV4, translateValidationResult } from "@jdsalasc/solvejs-validators";
+import { validateCellphoneNumber, validateIban, validateUuidV4, translateValidationResult } from "@jdsalasc/solvejs-validators";
 
 validateCellphoneNumber("+573001234567", { country: "CO" });
 validateDomain("api.solvejs.dev");
 validateUuidV4("550e8400-e29b-41d4-a716-446655440000");
+validateIban("GB82 WEST 1234 5698 7654 32"); // { ok: true, code: "VALID", ... }
 translateValidationResult(validateCellphoneNumber("abc"), { locale: "es", fieldLabel: "Telefono" });
 // Postal code examples by country:
 // validatePostalCode("110111", { country: "CO" });

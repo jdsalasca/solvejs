@@ -10,6 +10,7 @@ import {
   isDomain,
   isEmail,
   isHttpUrl,
+  isIban,
   isIpv4,
   isIsoDateString,
   isPostalCode,
@@ -25,6 +26,7 @@ import {
   validateDomain,
   validateEmail,
   validateHttpUrl,
+  validateIban,
   validateIpv4,
   validateIsoDateString,
   validateName,
@@ -659,4 +661,30 @@ test("INVALID_TYPE and INVALID_RESULT have localized messages", () => {
 
   const invalidResult = { ok: false, code: "INVALID_RESULT", message: "raw" };
   assert.equal(translateValidationResult(invalidResult).message, "Invalid validation result.");
+});
+
+test("validateIban accepts valid international accounts", () => {
+  for (const iban of [
+    "GB82WEST12345698765432",
+    "DE89370400440532013000",
+    "FR1420041010050500013M02606",
+    "ES9121000418450200051332",
+    "NL91ABNA0417164300"
+  ]) {
+    assert.equal(validateIban(iban).ok, true, iban);
+    assert.equal(isIban(iban), true, iban);
+  }
+  assert.equal(validateIban("gb82 west 1234 5698 7654 32").ok, true, "spaces and lowercase are accepted");
+});
+
+test("validateIban reports stable failure codes", () => {
+  assert.equal(validateIban("").code, "EMPTY");
+  assert.equal(validateIban(42).code, "INVALID_TYPE");
+  assert.equal(validateIban("1BAN1234").code, "INVALID_FORMAT");
+  assert.equal(validateIban("GB82A").code, "TOO_SHORT");
+  assert.equal(validateIban(`GB82${"A".repeat(40)}`).code, "TOO_LONG");
+  assert.equal(validateIban("GB82WEST12345698765431").code, "CHECKSUM_FAILED");
+  assert.equal(validateIban("GB82WEST1234569876543").code, "INVALID_FORMAT", "country length is enforced");
+  assert.equal(validateIban("DE06ABCDEFGHIJKLMNOPQR").code, "INVALID_FORMAT", "country BBAN structure is enforced");
+  assert.equal(isIban("not-an-iban"), false);
 });
