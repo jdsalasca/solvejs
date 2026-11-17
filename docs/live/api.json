@@ -3,7 +3,7 @@
   "packages": [
     {
       "name": "@jdsalasc/solvejs",
-      "version": "1.15.0",
+      "version": "1.15.1",
       "entries": [
         {
           "name": "AcceptOptions",
@@ -2926,7 +2926,7 @@
     },
     {
       "name": "@jdsalasc/solvejs-cache",
-      "version": "0.3.0",
+      "version": "0.3.1",
       "entries": [
         {
           "name": "CacheError",
@@ -3738,7 +3738,7 @@
     },
     {
       "name": "@jdsalasc/solvejs-list",
-      "version": "1.11.0",
+      "version": "1.11.1",
       "entries": [
         {
           "name": "chunk",
@@ -3942,7 +3942,7 @@
     },
     {
       "name": "@jdsalasc/solvejs-numbers",
-      "version": "1.11.0",
+      "version": "1.11.1",
       "entries": [
         {
           "name": "applyDiscount",
@@ -4849,7 +4849,7 @@
     },
     {
       "name": "@jdsalasc/solvejs-semver",
-      "version": "0.3.0",
+      "version": "0.3.1",
       "entries": [
         {
           "name": "compareVersions",

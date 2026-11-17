@@ -194,6 +194,7 @@ Competitor study:
 - Added `maxBy`/`minBy` to list, `splitEvenly` to money, `variance`/`standardDeviation` to numbers and `sortVersions`/`latestVersion` to semver.
 - Added live variants for all six packages.
 - Codex Terra review found and we fixed: cache-key collisions for Date/Map/views, semver single-item validation, variance overflow and `undefined` min/max winners.
+- Shipped patch releases: cache `0.3.1`, list `1.11.1`, numbers `1.11.1`, semver `0.3.1`, meta `1.15.1`.
 - Verified: package tests, full quality gate, live docs check and browser examples.
 
 ## Round 24: Payments, object cleanup and immutability - done

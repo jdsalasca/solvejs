@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.15.1 - 2026-11-17
+
+- `@jdsalasc/solvejs-cache@0.3.1`: `stableKey` now distinguishes dates, regexps, maps, sets and array-buffer views instead of collapsing them to `{}`. Migration impact: none.
+- `@jdsalasc/solvejs-list@1.11.1`: `maxBy` / `minBy` now allow `undefined` as the winning item and no longer confuse it with "no winner". Migration impact: none.
+- `@jdsalasc/solvejs-numbers@1.11.1`: variance uses an overflow-safe incremental algorithm for large finite values. Migration impact: none.
+- `@jdsalasc/solvejs-semver@0.3.1`: `sortVersions` and `latestVersion` validate every input, including single-item lists. Migration impact: none.
+- Meta package `1.15.1` pins the corrected leaves. Migration impact: none.
+
 ## 1.15.0 - 2026-11-17
 
 - `@jdsalasc/solvejs-async@1.11.0`: added `createMutex` for FIFO critical sections with `pending`, `isLocked()` and rejection-safe queuing. Migration impact: none.
