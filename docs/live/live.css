@@ -1544,3 +1544,9 @@ solvejs-pdf-viewer {
     display: none;
   }
 }
+
+@media (max-width: 980px) {
+  #package-count::after {
+    content: " · swipe →";
+  }
+}
