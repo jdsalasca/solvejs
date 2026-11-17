@@ -392,6 +392,33 @@ class ObjectSchema<TShape extends Shape> extends BaseSchema<InferShape<TShape>> 
   }
 }
 
+class RecordSchema<T> extends BaseSchema<Record<string, T>> {
+  constructor(private readonly valueSchema: BaseSchema<T>) {
+    super();
+  }
+
+  parseAt(input: unknown, path: string): Record<string, T> {
+    if (input == null || typeof input !== "object" || Array.isArray(input)) {
+      throw makeIssue(path, "invalid_type", "Expected object.");
+    }
+    const source = input as Record<string, unknown>;
+    const output: Record<string, T> = {};
+    for (const key of Object.keys(source)) {
+      Object.defineProperty(output, key, {
+        value: this.valueSchema.parseAt(source[key], childPath(path, key)),
+        enumerable: true,
+        writable: true,
+        configurable: true
+      });
+    }
+    return output;
+  }
+
+  toJsonSchema(): JsonSchema {
+    return { type: "object", additionalProperties: this.valueSchema.toJsonSchema() };
+  }
+}
+
 class UnionSchema<TSchemas extends readonly BaseSchema<unknown>[]> extends BaseSchema<Infer<TSchemas[number]>> {
   constructor(private readonly schemas: TSchemas) {
     super();
@@ -448,6 +475,7 @@ export const s = {
   literal: <T extends string | number | boolean | null>(value: T) => new LiteralSchema(value),
   array: <T>(schema: BaseSchema<T>) => new ArraySchema(schema),
   object: <TShape extends Shape>(shape: TShape) => new ObjectSchema(shape),
+  record: <T>(schema: BaseSchema<T>) => new RecordSchema(schema),
   union: <TSchemas extends readonly BaseSchema<unknown>[]>(schemas: TSchemas) => new UnionSchema(schemas),
   refine: <T>(schema: BaseSchema<T>, check: (value: T) => boolean, message: string): Schema<T> =>
     new RefinementSchema(schema, check, message)

@@ -10,7 +10,7 @@ Zero-dependency schema validation for API payloads, forms, config files, and AI 
 ## Utilities
 
 - `s.string`, `s.number`, `s.boolean`
-- `s.literal`, `s.array`, `s.object`, `s.union`
+- `s.literal`, `s.array`, `s.object`, `s.record`, `s.union`
 - `s.refine` for custom business rules
 - `parse`, `safeParse`, `optional`
 - `toJsonSchema` for docs and contracts
@@ -95,6 +95,7 @@ const Signup = s.object({
   email: s.string({ trim: true }).email(),
   age: s.number({ coerce: true }).int().min(18),
   plan: s.union([s.literal("free"), s.literal("pro")]),
+  scores: s.record(s.number().int().min(0)).optional(),
   referral: s.string({ trim: true }).optional()
 });
 

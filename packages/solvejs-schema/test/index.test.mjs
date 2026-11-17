@@ -370,3 +370,23 @@ test("SchemaError can be built with no issues at all", () => {
   assert.equal(empty.message, "Schema validation failed.", "the generic message is used, not undefined");
   assert.equal(empty instanceof TypeError, true);
 });
+
+test("s.record validates arbitrary keys against one value schema", () => {
+  const Scores = s.record(s.number().int().min(0));
+  assert.deepEqual(Scores.parse({ ada: 10, grace: 8 }), { ada: 10, grace: 8 });
+  assert.throws(() => Scores.parse({ ada: 10, grace: -1 }), (error) => error instanceof SchemaError && /grace/.test(error.issues[0].path));
+  assert.throws(() => Scores.parse(["nope"]), SchemaError);
+  assert.deepEqual(Scores.toJsonSchema(), {
+    type: "object",
+    additionalProperties: { type: "integer", minimum: 0 }
+  });
+});
+
+test("s.record preserves a __proto__ key without changing the prototype", () => {
+  const input = JSON.parse('{"__proto__":{"polluted":true}}');
+  const parsed = s.record(s.object({ polluted: s.boolean() })).parse(input);
+  assert.equal(Object.prototype.hasOwnProperty.call(parsed, "__proto__"), true);
+  assert.deepEqual(parsed.__proto__, { polluted: true });
+  assert.equal(Object.getPrototypeOf(parsed), Object.prototype);
+  assert.equal({}.polluted, undefined);
+});
