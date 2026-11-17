@@ -3,6 +3,7 @@ import { pMap, retry } from "@jdsalasc/solvejs-async";
 import { createTtlCache, stableKey } from "@jdsalasc/solvejs-cache";
 import { HTTP_STATUS, TIME } from "@jdsalasc/solvejs-constants";
 import { addDays, parseDateStrict } from "@jdsalasc/solvejs-date";
+import { nanoid, prefixedId, randomToken, ulid, uuidTimestamp, uuidv4, uuidv7 } from "@jdsalasc/solvejs-id";
 import { getEnvNumber } from "@jdsalasc/solvejs-env";
 import { createError, errorToResponse } from "@jdsalasc/solvejs-errors";
 import { calculateBackoffDelay, negotiateContentType } from "@jdsalasc/solvejs-http";
@@ -54,6 +55,35 @@ const PACKAGES = [
         run: () => {
           const start = parseDateStrict("2026-11-16", "YYYY-MM-DD");
           return { start: metaFormatDate(start), minus7: metaFormatDate(addDays(start, -7)) };
+        }
+      }
+    ]
+  },
+  {
+    id: "id",
+    name: "@jdsalasc/solvejs-id",
+    title: "UUID, ULID, NanoID and prefixed IDs",
+    level: "Core",
+    code: `prefixedId("usr")`,
+    run: () => {
+      const event = uuidv7();
+      return {
+        uuidv4: uuidv4(),
+        uuidv7: event,
+        eventTime: uuidTimestamp(event)?.toISOString(),
+        ulid: ulid(),
+        nano: nanoid(12),
+        user: prefixedId("usr"),
+        token: randomToken(16)
+      };
+    },
+    variants: [
+      {
+        label: "Deterministic",
+        code: `uuidv7({ now: () => 0, random: size => new Uint8Array(size) })`,
+        run: () => {
+          const source = { now: () => 0, random: (size) => new Uint8Array(size) };
+          return { uuidv7: uuidv7(source), ulid: ulid(source), nano: nanoid(8, source) };
         }
       }
     ]

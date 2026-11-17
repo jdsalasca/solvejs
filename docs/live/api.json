@@ -3,7 +3,7 @@
   "packages": [
     {
       "name": "@jdsalasc/solvejs",
-      "version": "1.12.13",
+      "version": "1.12.14",
       "entries": [
         {
           "name": "AcceptOptions",
@@ -676,6 +676,24 @@
           "signature": "type IconProps = { name: PdfIconName; /** Square size in points. Defaults to 16. */ size?: number; color?: PdfColor; strokeWidth?: number; marginTop?: number; marginBottom?: number; };"
         },
         {
+          "name": "IdError",
+          "kind": "class",
+          "signature": "class IdError",
+          "doc": "Error thrown by every ID operation that rejects its input."
+        },
+        {
+          "name": "IdErrorCode",
+          "kind": "type",
+          "signature": "type IdErrorCode = \"ID_INVALID_INPUT\" | \"ID_UNSUPPORTED\";",
+          "doc": "Stable error codes for the ID package."
+        },
+        {
+          "name": "IdSource",
+          "kind": "type",
+          "signature": "type IdSource = { now?: () => number; random?: (size: number) => Uint8Array; };",
+          "doc": "Injectable clock and random source, useful for deterministic tests."
+        },
+        {
           "name": "Image",
           "kind": "function",
           "signature": "(props: ImageProps) => PdfElement",
@@ -824,6 +842,12 @@
           "doc": "Boolean wrapper for `validatePostalCode`."
         },
         {
+          "name": "isPrefixedId",
+          "kind": "function",
+          "signature": "(value: unknown, prefix?: string) => value is string",
+          "doc": "Returns true for a prefixed ID, optionally checking the prefix."
+        },
+        {
           "name": "isRetryableError",
           "kind": "function",
           "signature": "(value: unknown) => boolean",
@@ -842,10 +866,22 @@
           "doc": "Boolean wrapper for `validateStrongPassword`."
         },
         {
+          "name": "isUlid",
+          "kind": "function",
+          "signature": "(value: unknown) => value is string",
+          "doc": "Returns true for a canonical uppercase ULID."
+        },
+        {
           "name": "isUsername",
           "kind": "function",
           "signature": "(value: string, options?: { minLength?: number; maxLength?: number; }) => boolean",
           "doc": "Boolean wrapper for `validateUsername`."
+        },
+        {
+          "name": "isUuid",
+          "kind": "function",
+          "signature": "(value: unknown, version?: 4 | 7) => value is string",
+          "doc": "Returns true for a canonical UUID, optionally restricted to version 4 or 7."
         },
         {
           "name": "isUuidV4",
@@ -1055,6 +1091,12 @@
           "doc": "Options for {@link multiplyMoney}, {@link percentageOf} and {@link applyPercentage}."
         },
         {
+          "name": "nanoid",
+          "kind": "function",
+          "signature": "(size?: number, options?: IdSource) => string",
+          "doc": "Generates a URL-safe NanoID. The alphabet is 64 characters, so no modulo bias."
+        },
+        {
           "name": "negotiateContentType",
           "kind": "function",
           "signature": "(available: readonly string[], options?: AcceptOptions | null) => string | null",
@@ -1231,6 +1273,12 @@
           "kind": "type",
           "signature": "type ParsedContentType = { type: string; subtype: string; charset?: string; parameters: Record<string, string>; };",
           "doc": "A parsed media type."
+        },
+        {
+          "name": "parseIdTimestamp",
+          "kind": "function",
+          "signature": "(value: unknown) => Date | undefined",
+          "doc": "Extracts a timestamp from a UUID v7 or ULID."
         },
         {
           "name": "parseIsoDate",
@@ -1559,6 +1607,12 @@
           "signature": "type PostalCountry = \"US\" | \"CO\" | \"MX\" | \"ES\" | \"AR\" | \"CL\" | \"PE\" | \"BR\" | \"CA\" | \"UY\" | \"GB\" | \"DE\";"
         },
         {
+          "name": "prefixedId",
+          "kind": "function",
+          "signature": "(prefix: string, size?: number, options?: IdSource) => string",
+          "doc": "Generates a Stripe-style prefixed ID such as `usr_...`."
+        },
+        {
           "name": "previousBusinessDay",
           "kind": "function",
           "signature": "(date: Date) => Date",
@@ -1587,6 +1641,12 @@
           "kind": "function",
           "signature": "(min: number, max: number) => number",
           "doc": "Generates a random integer within an inclusive range."
+        },
+        {
+          "name": "randomToken",
+          "kind": "function",
+          "signature": "(bytes?: number, options?: IdSource) => string",
+          "doc": "Generates a URL-safe random token from cryptographic bytes."
         },
         {
           "name": "RateLimiterOptions",
@@ -2124,6 +2184,18 @@
           "doc": "Options for {@link createTtlCache}."
         },
         {
+          "name": "ulid",
+          "kind": "function",
+          "signature": "(options?: IdSource) => string",
+          "doc": "Generates a 26-character Crockford Base32 ULID."
+        },
+        {
+          "name": "ulidTimestamp",
+          "kind": "function",
+          "signature": "(value: unknown) => Date | undefined",
+          "doc": "Extracts the timestamp from a ULID."
+        },
+        {
           "name": "unique",
           "kind": "function",
           "signature": "<T>(values: readonly T[]) => T[]",
@@ -2140,6 +2212,24 @@
           "kind": "class",
           "signature": "class UrlError",
           "doc": "Error thrown by the URL utilities. Carries a stable machine-readable `code` and a `details` context object so callers can map failures without matching on message text."
+        },
+        {
+          "name": "uuidTimestamp",
+          "kind": "function",
+          "signature": "(value: unknown) => Date | undefined",
+          "doc": "Extracts the timestamp from a UUID v7."
+        },
+        {
+          "name": "uuidv4",
+          "kind": "function",
+          "signature": "(options?: IdSource) => string",
+          "doc": "Generates a random RFC 4122 version 4 UUID."
+        },
+        {
+          "name": "uuidv7",
+          "kind": "function",
+          "signature": "(options?: IdSource) => string",
+          "doc": "Generates an RFC 9562 version 7 UUID with a 48-bit millisecond timestamp."
         },
         {
           "name": "validateAddressDirection",
@@ -3145,6 +3235,102 @@
           "kind": "type",
           "signature": "type ParsedContentType = { type: string; subtype: string; charset?: string; parameters: Record<string, string>; };",
           "doc": "A parsed media type."
+        }
+      ]
+    },
+    {
+      "name": "@jdsalasc/solvejs-id",
+      "version": "0.1.0",
+      "entries": [
+        {
+          "name": "IdError",
+          "kind": "class",
+          "signature": "class IdError",
+          "doc": "Error thrown by every ID operation that rejects its input."
+        },
+        {
+          "name": "IdErrorCode",
+          "kind": "type",
+          "signature": "type IdErrorCode = \"ID_INVALID_INPUT\" | \"ID_UNSUPPORTED\";",
+          "doc": "Stable error codes for the ID package."
+        },
+        {
+          "name": "IdSource",
+          "kind": "type",
+          "signature": "type IdSource = { now?: () => number; random?: (size: number) => Uint8Array; };",
+          "doc": "Injectable clock and random source, useful for deterministic tests."
+        },
+        {
+          "name": "isPrefixedId",
+          "kind": "function",
+          "signature": "(value: unknown, prefix?: string) => value is string",
+          "doc": "Returns true for a prefixed ID, optionally checking the prefix."
+        },
+        {
+          "name": "isUlid",
+          "kind": "function",
+          "signature": "(value: unknown) => value is string",
+          "doc": "Returns true for a canonical uppercase ULID."
+        },
+        {
+          "name": "isUuid",
+          "kind": "function",
+          "signature": "(value: unknown, version?: 4 | 7) => value is string",
+          "doc": "Returns true for a canonical UUID, optionally restricted to version 4 or 7."
+        },
+        {
+          "name": "nanoid",
+          "kind": "function",
+          "signature": "(size?: number, options?: IdSource) => string",
+          "doc": "Generates a URL-safe NanoID. The alphabet is 64 characters, so no modulo bias."
+        },
+        {
+          "name": "parseIdTimestamp",
+          "kind": "function",
+          "signature": "(value: unknown) => Date | undefined",
+          "doc": "Extracts a timestamp from a UUID v7 or ULID."
+        },
+        {
+          "name": "prefixedId",
+          "kind": "function",
+          "signature": "(prefix: string, size?: number, options?: IdSource) => string",
+          "doc": "Generates a Stripe-style prefixed ID such as `usr_...`."
+        },
+        {
+          "name": "randomToken",
+          "kind": "function",
+          "signature": "(bytes?: number, options?: IdSource) => string",
+          "doc": "Generates a URL-safe random token from cryptographic bytes."
+        },
+        {
+          "name": "ulid",
+          "kind": "function",
+          "signature": "(options?: IdSource) => string",
+          "doc": "Generates a 26-character Crockford Base32 ULID."
+        },
+        {
+          "name": "ulidTimestamp",
+          "kind": "function",
+          "signature": "(value: unknown) => Date | undefined",
+          "doc": "Extracts the timestamp from a ULID."
+        },
+        {
+          "name": "uuidTimestamp",
+          "kind": "function",
+          "signature": "(value: unknown) => Date | undefined",
+          "doc": "Extracts the timestamp from a UUID v7."
+        },
+        {
+          "name": "uuidv4",
+          "kind": "function",
+          "signature": "(options?: IdSource) => string",
+          "doc": "Generates a random RFC 4122 version 4 UUID."
+        },
+        {
+          "name": "uuidv7",
+          "kind": "function",
+          "signature": "(options?: IdSource) => string",
+          "doc": "Generates an RFC 9562 version 7 UUID with a 48-bit millisecond timestamp."
         }
       ]
     },
