@@ -188,6 +188,14 @@ Competitor study:
 - PDF gaps ranked: PNG with transparency, page templates/watermarks, outlines/bookmarks and custom TTF fonts. Reading/editing existing PDFs stays out of scope.
 - Both package READMEs now include a capability matrix with the honest gaps and use-case guidance.
 
+## Round 24: Payments, object cleanup and immutability - done
+
+- Added IBAN validation with country-specific lengths and MOD-97 checksums.
+- Added `unset` and cycle-safe `deepFreeze` to the objects package.
+- Added IBAN, unset and deep-freeze examples to the Live Lab, plus a payment recipe combining validators and money.
+- Codex Terra review found and we fixed: country BBAN structure gaps, inherited-property mutation in `unset`, typed-array freeze errors and class-instance traversal in `deepFreeze`.
+- Verified: package tests, full quality gate, live docs check and browser examples.
+
 ## Round 23: Cross-package production helpers - done
 
 - Added `fetchJson` to HTTP: JSON request/response, timeout, abort, typed errors and bounded error bodies.

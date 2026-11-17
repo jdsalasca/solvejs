@@ -3,12 +3,12 @@ import { memoizeAsync } from "@jdsalasc/solvejs-cache";
 import { addBusinessDays, formatDate, parseIsoDate, toIsoDate } from "@jdsalasc/solvejs-date";
 import { calculateBackoffDelay } from "@jdsalasc/solvejs-http";
 import { applyMergePatch, deepEqual, getJsonPointer, stableStringify } from "@jdsalasc/solvejs-json";
-import { applyPercentage, formatMoney, fromDecimal, sumMoney } from "@jdsalasc/solvejs-money";
+import { applyPercentage, formatMoney, fromDecimal, percentageOf, sumMoney } from "@jdsalasc/solvejs-money";
 import { deepMerge } from "@jdsalasc/solvejs-objects";
 import { offsetToCursor, pageCount, paginate } from "@jdsalasc/solvejs-pagination";
 import { normalizeWhitespace } from "@jdsalasc/solvejs-string";
 import { buildUrl } from "@jdsalasc/solvejs-url";
-import { validateEmail, validateUsername } from "@jdsalasc/solvejs-validators";
+import { validateEmail, validateIban, validateUsername } from "@jdsalasc/solvejs-validators";
 
 const RECIPES = [
   {
@@ -186,6 +186,32 @@ const next = applyMergePatch(current, patch);
         next,
         city: getJsonPointer(next, "/address/city"),
         originalZip: getJsonPointer(current, "/address/zip")
+      };
+    }
+  },
+  {
+    id: "payment",
+    title: "Validate a payment",
+    description: "Check an IBAN with MOD-97, then price the transfer in minor units and add a 1.5% fee without floating point drift.",
+    packages: ["validators", "money"],
+    code: `const iban = validateIban("GB82 WEST 1234 5698 7654 32");
+const amount = fromDecimal("1249.99");
+const fee = percentageOf(amount, 1.5);
+const total = applyPercentage(amount, 1.5);
+
+({ valid: iban.ok, code: iban.code,
+   amount: formatMoney(amount), fee: formatMoney(fee),
+   total: formatMoney(total) })`,
+    run: () => {
+      const iban = validateIban("GB82 WEST 1234 5698 7654 32");
+      const amount = fromDecimal("1249.99");
+      const fee = percentageOf(amount, 1.5);
+      return {
+        valid: iban.ok,
+        code: iban.code,
+        amount: formatMoney(amount),
+        fee: formatMoney(fee),
+        total: formatMoney(applyPercentage(amount, 1.5))
       };
     }
   }

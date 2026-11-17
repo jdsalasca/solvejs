@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.14.0 - 2026-11-17
+
+- `@jdsalasc/solvejs-validators@1.11.0`: added `validateIban` / `isIban` with country-specific lengths, MOD-97 checksum, space/lowercase normalization and stable failure codes. Migration impact: none.
+- `@jdsalasc/solvejs-objects@1.11.0`: added `unset` for nested path cleanup and `deepFreeze` for immutable configuration, with cycle handling and prototype-safe paths. Migration impact: none.
+- Meta package `1.14.0` re-exports both additions and depends on the updated leaves. Migration impact: none.
+- Codex Terra review fixed before release: country-specific BBAN patterns for IBAN, inherited-property traversal in `unset`, and typed-array/class-instance handling in `deepFreeze`.
+- Live Lab: IBAN, object cleanup, deep-freeze examples and an eighth recipe that combines IBAN validation with money math. Migration impact: none.
+
 ## 1.13.0 - 2026-11-17
 
 - `@jdsalasc/solvejs-http@0.3.0`: added `fetchJson` with JSON body serialization, timeout, external `AbortSignal`, typed `HTTP_TIMEOUT` / `HTTP_INVALID_RESPONSE` / `HTTP_REQUEST_FAILED` errors, bounded error bodies and parsed response metadata. Timeout and cancellation stay active while the response body is read, and body-read failures are normalized. Migration impact: none.

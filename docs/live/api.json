@@ -3,7 +3,7 @@
   "packages": [
     {
       "name": "@jdsalasc/solvejs",
-      "version": "1.13.0",
+      "version": "1.14.0",
       "entries": [
         {
           "name": "AcceptOptions",
@@ -365,6 +365,12 @@
           "kind": "function",
           "signature": "(left: unknown, right: unknown) => boolean",
           "doc": "Compares two values structurally. Object key order is irrelevant, array order is significant, `NaN` equals `NaN`, and `0` equals `-0`. Cycles on both sides are handled."
+        },
+        {
+          "name": "deepFreeze",
+          "kind": "function",
+          "signature": "<T>(value: T) => T",
+          "doc": "Recursively freezes plain objects and arrays. Cycles are handled with a `WeakSet`. Only plain objects and arrays are frozen; dates, maps, sets, typed arrays and class instances are left untouched so their internal state keeps working."
         },
         {
           "name": "deepMerge",
@@ -876,6 +882,12 @@
           "kind": "function",
           "signature": "(value: string) => boolean",
           "doc": "Boolean wrapper for `validateHttpUrl`."
+        },
+        {
+          "name": "isIban",
+          "kind": "function",
+          "signature": "(value: string) => boolean",
+          "doc": "Boolean wrapper for `validateIban`."
         },
         {
           "name": "isIdempotentMethod",
@@ -2316,6 +2328,12 @@
           "doc": "Removes duplicates by a derived key while preserving first-seen order."
         },
         {
+          "name": "unset",
+          "kind": "function",
+          "signature": "<T extends object>(value: T, path: string) => T",
+          "doc": "Deletes a nested value using dot-separated path segments. Mirrors {@link set}: it mutates the source object and returns the same reference. Missing paths are a no-op, so cleanup code does not need to check every level first."
+        },
+        {
           "name": "UrlError",
           "kind": "class",
           "signature": "class UrlError",
@@ -2386,6 +2404,12 @@
           "kind": "function",
           "signature": "(value: string) => ValidationResult",
           "doc": "Validates an HTTP(S) URL."
+        },
+        {
+          "name": "validateIban",
+          "kind": "function",
+          "signature": "(value: string) => ValidationResult",
+          "doc": "Validates an International Bank Account Number (IBAN). Spaces are ignored and lowercase input is accepted. The country-specific length is checked for the countries in the built-in table, then the MOD-97 checksum is verified. Unknown countri"
         },
         {
           "name": "validateIpv4",
@@ -3900,8 +3924,14 @@
     },
     {
       "name": "@jdsalasc/solvejs-objects",
-      "version": "1.10.1",
+      "version": "1.11.0",
       "entries": [
+        {
+          "name": "deepFreeze",
+          "kind": "function",
+          "signature": "<T>(value: T) => T",
+          "doc": "Recursively freezes plain objects and arrays. Cycles are handled with a `WeakSet`. Only plain objects and arrays are frozen; dates, maps, sets, typed arrays and class instances are left untouched so their internal state keeps working."
+        },
         {
           "name": "deepMerge",
           "kind": "function",
@@ -3943,6 +3973,12 @@
           "kind": "function",
           "signature": "<T extends object>(value: T, path: string, nextValue: unknown) => T",
           "doc": "Sets a nested value using dot-separated path segments."
+        },
+        {
+          "name": "unset",
+          "kind": "function",
+          "signature": "<T extends object>(value: T, path: string) => T",
+          "doc": "Deletes a nested value using dot-separated path segments. Mirrors {@link set}: it mutates the source object and returns the same reference. Missing paths are a no-op, so cleanup code does not need to check every level first."
         }
       ]
     },
@@ -4927,7 +4963,7 @@
     },
     {
       "name": "@jdsalasc/solvejs-validators",
-      "version": "1.10.1",
+      "version": "1.11.0",
       "entries": [
         {
           "name": "DirectionLocale",
@@ -4987,6 +5023,12 @@
           "kind": "function",
           "signature": "(value: string) => boolean",
           "doc": "Boolean wrapper for `validateHttpUrl`."
+        },
+        {
+          "name": "isIban",
+          "kind": "function",
+          "signature": "(value: string) => boolean",
+          "doc": "Boolean wrapper for `validateIban`."
         },
         {
           "name": "isIpv4",
@@ -5092,6 +5134,12 @@
           "kind": "function",
           "signature": "(value: string) => ValidationResult",
           "doc": "Validates an HTTP(S) URL."
+        },
+        {
+          "name": "validateIban",
+          "kind": "function",
+          "signature": "(value: string) => ValidationResult",
+          "doc": "Validates an International Bank Account Number (IBAN). Spaces are ignored and lowercase input is accepted. The country-specific length is checked for the countries in the built-in table, then the MOD-97 checksum is verified. Unknown countri"
         },
         {
           "name": "validateIpv4",

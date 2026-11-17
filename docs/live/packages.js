@@ -11,14 +11,14 @@ import { applyMergePatch, deepClone, getJsonPointer, stableStringify } from "@jd
 import { groupBy, uniqueBy } from "@jdsalasc/solvejs-list";
 import { formatMoney, fromDecimal } from "@jdsalasc/solvejs-money";
 import { roundTo, safeDivide } from "@jdsalasc/solvejs-numbers";
-import { deepMerge, get } from "@jdsalasc/solvejs-objects";
+import { deepFreeze, deepMerge, get, unset } from "@jdsalasc/solvejs-objects";
 import { paginate } from "@jdsalasc/solvejs-pagination";
 import { escapeRegex, validateByName } from "@jdsalasc/solvejs-regex";
 import { s } from "@jdsalasc/solvejs-schema";
 import { maxSatisfying, satisfies } from "@jdsalasc/solvejs-semver";
 import { initials, mask, pluralize, slugify, truncateMiddle } from "@jdsalasc/solvejs-string";
 import { buildUrl, parseQuery } from "@jdsalasc/solvejs-url";
-import { validateCellphoneNumber, validateEmail } from "@jdsalasc/solvejs-validators";
+import { validateCellphoneNumber, validateEmail, validateIban } from "@jdsalasc/solvejs-validators";
 import { renderPdfDemo, renderFormLab } from "./pdf-gallery.js";
 import { renderXlsxDemo } from "./xlsx-gallery.js";
 import { renderApiBrowser } from "./api-browser.js";
@@ -145,6 +145,15 @@ const PACKAGES = [
           email: validateEmail("not-an-email"),
           phone: validateCellphoneNumber("12")
         })
+      },
+      {
+        label: "IBAN",
+        code: `validateIban("GB82 WEST 1234 5698 7654 32"); validateIban("DE06ABCDEFGHIJKLMNOPQR")`,
+        run: () => ({
+          valid: validateIban("GB82 WEST 1234 5698 7654 32"),
+          checksum: validateIban("GB82 WEST 1234 5698 7654 31"),
+          structure: validateIban("DE06ABCDEFGHIJKLMNOPQR")
+        })
       }
     ]
   },
@@ -210,6 +219,23 @@ const PACKAGES = [
         label: "Deep path",
         code: `get({ app: { db: { port: 5432 } } }, "app.db.port")`,
         run: () => ({ port: get({ app: { db: { port: 5432 } } }, "app.db.port") })
+      },
+      {
+        label: "Unset path",
+        code: `const state = { filters: { status: "active" } }; unset(state, "filters.status")`,
+        run: () => {
+          const state = { filters: { status: "active", page: 2 } };
+          unset(state, "filters.status");
+          return state;
+        }
+      },
+      {
+        label: "Deep freeze",
+        code: `const config = deepFreeze({ app: { tags: ["api"] } })`,
+        run: () => {
+          const config = deepFreeze({ app: { tags: ["api"] } });
+          return { root: Object.isFrozen(config), nested: Object.isFrozen(config.app), tags: Object.isFrozen(config.app.tags) };
+        }
       }
     ]
   },
