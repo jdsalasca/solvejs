@@ -8,6 +8,7 @@ import {
   Pdf,
   PdfPage,
   PieChart,
+  Receipt,
   Row,
   Text,
   buildPdfDocument,
@@ -95,6 +96,41 @@ test("renders symbols with the Symbol font and a LaTeX-style formula", () => {
   assert.ok(texts.includes("α"));
   assert.ok(formula.pages[0].ops.some((item) => item.kind === "line"), "fraction rule is drawn");
   assert.ok(formula.pages[0].ops.some((item) => item.kind === "polygon"), "root radical is drawn");
+});
+
+test("builds a receipt with barcode and stamp", () => {
+  const model = buildPdfDocument(
+    Pdf({
+      children: PdfPage({
+        children: Receipt({
+          title: "ACME RECEIPT",
+          subtitle: "123 Main Street",
+          meta: [
+            { label: "DATE", value: "16 NOV 2026" },
+            { label: "CASHIER", value: "ADA" }
+          ],
+          items: [
+            { description: "Design system", qty: 1, unit: "2,400.00", total: "2,400.00" },
+            { description: "Implementation", qty: 2, unit: "1,200.00", total: "2,400.00" }
+          ],
+          totals: [
+            { label: "SUBTOTAL", value: "4,800.00" },
+            { label: "TOTAL", value: "5,184.00", bold: true }
+          ],
+          barcode: "ACME-1042",
+          stamp: "PAID",
+          footer: "THANK YOU"
+        })
+      })
+    })
+  );
+  const texts = textOps(model.pages[0]).map((op) => op.text);
+  assert.ok(texts.includes("ACME RECEIPT"));
+  assert.ok(texts.includes("PAID"));
+  assert.ok(texts.includes("ACME-1042"));
+  assert.ok(model.pages[0].ops.filter((op) => op.kind === "rect").length > 10, "barcode bars");
+  assert.ok(model.pages[0].ops.filter((op) => op.kind === "polygon").length >= 1, "stamp border");
+  assert.ok(model.pages[0].ops.filter((op) => op.kind === "line").length > 2, "dashed receipt rules");
 });
 
 test("draws vector icons and charts", () => {

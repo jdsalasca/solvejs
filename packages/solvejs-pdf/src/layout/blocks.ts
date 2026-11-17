@@ -486,14 +486,21 @@ export function spacerBlock(height: number, marginTop = 0, marginBottom = 0): Si
   return { kind: "spacer", height, marginTop, marginBottom, draw: () => undefined };
 }
 
-export function dividerBlock(color: string, width: number, marginTop: number, marginBottom: number): SimpleBlock {
+// eslint-disable-next-line max-params -- divider keeps geometry explicit
+export function dividerBlock(
+  color: string,
+  width: number,
+  marginTop: number,
+  marginBottom: number,
+  dash?: readonly number[]
+): SimpleBlock {
   return {
     kind: "divider",
     height: width,
     marginTop,
     marginBottom,
     draw(target, x, y, available) {
-      target.page.ops.push({ kind: "line", x1: x, y1: y, x2: x + available, y2: y, color, width });
+      target.page.ops.push({ kind: "line", x1: x, y1: y, x2: x + available, y2: y, color, width, ...(dash ? { dash } : {}) });
     }
   };
 }

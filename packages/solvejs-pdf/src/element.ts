@@ -72,7 +72,9 @@ export type PdfTextPreset =
   | "body"
   | "caption"
   | "eyebrow"
-  | "signature";
+  | "signature"
+  | "receipt"
+  | "receiptTitle";
 
 /** Named typography tokens that can be spread into props or selected with `preset`. */
 export const PDF_TEXT_PRESETS: Record<PdfTextPreset, PdfStyle> = {
@@ -82,9 +84,11 @@ export const PDF_TEXT_PRESETS: Record<PdfTextPreset, PdfStyle> = {
   body: { fontSize: 11, lineHeight: 1.55, marginBottom: 8 },
   caption: { fontSize: 8, color: "#64748B", lineHeight: 1.4 },
   eyebrow: { fontSize: 8, bold: true, color: "#2563EB", textTransform: "uppercase", lineHeight: 1.2 },
-  signature: { fontFamily: "times", italic: true, fontSize: 18, color: "#1E3A8A" }
+  signature: { fontFamily: "times", italic: true, fontSize: 18, color: "#1E3A8A" },
+  receipt: { fontFamily: "courier", fontSize: 8, lineHeight: 1.35, marginBottom: 2 },
+  receiptTitle: { fontFamily: "courier", bold: true, fontSize: 13, textTransform: "uppercase", lineHeight: 1.2 }
 };
-export type DividerProps = { color?: PdfColor; width?: number; marginTop?: number; marginBottom?: number };
+export type DividerProps = { color?: PdfColor; width?: number; marginTop?: number; marginBottom?: number; dash?: readonly number[] };
 export type SpacerProps = { height?: number; marginTop?: number; marginBottom?: number };
 export type TableProps = PdfStyle & {
   columns: PdfTableColumn[];
@@ -128,6 +132,24 @@ export type ChartProps = PdfStyle & {
 export type FormulaProps = PdfStyle & {
   /** A supported LaTeX subset: fractions, roots, superscripts, subscripts and Greek/math symbols. */
   tex: string;
+};
+
+export type BarcodeProps = {
+  value: string;
+  width?: number;
+  height?: number;
+  color?: PdfColor;
+  showText?: boolean;
+};
+
+export type StampProps = {
+  text: string;
+  color?: PdfColor;
+  angle?: number;
+  fontSize?: number;
+  borderWidth?: number;
+  padding?: number;
+  opacity?: number;
 };
 export type LinkProps = { href: string; children?: PdfNode | PdfNode[] };
 
@@ -226,6 +248,127 @@ export function PieChart(props: ChartProps): PdfElement {
 /** LaTeX-style formula rendered with native PDF text and vector rules. */
 export function Formula(props: FormulaProps): PdfElement {
   return create("formula", props);
+}
+
+/** Code 39 barcode drawn with vector bars. */
+export function Barcode(props: BarcodeProps): PdfElement {
+  return create("barcode", props);
+}
+
+/** Rotated stamp box, useful for PAID / VOID / RECEIVED marks. */
+export function Stamp(props: StampProps): PdfElement {
+  return create("stamp", props);
+}
+
+export type ReceiptMeta = { label: string; value: string | number };
+export type ReceiptItem = {
+  description: string;
+  qty?: string | number;
+  unit?: string | number;
+  total?: string | number;
+};
+export type ReceiptTotal = { label: string; value: string | number; bold?: boolean };
+export type ReceiptProps = {
+  title?: string;
+  subtitle?: string;
+  meta?: readonly ReceiptMeta[];
+  items?: readonly ReceiptItem[];
+  totals?: readonly ReceiptTotal[];
+  footer?: string;
+  barcode?: string;
+  stamp?: string;
+  width?: number;
+  background?: PdfColor;
+  accent?: PdfColor;
+};
+
+/** Monospace thermal-receipt layout with dashed rules, item table, barcode and stamp. */
+// eslint-disable-next-line complexity, max-lines-per-function -- receipt is a composed template
+export function Receipt(props: ReceiptProps): PdfElement {
+  const width = props.width ?? 300;
+  const contentWidth = width - 30;
+  const accent = props.accent ?? "#0F172A";
+  const meta = props.meta ?? [];
+  const items = props.items ?? [];
+  const totals = props.totals ?? [];
+  const columns = [
+    { key: "description", header: "ITEM", width: contentWidth - 130 },
+    { key: "qty", header: "QTY", width: 35, align: "center" as const },
+    { key: "unit", header: "UNIT", width: 45, align: "right" as const },
+    { key: "total", header: "TOTAL", width: 50, align: "right" as const }
+  ];
+  const gap = (total: number, inner: number) => Math.max(0, (total - inner) / 2);
+  return View({
+    width,
+    padding: 14,
+    background: props.background ?? "#FFFDF5",
+    border: 1,
+    borderColor: "#CBD5E1",
+    radius: 2,
+    children: [
+      Text({ preset: "receiptTitle", align: "center", color: accent, children: props.title ?? "RECEIPT" }),
+      ...(props.subtitle
+        ? [Text({ value: props.subtitle, align: "center", fontFamily: "courier", fontSize: 7, color: "#64748B", marginBottom: 2 })]
+        : []),
+      Divider({ color: "#94A3B8", dash: [2, 2], marginTop: 6, marginBottom: 6 }),
+      ...meta.map((entry) =>
+        Row({
+          children: [
+            Text({ preset: "receipt", children: entry.label }),
+            Text({ preset: "receipt", align: "right", children: String(entry.value) })
+          ]
+        })
+      ),
+      Divider({ color: "#94A3B8", dash: [2, 2], marginTop: 6, marginBottom: 6 }),
+      Table({
+        columns,
+        rows: items.map((item) => ({
+          description: item.description,
+          qty: item.qty ?? "",
+          unit: item.unit ?? "",
+          total: item.total ?? ""
+        })),
+        header: true,
+        fontSize: 8,
+        cellPadding: 3,
+        fontFamily: "courier",
+        headerBackground: "#E2E8F0",
+        headerColor: accent,
+        zebra: false
+      }),
+      Divider({ color: "#94A3B8", dash: [2, 2], marginTop: 6, marginBottom: 6 }),
+      ...totals.map((entry) =>
+        Row({
+          children: [
+            Text({ preset: "receipt", bold: entry.bold === true, children: entry.label }),
+            Text({ preset: "receipt", bold: entry.bold === true, align: "right", children: String(entry.value) })
+          ]
+        })
+      ),
+      ...(props.barcode
+        ? [
+            Row({
+              marginTop: 8,
+              gap: 0,
+              children: [
+                View({ width: Math.max(1, gap(contentWidth, 210)) }),
+                Barcode({ value: props.barcode, width: 210, height: 30, showText: false }),
+                View({ width: Math.max(1, gap(contentWidth, 210)) })
+              ]
+            }),
+            Text({ value: props.barcode, align: "center", fontFamily: "courier", fontSize: 7, color: "#334155" })
+          ]
+        : []),
+      ...(props.stamp
+        ? [
+            Divider({ color: "#CBD5E1", dash: [1, 2], marginTop: 8, marginBottom: 8 }),
+            Stamp({ text: props.stamp, color: "#B91C1C", angle: -8, fontSize: 12, opacity: 0.75 })
+          ]
+        : []),
+      Divider({ color: "#94A3B8", dash: [2, 2], marginTop: 8, marginBottom: 4 }),
+      Text({ value: props.footer ?? "THANK YOU", align: "center", fontFamily: "courier", fontSize: 8, color: accent })
+    ]
+  });
 }
 
 /** Wraps children in a clickable URL annotation. */

@@ -23,6 +23,8 @@ import { resolveStyle, resolveWidth, type ResolvedStyle } from "./style.js";
 import { iconBlock, iconNames, type PdfIconName } from "./icons.js";
 import { chartBlock, type PdfChartDatum } from "./charts.js";
 import { mathBlock } from "./math.js";
+import { barcodeBlock } from "./barcode.js";
+import { stampBlock } from "./stamp.js";
 import {
   Fragment,
   type PdfCell,
@@ -541,11 +543,51 @@ function layoutFormula(node: PdfElement, available: number, context: LayoutConte
   return [mathBlock(tex, style, available)];
 }
 
+function layoutBarcode(node: PdfElement): Block[] {
+  const value = node.props.value;
+  if (typeof value !== "string") failPdf("PDF_INVALID_INPUT", "Barcode requires a string value.");
+  return [
+    barcodeBlock(value, {
+      width: node.props.width === undefined ? undefined : positive(node.props.width, "width"),
+      height: node.props.height === undefined ? undefined : positive(node.props.height, "height"),
+      color: normalizeColor(node.props.color as string | undefined),
+      showText: node.props.showText as boolean | undefined
+    })
+  ];
+}
+
+function layoutStamp(node: PdfElement): Block[] {
+  const text = node.props.text;
+  if (typeof text !== "string") failPdf("PDF_INVALID_INPUT", "Stamp requires a text string.");
+  return [
+    stampBlock(text, {
+      color: normalizeColor(node.props.color as string | undefined),
+      angle: node.props.angle as number | undefined,
+      fontSize: node.props.fontSize === undefined ? undefined : positive(node.props.fontSize, "fontSize"),
+      borderWidth: node.props.borderWidth === undefined ? undefined : positive(node.props.borderWidth, "borderWidth"),
+      padding: node.props.padding === undefined ? undefined : positive(node.props.padding, "padding"),
+      opacity: node.props.opacity as number | undefined
+    })
+  ];
+}
+
 function layoutDivider(node: PdfElement, available: number): Block[] {
   const color = normalizeColor(node.props.color as string | undefined) ?? "#E2E8F0";
   const width = node.props.width === undefined ? 1 : positive(node.props.width, "width");
+  const dash = Array.isArray(node.props.dash)
+    ? (node.props.dash as number[]).map((value) => nonNegative(value, "dash"))
+    : undefined;
   return [
-    withWidth(dividerBlock(color, width, nonNegative(node.props.marginTop ?? 0, "marginTop"), nonNegative(node.props.marginBottom ?? 0, "marginBottom")), available)
+    withWidth(
+      dividerBlock(
+        color,
+        width,
+        nonNegative(node.props.marginTop ?? 0, "marginTop"),
+        nonNegative(node.props.marginBottom ?? 0, "marginBottom"),
+        dash
+      ),
+      available
+    )
   ];
 }
 
@@ -652,6 +694,8 @@ const NODE_HANDLERS: Record<string, NodeHandler> = {
   "line-chart": (node, available, context) => layoutChart(node, available, context, "line"),
   "pie-chart": (node, available, context) => layoutChart(node, available, context, "pie"),
   formula: layoutFormula,
+  barcode: layoutBarcode,
+  stamp: layoutStamp,
   divider: (node, available) => layoutDivider(node, available),
   spacer: (node, available) => layoutSpacer(node, available),
   bookmark: (node) => layoutBookmark(node),
