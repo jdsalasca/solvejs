@@ -1,6 +1,10 @@
 /* eslint-disable complexity, max-lines-per-function, max-depth -- PDF object scanner */
 import { failPdf } from "../errors.js";
 
+const MAX_FORM_BYTES = 64 * 1024 * 1024;
+const MAX_OBJECTS = 200_000;
+const MAX_DECOMPRESSED_BYTES = 64 * 1024 * 1024;
+
 export type PdfNameValue = { kind: "name"; value: string };
 export type PdfStringValue = { kind: "string"; bytes: Uint8Array };
 export type PdfRefValue = { kind: "ref"; num: number; gen: number };
@@ -301,6 +305,7 @@ function scanObjects(source: string): Map<number, PdfObject> {
     const object: PdfObject = { num: header.num, gen: header.gen, value, offset: position };
     const existing = objects.get(header.num);
     if (!existing || existing.offset <= object.offset) objects.set(header.num, object);
+    if (objects.size > MAX_OBJECTS) failPdf("PDF_LIMIT_EXCEEDED", "PDF has too many objects.", { objects: objects.size });
     position = end;
   }
   return objects;
@@ -364,7 +369,26 @@ function startXrefOf(source: string): number | undefined {
 
 async function inflate(bytes: Uint8Array): Promise<Uint8Array> {
   const stream = new Blob([bytes as unknown as BlobPart]).stream().pipeThrough(new DecompressionStream("deflate"));
-  return new Uint8Array(await new Response(stream).arrayBuffer());
+  const reader = stream.getReader();
+  const chunks: Uint8Array[] = [];
+  let total = 0;
+  while (true) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    total += value.length;
+    if (total > MAX_DECOMPRESSED_BYTES) {
+      await reader.cancel();
+      failPdf("PDF_LIMIT_EXCEEDED", "PDF stream expands beyond the limit.", { bytes: total });
+    }
+    chunks.push(value);
+  }
+  const output = new Uint8Array(total);
+  let offset = 0;
+  for (const chunk of chunks) {
+    output.set(chunk, offset);
+    offset += chunk.length;
+  }
+  return output;
 }
 
 function asciiHex(bytes: Uint8Array): Uint8Array {
@@ -418,6 +442,7 @@ async function parseObjectStreams(parsed: ParsedPdf): Promise<void> {
     const count = Number(object.value.dict.get("N"));
     const first = Number(object.value.dict.get("First"));
     if (!Number.isInteger(count) || !Number.isInteger(first)) continue;
+    if (count > MAX_OBJECTS) failPdf("PDF_LIMIT_EXCEEDED", "PDF object stream declares too many objects.", { count });
     const lexer = new Lexer(text, 0);
     const entries: Array<{ num: number; offset: number }> = [];
     for (let index = 0; index < count; index += 1) {
@@ -441,6 +466,7 @@ async function parseObjectStreams(parsed: ParsedPdf): Promise<void> {
 
 export async function parsePdf(bytes: Uint8Array): Promise<ParsedPdfWithSource> {
   if (bytes.byteLength < 5) failPdf("PDF_INVALID_INPUT", "Expected a PDF document.");
+  if (bytes.byteLength > MAX_FORM_BYTES) failPdf("PDF_LIMIT_EXCEEDED", "PDF is larger than the form reader limit.", { bytes: bytes.byteLength });
   const source = binaryString(bytes);
   const header = source.indexOf("%PDF-");
   if (header < 0) failPdf("PDF_INVALID_INPUT", "Expected a PDF header.");

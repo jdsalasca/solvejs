@@ -1,10 +1,10 @@
 # Changelog
 
-## 1.12.7 - 2026-11-16
+## 1.12.8 - 2026-11-16
 
-- Added `@jdsalasc/solvejs-pdf@0.1.7` AcroForm support: `readPdfForm`, `readPdfFormValues` and `fillPdfForm` read text, checkbox, radio and choice fields (values, options, page numbers and widget rectangles), then append a filled PDF revision with `/NeedAppearances`. Classic xref, xref streams and object streams are supported. XFA, encrypted PDFs and signatures are detected but not modified. Migration impact: none; additive API.
+- Added `@jdsalasc/solvejs-pdf@0.1.8` AcroForm support: `readPdfForm`, `readPdfFormValues` and `fillPdfForm` read text, checkbox, radio and choice fields (values, options, page numbers and widget rectangles), then append a filled PDF revision with `/NeedAppearances`. Classic xref, xref streams and object streams are supported. XFA, encrypted PDFs and signatures are detected but not modified. The reader rejects files over 64 MB, documents with more than 200,000 objects, and streams that expand beyond 64 MB. Migration impact: none; additive API.
 - Reworked the Live Lab into a package explorer with a sidebar, a PDF studio (editorial report, invoice, letter and page-number presets), an XLSX studio with a real spreadsheet preview rendered from `readXlsx`, and an AcroForm Lab that reads, edits, exports JSON and downloads filled PDFs. Migration impact: none.
-- Bumped the meta package to `1.12.7`. Migration impact: none.
+- Bumped the meta package to `1.12.8`. Migration impact: none.
 
 ## 1.12.6 - 2026-11-16
 

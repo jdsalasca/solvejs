@@ -190,7 +190,7 @@ Competitor study:
 
 ## Round 14: AcroForm support and document studios - done
 
-- PDF `0.1.7`: `readPdfForm`, `readPdfFormValues` and `fillPdfForm` for standard AcroForm text, checkbox, radio and choice fields, including xref streams and object streams. XFA and encrypted PDFs are detected; signatures are read but not signed.
+- PDF `0.1.8`: `readPdfForm`, `readPdfFormValues` and `fillPdfForm` for standard AcroForm text, checkbox, radio and choice fields, including xref streams and object streams. XFA and encrypted PDFs are detected; signatures are read but not signed.
 - Live Lab: sidebar package explorer, PDF studio with report/invoice/letter documents and page-number presets, XLSX studio with three workbooks and a real preview parsed back from the generated file, and an AcroForm Lab with sample upload, JSON export and filled PDF download.
 - Verified: PDF 49 tests, XLSX 70 tests, live Lab checked locally in Chrome at desktop and 390px, and the generated report/invoice/letter PDFs opened in the native viewer.
 
