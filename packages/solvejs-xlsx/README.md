@@ -431,10 +431,12 @@ Each sheet keeps `rows` as primitive values and adds optional metadata when pres
 | Field | Contents |
 |---|---|
 | `merges` | Merged ranges such as `"A1:C1"` |
-| `columns` | Widths and column styles |
+| `columns` | Widths, column styles and `hidden` |
 | `rowHeights` | Custom row heights keyed by row number |
+| `hiddenRows` | 1-based indexes of hidden rows |
 | `freeze` | Frozen rows and columns |
 | `autoFilter` | Auto-filter reference |
+| `filterColumns` | Checked values per filter column |
 | `pageSetup` | Orientation, paper size and fit-to-page values from `<pageSetup>` |
 | `dataValidations` | Dropdowns, numeric/date/text bounds, prompts and error messages |
 | `links` | `A1` to external URL |
@@ -442,7 +444,16 @@ Each sheet keeps `rows` as primitive values and adds optional metadata when pres
 | `styles` | `A1` to font, fill, border, alignment and number format |
 | `images` | Anchor, size, format and bytes for PNG/JPEG media |
 
-Dates are returned as UTC `Date` objects. The reader supports shared strings, inline strings, numbers, booleans, formula results, error cells, the 1900 and 1904 date systems, custom number formats, hyperlinks, images, print setup, global defined names and workbook parts resolved through their OOXML relationships. Use `sheets` to parse only the worksheets you need from a large file. It reduces worksheet decoding, not archive decompression: the ZIP is expanded before sheets are selected, so keep an upload-size limit around the reader.
+Dates are returned as UTC `Date` objects. The reader supports shared strings, inline strings, numbers, booleans, formula results, error cells, the 1900 and 1904 date systems, custom number formats, hyperlinks, images, print setup, global defined names and workbook parts resolved through their OOXML relationships. Use `sheets` to parse only the worksheets you need from a large file. It reduces worksheet decoding and XML materialization, but the ZIP is still expanded before sheets are selected; entries inflate concurrently, so parts do not queue one after another. Keep an upload-size limit around the reader.
+
+Hidden rows, hidden columns and filter values survive a read/write round trip:
+
+```ts
+const sheet = (await readXlsx(bytes)).sheets[0];
+console.log(sheet.hiddenRows);      // [3]
+console.log(sheet.columns?.[1]);    // { width: 18, hidden: true }
+console.log(sheet.filterColumns);   // [{ column: 1, values: ["open"] }]
+```
 
 ## Formatting
 
@@ -633,9 +644,9 @@ Measured with `npm run benchmark --workspace packages/solvejs-xlsx` on Node 24 /
 
 | Operation | Time | Output |
 |---|---:|---:|
-| `writeXlsx` (stored) | ~88 ms | 3.43 MB |
-| `writeXlsxCompressed` | ~140 ms | 415 KB |
-| `readXlsx` (compressed) | ~243 ms | 10,000 rows |
+| `writeXlsx` (stored) | ~93 ms | 3.43 MB |
+| `writeXlsxCompressed` | ~148 ms | 415 KB |
+| `readXlsx` (compressed) | ~219 ms | 10,000 rows |
 
 Times are machine-dependent; the script is included so you can measure your own hardware. Compression reduces the archive by roughly 8× on repetitive tabular data.
 

@@ -13,7 +13,6 @@ type CentralEntry = {
 };
 
 type DecompressionCtor = new (format: string) => TransformStream<Uint8Array, Uint8Array>;
-type Budget = { remaining: number };
 
 const EOCD_SIZE = 22;
 const LOCAL_HEADER_SIZE = 30;
@@ -169,7 +168,7 @@ function concatChunks(chunks: readonly Uint8Array[], total: number): Uint8Array 
   return output;
 }
 
-async function inflateRaw(data: Uint8Array, budget: Budget): Promise<Uint8Array> {
+async function inflateRaw(data: Uint8Array, expected: number): Promise<Uint8Array> {
   const Ctor = (globalThis as { DecompressionStream?: DecompressionCtor }).DecompressionStream;
   if (!Ctor) failXlsx("XLSX_UNSUPPORTED", "This runtime does not provide DecompressionStream.");
 
@@ -185,28 +184,25 @@ async function inflateRaw(data: Uint8Array, budget: Budget): Promise<Uint8Array>
     const { done, value } = await reader.read();
     if (done) break;
     total += value.length;
-    if (total > XLSX_LIMITS.maxEntryBytes || total > budget.remaining) {
+    if (total > expected || total > XLSX_LIMITS.maxEntryBytes) {
       await reader.cancel();
-      failXlsx("XLSX_LIMIT_EXCEEDED", "ZIP entry expands beyond the configured limit.", { total });
+      failXlsx("XLSX_LIMIT_EXCEEDED", "ZIP entry expands beyond its declared size.", { total, expected });
     }
     chunks.push(value);
   }
 
-  budget.remaining -= total;
   return concatChunks(chunks, total);
 }
 
-async function readEntry(view: DataView, entry: CentralEntry, budget: Budget): Promise<Uint8Array> {
+async function readEntry(view: DataView, entry: CentralEntry): Promise<Uint8Array> {
   const dataOffset = checkLocalHeader(view, entry);
   const compressed = new Uint8Array(view.buffer, view.byteOffset + dataOffset, entry.compressedSize);
   let data: Uint8Array;
 
   if (entry.method === 0) {
-    budget.remaining -= entry.uncompressedSize;
-    if (budget.remaining < 0) failXlsx("XLSX_LIMIT_EXCEEDED", "ZIP expands beyond the configured total limit.");
     data = compressed;
   } else if (entry.method === 8) {
-    data = await inflateRaw(compressed, budget);
+    data = await inflateRaw(compressed, entry.uncompressedSize);
   } else {
     failXlsx("XLSX_UNSUPPORTED", "Only stored and deflated ZIP entries are supported.", { method: entry.method });
   }
@@ -228,17 +224,21 @@ export async function readZip(bytes: Uint8Array): Promise<Map<string, Uint8Array
   }
 
   const files = new Map<string, Uint8Array>();
-  const budget: Budget = { remaining: XLSX_LIMITS.maxTotalBytes };
+  const names = new Set<string>();
 
   for (const entry of entries) {
-    if (files.has(entry.name)) {
+    if (names.has(entry.name)) {
       failXlsx("XLSX_INVALID_ZIP", "ZIP entries must have unique names.", { name: entry.name });
     }
+    names.add(entry.name);
     if (entry.uncompressedSize > XLSX_LIMITS.maxEntryBytes) {
       failXlsx("XLSX_LIMIT_EXCEEDED", "ZIP entry is too large.", { name: entry.name });
     }
-    files.set(entry.name, await readEntry(view, entry, budget));
   }
 
+  // Each entry is capped at its declared size and the declared total is bounded above,
+  // so entries can inflate concurrently without weakening the decompression budget.
+  const read = await Promise.all(entries.map(async (entry) => [entry.name, await readEntry(view, entry)] as const));
+  for (const [name, data] of read) files.set(name, data);
   return files;
 }

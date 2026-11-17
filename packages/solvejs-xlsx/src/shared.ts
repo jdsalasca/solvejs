@@ -181,11 +181,15 @@ export type XlsxSheetData = {
   name: string;
   rows: XlsxCellValue[][];
   merges?: string[];
-  columns?: Array<{ width?: number; style?: XlsxReadStyle }>;
+  columns?: Array<{ width?: number; style?: XlsxReadStyle; hidden?: boolean }>;
   rowHeights?: Record<number, number>;
   rowStyles?: Record<number, XlsxReadStyle>;
+  /** 1-based indexes of hidden rows. */
+  hiddenRows?: number[];
   freeze?: { rows: number; columns: number };
   autoFilter?: string;
+  /** Checked values for specific filter columns. */
+  filterColumns?: XlsxFilterColumn[];
   pageSetup?: XlsxPageSetup;
   dataValidations?: XlsxDataValidation[];
   links?: Record<string, string>;

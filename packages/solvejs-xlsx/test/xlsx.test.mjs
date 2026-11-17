@@ -102,6 +102,29 @@ test("writes multiple sheets and keeps their names", async () => {
   assert.deepEqual(workbook.sheets[1].rows, [[2]]);
 });
 
+test("reads hidden rows, hidden columns and filter values", async () => {
+  const bytes = writeXlsx({
+    sheets: [
+      {
+        name: "Meta",
+        autoFilter: "A1:B3",
+        filterColumns: [{ column: 1, values: ["open"] }],
+        columns: [
+          { header: "ID", width: 10 },
+          { header: "Status", hidden: true }
+        ],
+        rows: [{ cells: [1, "open"] }, { cells: [2, "done"], hidden: true }]
+      }
+    ]
+  });
+  const sheet = (await readXlsx(bytes)).sheets[0];
+  assert.equal(sheet.autoFilter, "A1:B3");
+  assert.deepEqual(sheet.filterColumns, [{ column: 1, values: ["open"] }]);
+  assert.deepEqual(sheet.hiddenRows, [3]);
+  assert.equal(sheet.columns[1].hidden, true);
+  assert.equal(sheet.columns[0].hidden, undefined);
+});
+
 test("reads shared strings, date styles, booleans and formula strings", async () => {
   const workbook = await readXlsx(sharedStringsFixture());
   assert.equal(workbook.sheets[0].name, "Data");

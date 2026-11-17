@@ -4,6 +4,7 @@ import {
   type ReadXlsxOptions,
   type XlsxCellValue,
   type XlsxDataValidation,
+  type XlsxFilterColumn,
   type XlsxPageSetup,
   type XlsxReadStyle,
   type XlsxSheetData,
@@ -28,7 +29,7 @@ type CellContext = {
 type ParsedCell = { row: number; column: number; value: XlsxCellValue; formula?: string; styleIndex?: number };
 type SharedFormula = { row: number; column: number; formula: string };
 type LinkRef = { reference: string; relationshipId: string };
-type SheetColumns = Array<{ width?: number; styleIndex?: number }>;
+type SheetColumns = Array<{ width?: number; styleIndex?: number; hidden?: boolean }>;
 
 type ParsedSheet = {
   rows: XlsxCellValue[][];
@@ -36,8 +37,10 @@ type ParsedSheet = {
   columns: SheetColumns;
   rowHeights: Record<number, number>;
   rowStyles: Record<number, XlsxReadStyle>;
+  hiddenRows: number[];
   freeze?: { rows: number; columns: number };
   autoFilter?: string;
+  filterColumns?: XlsxFilterColumn[];
   pageSetup?: XlsxPageSetup;
   dataValidations?: XlsxDataValidation[];
   formulas: Record<string, string>;
@@ -585,6 +588,7 @@ function spendRowBudget(context: CellContext, sheet: ParsedSheet, rowNumber: num
   }
 }
 
+// eslint-disable-next-line complexity -- row metadata, budget and cell loop stay together
 function parseRow(
   node: XmlNode,
   context: CellContext,
@@ -596,6 +600,7 @@ function parseRow(
   const style = rowStyleOf(node, context);
   if (height !== undefined) sheet.rowHeights[rowNumber] = height;
   if (style) sheet.rowStyles[rowNumber] = style;
+  if (node.attributes.hidden === "1" || node.attributes.hidden === "true") sheet.hiddenRows.push(rowNumber);
   spendRowBudget(context, sheet, rowNumber);
   while (sheet.rows.length < rowNumber) sheet.rows.push([]);
   const seen = new Set<number>();
@@ -619,7 +624,7 @@ function parseMerges(worksheet: XmlNode, sheet: ParsedSheet): void {
     .filter((ref): ref is string => typeof ref === "string" && ref.length > 0);
 }
 
-type ColumnRange = { min: number; max: number; width?: number; styleIndex?: number };
+type ColumnRange = { min: number; max: number; width?: number; styleIndex?: number; hidden?: boolean };
 
 function columnWidthOf(node: XmlNode): number | undefined {
   const width = Number(node.attributes.width);
@@ -636,7 +641,13 @@ function columnRangeOf(node: XmlNode): ColumnRange | undefined {
   const max = Number(node.attributes.max);
   if (!Number.isInteger(min) || !Number.isInteger(max) || min < 1 || max < min) return undefined;
   if (max > XLSX_LIMITS.maxColumns) failXlsx("XLSX_LIMIT_EXCEEDED", "Column range exceeds the configured limits.");
-  return { min, max, width: columnWidthOf(node), styleIndex: columnStyleOf(node) };
+  return {
+    min,
+    max,
+    width: columnWidthOf(node),
+    styleIndex: columnStyleOf(node),
+    ...(node.attributes.hidden === "1" || node.attributes.hidden === "true" ? { hidden: true } : {})
+  };
 }
 
 function parseColumns(worksheet: XmlNode, sheet: ParsedSheet): void {
@@ -646,7 +657,7 @@ function parseColumns(worksheet: XmlNode, sheet: ParsedSheet): void {
     const range = columnRangeOf(col);
     if (!range) continue;
     for (let index = range.min; index <= range.max; index += 1) {
-      sheet.columns[index - 1] = { width: range.width, styleIndex: range.styleIndex };
+      sheet.columns[index - 1] = { width: range.width, styleIndex: range.styleIndex, ...(range.hidden ? { hidden: true } : {}) };
     }
   }
 }
@@ -673,7 +684,26 @@ function parseFreeze(worksheet: XmlNode, sheet: ParsedSheet): void {
 
 function parseAutoFilter(worksheet: XmlNode, sheet: ParsedSheet): void {
   const filter = firstChild(worksheet, "autoFilter");
-  if (filter?.attributes.ref) sheet.autoFilter = filter.attributes.ref;
+  if (!filter) return;
+  if (filter.attributes.ref) sheet.autoFilter = filter.attributes.ref;
+  const columns = childrenNamed(filter, "filterColumn");
+  if (columns.length === 0) return;
+  if (columns.length > XLSX_LIMITS.maxColumns) {
+    failXlsx("XLSX_LIMIT_EXCEEDED", "Sheet has too many filter columns.", { count: columns.length });
+  }
+  sheet.filterColumns = columns.map((column) => {
+    const index = Number(column.attributes.colId);
+    if (!Number.isInteger(index) || index < 0) {
+      failXlsx("XLSX_INVALID_XML", "Filter column is missing a valid colId.", { colId: column.attributes.colId });
+    }
+    const filters = childrenNamed(firstChild(column, "filters") ?? column, "filter");
+    return {
+      column: index,
+      values: filters
+        .map((node) => node.attributes.val ?? node.attributes.value)
+        .filter((value): value is string => typeof value === "string")
+    };
+  });
 }
 
 function parseHyperlinks(worksheet: XmlNode, sheet: ParsedSheet): void {
@@ -702,6 +732,7 @@ function emptySheet(): ParsedSheet {
     columns: [],
     rowHeights: {},
     rowStyles: Object.create(null),
+    hiddenRows: [],
     formulas: Object.create(null),
     styles: Object.create(null),
     linkRefs: [],
@@ -904,7 +935,8 @@ function columnsOf(sheet: ParsedSheet, styles: ParsedStyles, includeStyles: bool
   return sheet.columns.map((column) => ({
     width: column.width,
     style:
-      includeStyles && column.styleIndex !== undefined ? styles.cellStyles[column.styleIndex] : undefined
+      includeStyles && column.styleIndex !== undefined ? styles.cellStyles[column.styleIndex] : undefined,
+    ...(column.hidden ? { hidden: true } : {})
   }));
 }
 
@@ -985,8 +1017,10 @@ function baseMetadata(
     ...columnMetadata(parsed, styles, includeStyles),
     ...(Object.keys(parsed.rowHeights).length > 0 ? { rowHeights: parsed.rowHeights } : {}),
     ...(includeStyles && Object.keys(parsed.rowStyles).length > 0 ? { rowStyles: parsed.rowStyles } : {}),
+    ...(parsed.hiddenRows.length > 0 ? { hiddenRows: parsed.hiddenRows } : {}),
     ...(parsed.freeze ? { freeze: parsed.freeze } : {}),
     ...(parsed.autoFilter ? { autoFilter: parsed.autoFilter } : {}),
+    ...(parsed.filterColumns ? { filterColumns: parsed.filterColumns } : {}),
     ...(parsed.pageSetup ? { pageSetup: parsed.pageSetup } : {}),
     ...(parsed.dataValidations ? { dataValidations: parsed.dataValidations } : {})
   };
