@@ -3,6 +3,8 @@
 [![npm](https://img.shields.io/npm/v/@jdsalasc/solvejs-env)](https://www.npmjs.com/package/@jdsalasc/solvejs-env)
 [![node](https://img.shields.io/node/v/@jdsalasc/solvejs-env)](https://www.npmjs.com/package/@jdsalasc/solvejs-env)
 
+> **Live documentation:** [run this package's examples in your browser](https://jdsalasca.github.io/solvejs/live/#pkg-env).
+
 Zero-dependency environment parsing for Node.js startups: required strings, numbers with bounds, booleans, enums, arrays, JSON, URLs, and DSNs. Fail fast with a clear message instead of shipping `undefined` to production.
 
 ## Utilities

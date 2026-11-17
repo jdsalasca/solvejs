@@ -188,6 +188,13 @@ Competitor study:
 - PDF gaps ranked: PNG with transparency, page templates/watermarks, outlines/bookmarks and custom TTF fonts. Reading/editing existing PDFs stays out of scope.
 - Both package READMEs now include a capability matrix with the honest gaps and use-case guidance.
 
+## Round 19: npm discoverability and canonical live docs - done
+
+- Switched the canonical live documentation URL to GitHub Pages (`https://jdsalasca.github.io/solvejs/live/`); the home server remains a mirror.
+- Added a Live Documentation callout to every package README and set every `homepage` to that package's runnable example.
+- Added copyable `npm i` and source links to the Live Lab package header.
+- Published the CommonJS declaration mirrors to every package in the patch release.
+
 ## Round 18: Live API reference and docs polish - done
 
 - Generated `docs/live/api.json` from the TypeScript declarations of every package, with function, type, interface, class and const signatures plus JSDoc.

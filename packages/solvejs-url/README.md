@@ -3,6 +3,8 @@
 [![npm](https://img.shields.io/npm/v/@jdsalasc/solvejs-url)](https://www.npmjs.com/package/@jdsalasc/solvejs-url)
 [![node](https://img.shields.io/node/v/@jdsalasc/solvejs-url)](https://www.npmjs.com/package/@jdsalasc/solvejs-url)
 
+> **Live documentation:** [run this package's examples in your browser](https://jdsalasca.github.io/solvejs/live/#pkg-url).
+
 Zero-dependency URL building and query-string utilities: deterministic query serialization, safe parsing, path parameters, and base-URL joining. Built on `URL` and `URLSearchParams`, with stable output for cache keys.
 
 ## Utilities

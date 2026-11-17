@@ -1,6 +1,6 @@
 {
   "name": "@jdsalasc/solvejs-pdf",
-  "version": "0.1.12",
+  "version": "0.1.13",
   "description": "Zero-dependency TypeScript PDF generator with declarative components, rich styling, and a browser PDF viewer.",
   "license": "MIT",
   "type": "module",
@@ -68,7 +68,7 @@
     "access": "public"
   },
   "author": "jdsalasc",
-  "homepage": "https://github.com/jdsalasca/solvejs#readme",
+  "homepage": "https://jdsalasca.github.io/solvejs/live/#pkg-pdf",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/jdsalasca/solvejs.git"

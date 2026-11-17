@@ -1,6 +1,6 @@
 {
   "name": "@jdsalasc/solvejs-semver",
-  "version": "0.2.1",
+  "version": "0.2.2",
   "description": "TypeScript semantic version utilities for parsing, comparison, range satisfaction, and incrementing, with strict validation and no dependencies.",
   "license": "MIT",
   "type": "module",
@@ -36,7 +36,7 @@
     "access": "public"
   },
   "author": "jdsalasc",
-  "homepage": "https://github.com/jdsalasca/solvejs#readme",
+  "homepage": "https://jdsalasca.github.io/solvejs/live/#pkg-semver",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/jdsalasca/solvejs.git"

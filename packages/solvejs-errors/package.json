@@ -1,6 +1,6 @@
 {
   "name": "@jdsalasc/solvejs-errors",
-  "version": "0.2.1",
+  "version": "0.2.2",
   "description": "TypeScript application error utilities with stable machine-readable codes, HTTP status mapping, cause chaining, and safe-to-log formatting for API and service boundaries.",
   "license": "MIT",
   "type": "module",
@@ -36,7 +36,7 @@
     "access": "public"
   },
   "author": "jdsalasc",
-  "homepage": "https://github.com/jdsalasca/solvejs#readme",
+  "homepage": "https://jdsalasca.github.io/solvejs/live/#pkg-errors",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/jdsalasca/solvejs.git"

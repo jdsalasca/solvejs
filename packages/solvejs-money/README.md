@@ -3,6 +3,8 @@
 [![npm](https://img.shields.io/npm/v/@jdsalasc/solvejs-money)](https://www.npmjs.com/package/@jdsalasc/solvejs-money)
 [![node](https://img.shields.io/node/v/@jdsalasc/solvejs-money)](https://www.npmjs.com/package/@jdsalasc/solvejs-money)
 
+> **Live documentation:** [run this package's examples in your browser](https://jdsalasca.github.io/solvejs/live/#pkg-money).
+
 Zero-dependency money math in integer minor units: exact addition, percentages, allocation without lost cents, and currency-aware formatting. No floating-point rounding surprises in invoices, payments, or tax calculations.
 
 ## Utilities

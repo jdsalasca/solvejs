@@ -4,6 +4,8 @@
 [![node](https://img.shields.io/node/v/@jdsalasc/solvejs-objects)](https://www.npmjs.com/package/@jdsalasc/solvejs-objects)
 
 
+> **Live documentation:** [run this package's examples in your browser](https://jdsalasca.github.io/solvejs/live/#pkg-objects).
+
 Zero-dependency object utilities: `pick`, `omit`, `get` and `set` at dotted paths, `mapValues`, and prototype-safe deep merge. Small, typed, and predictable at configuration and API boundaries.
 
 ## Utilities

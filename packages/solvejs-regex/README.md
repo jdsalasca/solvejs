@@ -4,6 +4,8 @@
 [![node](https://img.shields.io/node/v/@jdsalasc/solvejs-regex)](https://www.npmjs.com/package/@jdsalasc/solvejs-regex)
 
 
+> **Live documentation:** [run this package's examples in your browser](https://jdsalasca.github.io/solvejs/live/#pkg-regex).
+
 Zero-dependency common regex patterns and safe helpers: email, E.164 phone, HTTP URL, hex color, username, UUID v4, IPv4, and ISO date, plus `escapeRegex` and `literalRegex`. Copy the pattern or validate by name without rebuilding it.
 
 ## Utilities

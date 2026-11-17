@@ -4,6 +4,8 @@
 [![node](https://img.shields.io/node/v/@jdsalasc/solvejs-validators)](https://www.npmjs.com/package/@jdsalasc/solvejs-validators)
 
 
+> **Live documentation:** [run this package's examples in your browser](https://jdsalasca.github.io/solvejs/live/#pkg-validators).
+
 Zero-dependency validators for forms and API payloads: email, phone with 12 country presets plus ANY, postal codes, UUID v4, IPv4, ISO dates, domains, usernames, passwords, and addresses. Every validator returns a stable code, a human message, and EN/ES/PT translations.
 
 ## Utilities

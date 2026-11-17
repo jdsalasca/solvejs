@@ -4,6 +4,8 @@
 [![node](https://img.shields.io/node/v/@jdsalasc/solvejs-date)](https://www.npmjs.com/package/@jdsalasc/solvejs-date)
 
 
+> **Live documentation:** [run this package's examples in your browser](https://jdsalasca.github.io/solvejs/live/#pkg-date).
+
 Zero-dependency TypeScript date utilities for strict parsing, UTC-safe day math, business-day calculations, and deterministic formatting. No timezone database and no locale surprises: every helper documents its UTC anchoring.
 
 ## Utilities

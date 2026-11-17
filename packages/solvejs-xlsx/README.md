@@ -3,6 +3,8 @@
 [![npm](https://img.shields.io/npm/v/@jdsalasc/solvejs-xlsx)](https://www.npmjs.com/package/@jdsalasc/solvejs-xlsx)
 [![node](https://img.shields.io/node/v/@jdsalasc/solvejs-xlsx)](https://www.npmjs.com/package/@jdsalasc/solvejs-xlsx)
 
+> **Live documentation:** [run this package's examples in your browser](https://jdsalasca.github.io/solvejs/live/#pkg-xlsx).
+
 Zero-dependency modern XLSX reader and writer built from scratch in TypeScript: ZIP, CRC-32, XML, OOXML, shared strings, dates, formulas, hyperlinks, PNG/JPEG images, styles, merged cells, print setup, defined names, data validation, CSV and a declarative component API. No SheetJS, no ExcelJS, no unzip library, no React.
 
 Try the [Live Lab](https://solvejs-documentation.eridu.top/live/) to generate a validated workbook in the browser.

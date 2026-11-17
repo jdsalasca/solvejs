@@ -3,6 +3,8 @@
 [![npm](https://img.shields.io/npm/v/@jdsalasc/solvejs-errors)](https://www.npmjs.com/package/@jdsalasc/solvejs-errors)
 [![node](https://img.shields.io/node/v/@jdsalasc/solvejs-errors)](https://www.npmjs.com/package/@jdsalasc/solvejs-errors)
 
+> **Live documentation:** [run this package's examples in your browser](https://jdsalasca.github.io/solvejs/live/#pkg-errors).
+
 Zero-dependency error handling for APIs: a typed `AppError`, stable codes mapped to HTTP statuses, normalization at the boundary, cause chaining, safe serialization, and result objects for handlers that avoid exceptions. Stop leaking stacks and inconsistent error shapes.
 
 ## Utilities

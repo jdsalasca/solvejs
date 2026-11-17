@@ -3,6 +3,8 @@
 [![npm](https://img.shields.io/npm/v/@jdsalasc/solvejs-cache)](https://www.npmjs.com/package/@jdsalasc/solvejs-cache)
 [![node](https://img.shields.io/node/v/@jdsalasc/solvejs-cache)](https://www.npmjs.com/package/@jdsalasc/solvejs-cache)
 
+> **Live documentation:** [run this package's examples in your browser](https://jdsalasca.github.io/solvejs/live/#pkg-cache).
+
 Zero-dependency caching primitives for Node.js and the browser: TTL maps, LRU eviction, async memoization with in-flight deduplication, and stale-while-revalidate reads. Every clock is injectable, so expiry is deterministic in tests.
 
 ## Utilities

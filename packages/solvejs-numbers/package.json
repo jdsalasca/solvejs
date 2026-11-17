@@ -1,6 +1,6 @@
 {
   "name": "@jdsalasc/solvejs-numbers",
-  "version": "1.10.0",
+  "version": "1.10.1",
   "description": "Safer TypeScript number utilities for forms, analytics, pricing, percentages, rounding, currency formatting, and strict numeric parsing.",
   "license": "MIT",
   "type": "module",
@@ -36,7 +36,7 @@
     "access": "public"
   },
   "author": "jdsalasc",
-  "homepage": "https://github.com/jdsalasca/solvejs#readme",
+  "homepage": "https://jdsalasca.github.io/solvejs/live/#pkg-numbers",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/jdsalasca/solvejs.git"

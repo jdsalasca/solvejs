@@ -1,6 +1,6 @@
 {
   "name": "@jdsalasc/solvejs-pagination",
-  "version": "0.2.1",
+  "version": "0.2.2",
   "description": "TypeScript pagination utilities for offset and cursor conversion, page clamping, total-page math, and API response envelopes with zero dependencies.",
   "license": "MIT",
   "type": "module",
@@ -36,7 +36,7 @@
     "access": "public"
   },
   "author": "jdsalasc",
-  "homepage": "https://github.com/jdsalasca/solvejs#readme",
+  "homepage": "https://jdsalasca.github.io/solvejs/live/#pkg-pagination",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/jdsalasca/solvejs.git"

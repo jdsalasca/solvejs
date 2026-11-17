@@ -4,6 +4,8 @@
 [![node](https://img.shields.io/node/v/@jdsalasc/solvejs-constants)](https://www.npmjs.com/package/@jdsalasc/solvejs-constants)
 
 
+> **Live documentation:** [run this package's examples in your browser](https://jdsalasca.github.io/solvejs/live/#pkg-constants).
+
 Zero-dependency constants for time, file sizes, HTTP methods, HTTP statuses, and content types, plus a strict boolean parser. Stop retyping magic numbers and keep API code consistent.
 
 ## Utilities

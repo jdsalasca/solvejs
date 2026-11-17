@@ -3,6 +3,8 @@
 [![npm](https://img.shields.io/npm/v/@jdsalasc/solvejs-semver)](https://www.npmjs.com/package/@jdsalasc/solvejs-semver)
 [![node](https://img.shields.io/node/v/@jdsalasc/solvejs-semver)](https://www.npmjs.com/package/@jdsalasc/solvejs-semver)
 
+> **Live documentation:** [run this package's examples in your browser](https://jdsalasca.github.io/solvejs/live/#pkg-semver).
+
 Zero-dependency semantic version parsing and range matching: caret, tilde, wildcard, comparator, AND/OR ranges, prerelease precedence, and version bumps. A lighter runtime alternative to the `semver` package.
 
 ## Utilities

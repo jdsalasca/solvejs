@@ -3,6 +3,8 @@
 [![npm](https://img.shields.io/npm/v/@jdsalasc/solvejs-pdf)](https://www.npmjs.com/package/@jdsalasc/solvejs-pdf)
 [![node](https://img.shields.io/node/v/@jdsalasc/solvejs-pdf)](https://www.npmjs.com/package/@jdsalasc/solvejs-pdf)
 
+> **Live documentation:** [run this package's examples in your browser](https://jdsalasca.github.io/solvejs/live/#pkg-pdf).
+
 Zero-dependency PDF generation and preview, built from scratch in TypeScript. Write a document as components, render it in the browser or on the server, and show it with a ready-made viewer that has an iframe, open/download actions and a completely replaceable UI.
 
 No PDF library, no React dependency, no CSS framework. See the [Report Studio example](../../examples/report-studio) for an invoice that drives both a PDF and an XLSX workbook from one dataset.

@@ -1,6 +1,6 @@
 {
   "name": "@jdsalasc/solvejs-env",
-  "version": "1.10.0",
+  "version": "1.10.1",
   "description": "Typed TypeScript environment variable parsing for strings, numbers, booleans, enums, arrays, JSON, URLs, DSNs, and required config checks.",
   "license": "MIT",
   "type": "module",
@@ -36,7 +36,7 @@
     "access": "public"
   },
   "author": "jdsalasc",
-  "homepage": "https://github.com/jdsalasca/solvejs#readme",
+  "homepage": "https://jdsalasca.github.io/solvejs/live/#pkg-env",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/jdsalasca/solvejs.git"

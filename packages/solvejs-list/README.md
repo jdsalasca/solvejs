@@ -4,6 +4,8 @@
 [![node](https://img.shields.io/node/v/@jdsalasc/solvejs-list)](https://www.npmjs.com/package/@jdsalasc/solvejs-list)
 
 
+> **Live documentation:** [run this package's examples in your browser](https://jdsalasca.github.io/solvejs/live/#pkg-list).
+
 Zero-dependency array utilities for analytics, dashboards, and forms: `uniqueBy`, `groupBy`, `countBy`, `chunk`, `partition`, `pluck`, `sortBy`, and set-style intersections. The everyday lodash-style helpers without the dependency.
 
 ## Utilities

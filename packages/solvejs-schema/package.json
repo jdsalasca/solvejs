@@ -1,6 +1,6 @@
 {
   "name": "@jdsalasc/solvejs-schema",
-  "version": "1.10.0",
+  "version": "1.10.1",
   "description": "Zero-dependency TypeScript schema validation for APIs, forms, config, AI tool inputs, safe parsing, and JSON Schema output.",
   "license": "MIT",
   "type": "module",
@@ -36,7 +36,7 @@
     "access": "public"
   },
   "author": "jdsalasc",
-  "homepage": "https://github.com/jdsalasca/solvejs#readme",
+  "homepage": "https://jdsalasca.github.io/solvejs/live/#pkg-schema",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/jdsalasca/solvejs.git"

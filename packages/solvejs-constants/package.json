@@ -1,6 +1,6 @@
 {
   "name": "@jdsalasc/solvejs-constants",
-  "version": "1.10.0",
+  "version": "1.10.1",
   "description": "Practical TypeScript constants for time, file sizes, HTTP methods, headers, delimiters, and boolean string parsing in backend/frontend apps.",
   "license": "MIT",
   "type": "module",
@@ -36,7 +36,7 @@
     "access": "public"
   },
   "author": "jdsalasc",
-  "homepage": "https://github.com/jdsalasca/solvejs#readme",
+  "homepage": "https://jdsalasca.github.io/solvejs/live/#pkg-constants",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/jdsalasca/solvejs.git"

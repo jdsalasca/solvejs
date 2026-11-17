@@ -3,6 +3,8 @@
 [![npm](https://img.shields.io/npm/v/@jdsalasc/solvejs-json)](https://www.npmjs.com/package/@jdsalasc/solvejs-json)
 [![node](https://img.shields.io/node/v/@jdsalasc/solvejs-json)](https://www.npmjs.com/package/@jdsalasc/solvejs-json)
 
+> **Live documentation:** [run this package's examples in your browser](https://jdsalasca.github.io/solvejs/live/#pkg-json).
+
 Zero-dependency JSON utilities for API boundaries: safe parse and stringify, deterministic stringification, deep clone, structural equality, and prototype-safe merge. Never let a malformed payload take down a request handler.
 
 ## Utilities

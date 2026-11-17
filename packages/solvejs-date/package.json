@@ -1,6 +1,6 @@
 {
   "name": "@jdsalasc/solvejs-date",
-  "version": "1.10.1",
+  "version": "1.10.2",
   "description": "UTC-safe TypeScript date utilities for strict parsing, formatting, calendar math, business days, timestamps, and deadline logic without dependencies.",
   "license": "MIT",
   "type": "module",
@@ -36,7 +36,7 @@
     "access": "public"
   },
   "author": "jdsalasc",
-  "homepage": "https://github.com/jdsalasca/solvejs#readme",
+  "homepage": "https://jdsalasca.github.io/solvejs/live/#pkg-date",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/jdsalasca/solvejs.git"

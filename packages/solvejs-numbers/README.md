@@ -4,6 +4,8 @@
 [![node](https://img.shields.io/node/v/@jdsalasc/solvejs-numbers)](https://www.npmjs.com/package/@jdsalasc/solvejs-numbers)
 
 
+> **Live documentation:** [run this package's examples in your browser](https://jdsalasca.github.io/solvejs/live/#pkg-numbers).
+
 Zero-dependency number utilities for forms, dashboards, and commerce: strict numeric parsing, safe division, percentages, currency formatting, rounding, clamping, tax, and discount helpers. Predictable results at the edges.
 
 ## Utilities

@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.12.13 - 2026-11-17
+
+- Published a metadata and discoverability release across all packages: every README now links to the canonical GitHub Pages Live Documentation, and every `homepage` points at that package's runnable examples.
+- The CommonJS declaration mirrors (`dist/cjs/**/*.d.cts`) and split `import.types` / `require.types` conditions now ship from every package, not only PDF/XLSX.
+- Patch bumps: async/cache/constants/date/env/errors/http/json/list/money/numbers/objects/pagination/regex/schema/semver/string/url/validators, PDF `0.1.13`, XLSX `0.3.2`, meta `1.12.13`. Migration impact: none.
+
 ## 1.12.12 - 2026-11-17
 
 - Fixed CommonJS type resolution across the workspace: every package now mirrors its declaration tree to `dist/cjs/**/*.d.cts`, exposes separate `import.types` and `require.types` conditions, and passes `publint`. This removes the “types are interpreted as ESM when resolving require” warning and gives `require()` consumers correct types. Migration impact: none.

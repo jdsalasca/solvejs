@@ -3,6 +3,8 @@
 [![npm](https://img.shields.io/npm/v/@jdsalasc/solvejs-pagination)](https://www.npmjs.com/package/@jdsalasc/solvejs-pagination)
 [![node](https://img.shields.io/node/v/@jdsalasc/solvejs-pagination)](https://www.npmjs.com/package/@jdsalasc/solvejs-pagination)
 
+> **Live documentation:** [run this package's examples in your browser](https://jdsalasca.github.io/solvejs/live/#pkg-pagination).
+
 Zero-dependency pagination helpers for APIs and UIs: page/offset conversion, page counts, clamping, opaque cursors, slicing, and response envelopes with links. One-based pages and cursor semantics are explicit.
 
 ## Utilities

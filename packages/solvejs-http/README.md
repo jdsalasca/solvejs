@@ -3,6 +3,8 @@
 [![npm](https://img.shields.io/npm/v/@jdsalasc/solvejs-http)](https://www.npmjs.com/package/@jdsalasc/solvejs-http)
 [![node](https://img.shields.io/node/v/@jdsalasc/solvejs-http)](https://www.npmjs.com/package/@jdsalasc/solvejs-http)
 
+> **Live documentation:** [run this package's examples in your browser](https://jdsalasca.github.io/solvejs/live/#pkg-http).
+
 Zero-dependency HTTP helpers for resilient clients: status text, retryable status and error classification, exponential backoff with jitter, header normalization, and content-type negotiation. Works with `fetch`, Axios, or any client that exposes a status code.
 
 ## Utilities

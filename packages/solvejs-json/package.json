@@ -1,6 +1,6 @@
 {
   "name": "@jdsalasc/solvejs-json",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "TypeScript JSON utilities for safe parsing, stable stringification, deep cloning, and key picking at API boundaries, with structured errors instead of throws.",
   "license": "MIT",
   "type": "module",
@@ -36,7 +36,7 @@
     "access": "public"
   },
   "author": "jdsalasc",
-  "homepage": "https://github.com/jdsalasca/solvejs#readme",
+  "homepage": "https://jdsalasca.github.io/solvejs/live/#pkg-json",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/jdsalasca/solvejs.git"

@@ -1,6 +1,6 @@
 {
   "name": "@jdsalasc/solvejs-regex",
-  "version": "1.10.0",
+  "version": "1.10.1",
   "description": "Safe TypeScript regex utilities with common production patterns for email, URLs, UUID v4, IPv4, ISO dates, colors, usernames, and escaping.",
   "license": "MIT",
   "type": "module",
@@ -36,7 +36,7 @@
     "access": "public"
   },
   "author": "jdsalasc",
-  "homepage": "https://github.com/jdsalasca/solvejs#readme",
+  "homepage": "https://jdsalasca.github.io/solvejs/live/#pkg-regex",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/jdsalasca/solvejs.git"
