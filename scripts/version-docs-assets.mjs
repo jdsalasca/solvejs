@@ -9,6 +9,7 @@ const vendor = join(root, "vendor");
 if (existsSync(vendor)) renameSync(vendor, join(root, `vendor-${version}`));
 
 const files = [];
+const scripts = [];
 function walk(directory) {
   for (const name of readdirSync(directory)) {
     const path = join(directory, name);
@@ -16,6 +17,8 @@ function walk(directory) {
       if (!name.startsWith("vendor")) walk(path);
     } else if (name.endsWith(".html")) {
       files.push(path);
+    } else if (name.endsWith(".js")) {
+      scripts.push(path);
     }
   }
 }
@@ -35,3 +38,14 @@ for (const file of files) {
   }
 }
 console.log(`Versioned ${changed} HTML files with ${version}`);
+
+let scriptChanges = 0;
+for (const file of scripts) {
+  const before = readFileSync(file, "utf8");
+  const after = before.replace(/(from\s+["']\.\/[^"']+?\.js)(\?[^"']*)?(["'])/g, `$1?v=${version}$3`);
+  if (after !== before) {
+    writeFileSync(file, after);
+    scriptChanges += 1;
+  }
+}
+console.log(`Versioned ${scriptChanges} JavaScript module imports with ${version}`);
