@@ -97,6 +97,9 @@ function resolveArrayValue(raw: string, name: string, options: ArrayOptions): st
 }
 
 function assertNumberBounds(name: string, value: number, options: NumberOptions): void {
+  if (!Number.isFinite(value)) {
+    throw new Error(`Environment variable ${name} must be a valid number.`);
+  }
   if (options.integer && !Number.isInteger(value)) {
     throw new Error(`Environment variable ${name} must be an integer.`);
   }
@@ -152,7 +155,10 @@ export function getEnvString(name: string, env: EnvSource = defaultEnvSource(), 
 export function getEnvNumber(name: string, env: EnvSource = defaultEnvSource(), options: NumberOptions = {}): number {
   const raw = readPresent(name, env);
   if (raw === undefined) {
-    if (options.defaultValue !== undefined) return options.defaultValue;
+    if (options.defaultValue !== undefined) {
+      assertNumberBounds(name, options.defaultValue, options);
+      return options.defaultValue;
+    }
     missing(name);
   }
 

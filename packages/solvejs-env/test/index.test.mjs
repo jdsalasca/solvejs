@@ -25,6 +25,9 @@ test("getEnvNumber validates integer and range constraints", () => {
   assert.equal(getEnvNumber("PORT", env, { integer: true, min: 1, max: 65535 }), 3000);
   assert.equal(getEnvNumber("TIMEOUT_MS", env, { min: 1000 }), 1500);
   assert.equal(getEnvNumber("MISSING", env, { defaultValue: 42 }), 42);
+  assert.throws(() => getEnvNumber("MISSING", env, { defaultValue: -1, min: 1 }), /greater than or equal/);
+  assert.throws(() => getEnvNumber("MISSING", env, { defaultValue: 3.5, integer: true }), /integer/);
+  assert.throws(() => getEnvNumber("MISSING", env, { defaultValue: Number.NaN }), /valid number/);
   assert.throws(() => getEnvNumber("PORT", { PORT: "abc" }), /valid number/);
   assert.throws(() => getEnvNumber("PORT", { PORT: "3.5" }, { integer: true }), /integer/);
 });
