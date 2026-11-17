@@ -1,6 +1,7 @@
+/* eslint-disable complexity, max-params -- PDF path serialization and resource collection */
 import { failPdf } from "../errors.js";
 import { PDF_LIMITS, colorComponents, num } from "../shared.js";
-import { baseFontName, encodeWinAnsi, type PdfFontKey } from "./fonts.js";
+import { baseFontName, encodeForFont, type PdfFontKey } from "./fonts.js";
 import type { PdfImage } from "./images.js";
 import type { PdfDocumentModel, PdfLink, PdfOp, PdfOutlineItem, PdfPageModel } from "./model.js";
 
@@ -46,9 +47,9 @@ function textBytes(text: string): Uint8Array {
   return output;
 }
 
-function escapeLiteral(value: string): string {
+function escapeLiteral(value: string, font: PdfFontKey = "helvetica"): string {
   let result = "";
-  for (const byte of encodeWinAnsi(value.replace(/\r?\n/g, " "))) {
+  for (const byte of encodeForFont(value.replace(/\r?\n/g, " "), font)) {
     if (byte === 0x5c) result += "\\\\";
     else if (byte === 0x28) result += "\\(";
     else if (byte === 0x29) result += "\\)";
@@ -119,21 +120,55 @@ function lineCommands(op: Extract<PdfOp, { kind: "line" }>, pageHeight: number):
   )} l\nS\n`;
 }
 
-function textCommands(op: Extract<PdfOp, { kind: "text" }>, pageHeight: number, fontName: string): string {
-  return `BT\n/${fontName} ${num(op.size)} Tf\n${rgb(op.color)} rg\n1 0 0 1 ${num(op.x)} ${num(
-    pageHeight - op.y
-  )} Tm\n(${escapeLiteral(op.text)}) Tj\nET\n`;
+function textCommands(
+  op: Extract<PdfOp, { kind: "text" }>,
+  pageHeight: number,
+  fontName: string,
+  gsName?: string
+): string {
+  const radians = ((op.rotate ?? 0) * Math.PI) / 180;
+  const cos = Math.cos(radians);
+  const sin = Math.sin(radians);
+  const y = pageHeight - op.y;
+  const gs = op.opacity !== undefined && op.opacity < 1 && gsName ? `/${gsName} gs\n` : "";
+  const spacing = op.wordSpacing ? `${num(op.wordSpacing)} Tw\n` : "";
+  return `q\n${gs}${num(cos)} ${num(sin)} ${num(-sin)} ${num(cos)} ${num(op.x)} ${num(y)} cm\nBT\n/${fontName} ${num(
+    op.size
+  )} Tf\n${rgb(op.color)} rg\n${spacing}1 0 0 1 0 0 Tm\n(${escapeLiteral(op.text, op.font)}) Tj\nET\nQ\n`;
 }
 
-function contentFor(page: PdfPageModel, fontNames: Map<PdfFontKey, string>, imageNames: Map<PdfImage, string>): Uint8Array {
+function polygonCommands(op: Extract<PdfOp, { kind: "polygon" }>, pageHeight: number): string {
+  if (op.points.length === 0) return "";
+  const parts: string[] = [];
+  if (op.fill) parts.push(`${rgb(op.fill)} rg`);
+  if (op.stroke) parts.push(`${rgb(op.stroke)} RG`, `${num(op.lineWidth ?? 1)} w`);
+  if (op.lineJoin === "round") parts.push("1 j");
+  else if (op.lineJoin === "bevel") parts.push("2 j");
+  const [first, ...rest] = op.points;
+  parts.push(`${num(first.x)} ${num(pageHeight - first.y)} m`);
+  for (const point of rest) parts.push(`${num(point.x)} ${num(pageHeight - point.y)} l`);
+  if (op.closed !== false) parts.push("h");
+  parts.push(op.fill && op.stroke ? "B" : op.fill ? "f" : "S");
+  return `${parts.join("\n")}\n`;
+}
+
+function contentFor(
+  page: PdfPageModel,
+  fontNames: Map<PdfFontKey, string>,
+  imageNames: Map<PdfImage, string>,
+  gsNames: Map<number, string>
+): Uint8Array {
   const builder = new ByteBuilder();
   for (const op of page.ops) {
-    if (op.kind === "text") builder.pushAscii(textCommands(op, page.height, fontNames.get(op.font) ?? "F1"));
-    else if (op.kind === "rect") builder.pushAscii(rectCommands(op, page.height));
+    if (op.kind === "text") {
+      builder.pushAscii(textCommands(op, page.height, fontNames.get(op.font) ?? "F1", gsNames.get(op.opacity ?? 1)));
+    } else if (op.kind === "rect") builder.pushAscii(rectCommands(op, page.height));
     else if (op.kind === "line") builder.pushAscii(lineCommands(op, page.height));
+    else if (op.kind === "polygon") builder.pushAscii(polygonCommands(op, page.height));
     else {
+      const gs = op.opacity !== undefined && op.opacity < 1 ? `/${gsNames.get(op.opacity) ?? "GS1"} gs\n` : "";
       builder.pushAscii(
-        `q\n${num(op.width)} 0 0 ${num(op.height)} ${num(op.x)} ${num(page.height - op.y - op.height)} cm\n/${
+        `q\n${gs}${num(op.width)} 0 0 ${num(op.height)} ${num(op.x)} ${num(page.height - op.y - op.height)} cm\n/${
           imageNames.get(op.image) ?? "Im1"
         } Do\nQ\n`
       );
@@ -145,6 +180,7 @@ function contentFor(page: PdfPageModel, fontNames: Map<PdfFontKey, string>, imag
 type ResourceIds = {
   fontIds: Map<PdfFontKey, number>;
   imageIds: Map<PdfImage, number>;
+  gsIds: Map<number, number>;
   pageIds: Array<{ page: number; content: number; annotations: number[] }>;
   nextId: number;
 };
@@ -152,10 +188,14 @@ type ResourceIds = {
 function collectResources(model: PdfDocumentModel): ResourceIds {
   const fonts = new Set<PdfFontKey>();
   const images = new Set<PdfImage>();
+  const opacities = new Set<number>();
   for (const page of model.pages) {
     for (const op of page.ops) {
       if (op.kind === "text") fonts.add(op.font);
       if (op.kind === "image") images.add(op.image);
+      if ((op.kind === "text" || op.kind === "image") && op.opacity !== undefined && op.opacity < 1) {
+        opacities.add(op.opacity);
+      }
     }
   }
 
@@ -164,6 +204,8 @@ function collectResources(model: PdfDocumentModel): ResourceIds {
   for (const font of fonts) fontIds.set(font, nextId++);
   const imageIds = new Map<PdfImage, number>();
   for (const image of images) imageIds.set(image, nextId++);
+  const gsIds = new Map<number, number>();
+  for (const opacity of opacities) gsIds.set(opacity, nextId++);
 
   const pageIds = model.pages.map((page) => {
     const pageId = nextId++;
@@ -171,11 +213,30 @@ function collectResources(model: PdfDocumentModel): ResourceIds {
     const annotations = page.links.map(() => nextId++);
     return { page: pageId, content: contentId, annotations };
   });
-  return { fontIds, imageIds, pageIds, nextId };
+  return { fontIds, imageIds, gsIds, pageIds, nextId };
 }
 
 function fontObject(font: PdfFontKey): Uint8Array {
-  return textBytes(`<< /Type /Font /Subtype /Type1 /BaseFont /${baseFontName(font)} /Encoding /WinAnsiEncoding >>`);
+  const encoding = font === "symbol" ? "" : " /Encoding /WinAnsiEncoding";
+  return textBytes(`<< /Type /Font /Subtype /Type1 /BaseFont /${baseFontName(font)}${encoding} >>`);
+}
+
+function graphicsStateObject(opacity: number): Uint8Array {
+  return textBytes(`<< /Type /ExtGState /ca ${num(opacity)} /CA ${num(opacity)} >>`);
+}
+
+function resourceNames(resources: ResourceIds): {
+  fontNames: Map<PdfFontKey, string>;
+  imageNames: Map<PdfImage, string>;
+  gsNames: Map<number, string>;
+} {
+  const fontNames = new Map<PdfFontKey, string>();
+  [...resources.fontIds.keys()].forEach((font, index) => fontNames.set(font, `F${index + 1}`));
+  const imageNames = new Map<PdfImage, string>();
+  [...resources.imageIds.keys()].forEach((image, index) => imageNames.set(image, `Im${index + 1}`));
+  const gsNames = new Map<number, string>();
+  [...resources.gsIds.keys()].forEach((opacity, index) => gsNames.set(opacity, `GS${index + 1}`));
+  return { fontNames, imageNames, gsNames };
 }
 
 function imageObject(image: PdfImage): Uint8Array {
@@ -237,13 +298,17 @@ function infoObject(metadata: PdfDocumentModel["metadata"]): Uint8Array {
 function resourceDictionary(
   fontIds: Map<PdfFontKey, number>,
   imageIds: Map<PdfImage, number>,
+  gsIds: Map<number, number>,
   fontNames: Map<PdfFontKey, string>,
-  imageNames: Map<PdfImage, string>
+  imageNames: Map<PdfImage, string>,
+  gsNames: Map<number, string>
 ): string {
   const fonts = [...fontIds.keys()].map((font) => `/${fontNames.get(font)} ${fontIds.get(font)} 0 R`).join(" ");
   const images = [...imageIds.keys()].map((image) => `/${imageNames.get(image)} ${imageIds.get(image)} 0 R`).join(" ");
+  const states = [...gsIds.keys()].map((opacity) => `/${gsNames.get(opacity)} ${gsIds.get(opacity)} 0 R`).join(" ");
   const xObjects = images ? ` /XObject << ${images} >>` : "";
-  return `<< /Font << ${fonts} >>${xObjects} >>`;
+  const extGState = states ? ` /ExtGState << ${states} >>` : "";
+  return `<< /Font << ${fonts} >>${xObjects}${extGState} >>`;
 }
 
 function buildPageObject(
@@ -341,10 +406,7 @@ function buildObjects(
   compressed: boolean
 ): { objects: Map<number, Uint8Array>; size: number } {
   const resources = collectResources(model);
-  const fontNames = new Map<PdfFontKey, string>();
-  [...resources.fontIds.keys()].forEach((font, index) => fontNames.set(font, `F${index + 1}`));
-  const imageNames = new Map<PdfImage, string>();
-  [...resources.imageIds.keys()].forEach((image, index) => imageNames.set(image, `Im${index + 1}`));
+  const { fontNames, imageNames, gsNames } = resourceNames(resources);
 
   const objects = new Map<number, Uint8Array>();
   const outline = buildOutlinePlan(model.outline, resources.nextId, model.pages, resources.pageIds);
@@ -362,8 +424,9 @@ function buildObjects(
 
   for (const [font, id] of resources.fontIds) objects.set(id, fontObject(font));
   for (const [image, id] of resources.imageIds) objects.set(id, imageObject(image));
+  for (const [opacity, id] of resources.gsIds) objects.set(id, graphicsStateObject(opacity));
 
-  const resource = resourceDictionary(resources.fontIds, resources.imageIds, fontNames, imageNames);
+  const resource = resourceDictionary(resources.fontIds, resources.imageIds, resources.gsIds, fontNames, imageNames, gsNames);
   model.pages.forEach((page, index) => {
     const ids = resources.pageIds[index];
     objects.set(ids.page, buildPageObject(page, ids, resource));
@@ -425,7 +488,6 @@ function validatePage(page: PdfPageModel, index: number): void {
   page.links.forEach(validateLink);
 }
 
-// eslint-disable-next-line complexity -- every outline field is validated before serialization
 function validateOutline(model: PdfDocumentModel): void {
   if (!model.outline) return;
   if (!Array.isArray(model.outline)) {
@@ -466,11 +528,8 @@ export function validatePdfModel(model: PdfDocumentModel): void {
 export function writePdfModel(model: PdfDocumentModel): Uint8Array {
   validatePdfModel(model);
   const resources = collectResources(model);
-  const fontNames = new Map<PdfFontKey, string>();
-  [...resources.fontIds.keys()].forEach((font, index) => fontNames.set(font, `F${index + 1}`));
-  const imageNames = new Map<PdfImage, string>();
-  [...resources.imageIds.keys()].forEach((image, index) => imageNames.set(image, `Im${index + 1}`));
-  const contents = model.pages.map((page) => contentFor(page, fontNames, imageNames));
+  const { fontNames, imageNames, gsNames } = resourceNames(resources);
+  const contents = model.pages.map((page) => contentFor(page, fontNames, imageNames, gsNames));
   const { objects, size } = buildObjects(model, contents, false);
   return assemble(objects, size);
 }
@@ -491,11 +550,8 @@ async function deflate(data: Uint8Array): Promise<Uint8Array> {
 export async function writePdfModelCompressed(model: PdfDocumentModel): Promise<Uint8Array> {
   validatePdfModel(model);
   const resources = collectResources(model);
-  const fontNames = new Map<PdfFontKey, string>();
-  [...resources.fontIds.keys()].forEach((font, index) => fontNames.set(font, `F${index + 1}`));
-  const imageNames = new Map<PdfImage, string>();
-  [...resources.imageIds.keys()].forEach((image, index) => imageNames.set(image, `Im${index + 1}`));
-  const contents = model.pages.map((page) => contentFor(page, fontNames, imageNames));
+  const { fontNames, imageNames, gsNames } = resourceNames(resources);
+  const contents = model.pages.map((page) => contentFor(page, fontNames, imageNames, gsNames));
   const compressed = await Promise.all(contents.map(deflate));
   const { objects, size } = buildObjects(model, compressed, true);
   return assemble(objects, size);

@@ -1,24 +1,28 @@
 import { failPdf } from "../errors.js";
-import { PDF_LIMITS, PDF_PAGE_NUMBER_PRESETS, normalizeColor, nonNegative, positive, resolvePageSize, type PdfAlign, type PdfFontFamily, type PdfPageNumberOptions } from "../shared.js";
-import { layoutText, resolveFontKey } from "../pdf/fonts.js";
+import { PDF_LIMITS, PDF_PAGE_NUMBER_PRESETS, normalizeColor, nonNegative, positive, resolvePageSize, type PdfAlign, type PdfFontFamily, type PdfPageNumberOptions, type PdfWatermark, type PdfWatermarkInput } from "../shared.js";
+import { layoutText, measureText, resolveFontKey } from "../pdf/fonts.js";
 import { decodeImageSource, parseJpeg, type PdfImage } from "../pdf/images.js";
-import type { PdfMetadata, PdfOutlineItem, PdfPageModel } from "../pdf/model.js";
+import type { PdfMetadata, PdfOp, PdfOutlineItem, PdfPageModel } from "../pdf/model.js";
 import {
   bookmarkBlock,
-  breakBlock,
   boxBlock,
   dividerBlock,
   imageBlock,
+  pageStartBlock,
   rowBlock,
   spacerBlock,
   tableBlock,
   textBlock,
   type BookmarkBlock,
   type Block,
+  type PageStartBlock,
   type TableCellLayout,
   type TableRowLayout
 } from "./blocks.js";
 import { resolveStyle, resolveWidth, type ResolvedStyle } from "./style.js";
+import { iconBlock, iconNames, type PdfIconName } from "./icons.js";
+import { chartBlock, type PdfChartDatum } from "./charts.js";
+import { mathBlock } from "./math.js";
 import {
   Fragment,
   type PdfCell,
@@ -36,6 +40,8 @@ type LayoutContext = {
   cells: number;
   imageBytes: number;
   depth: number;
+  /** Document/page-level style defaults, currently lineHeight. */
+  defaults: Partial<PdfStyle>;
 };
 type LinkRect = { x: number; y: number; width: number; height: number; href: string };
 type DrawTarget = { page: PdfPageModel; addLink: (link: LinkRect) => void };
@@ -227,8 +233,13 @@ function drawStack(input: StackDraw): void {
   });
 }
 
-function layoutTextNode(node: PdfElement, available: number, defaults: Partial<PdfStyle> = {}): Block[] {
-  const style = resolveStyle({ ...defaults, ...styleProps(node.props) });
+function layoutTextNode(
+  node: PdfElement,
+  available: number,
+  context: LayoutContext,
+  defaults: Partial<PdfStyle> = {}
+): Block[] {
+  const style = resolveStyle({ ...context.defaults, ...defaults, ...styleProps(node.props) });
   const width = resolveWidth(style.width, available);
   const font = resolveFontKey(style.fontFamily, style.bold, style.italic);
   const contentWidth = innerWidth(style, width);
@@ -258,6 +269,8 @@ function layoutView(node: PdfElement, available: number, context: LayoutContext)
 // eslint-disable-next-line max-lines-per-function -- column sizing, gap math and child validation stay together
 function layoutRow(node: PdfElement, available: number, context: LayoutContext): Block[] {
   const style = resolveStyle(styleProps(node.props));
+  const valign =
+    node.props.valign === "middle" || node.props.valign === "bottom" ? (node.props.valign as "middle" | "bottom") : "top";
   const width = resolveWidth(style.width, available);
   const contentWidth = innerWidth(style, width);
   enterContainer(context);
@@ -273,7 +286,7 @@ function layoutRow(node: PdfElement, available: number, context: LayoutContext):
   }
   if (children.length === 0) {
     context.depth -= 1;
-    return [withWidth(rowBlock([], style), width)];
+    return [withWidth(rowBlock([], style, valign), width)];
   }
 
   const styles = children.map((child) => resolveStyle(styleProps(child.props)));
@@ -299,7 +312,7 @@ function layoutRow(node: PdfElement, available: number, context: LayoutContext):
     return { block, width: childWidth };
   });
   context.depth -= 1;
-  return [withWidth(rowBlock(items, style), width)];
+  return [withWidth(rowBlock(items, style, valign), width)];
 }
 
 function cellOptions(value: PdfCell): { value: PdfCell; align?: PdfAlign; color?: string; bold?: boolean; background?: string } {
@@ -430,7 +443,7 @@ function tableRowsOf(
 
 function layoutTable(node: PdfElement, available: number, context: LayoutContext): Block[] {
   const props = node.props;
-  const style = resolveStyle(styleProps(props));
+  const style = resolveStyle({ ...context.defaults, ...styleProps(props) });
   const width = resolveWidth(style.width, available);
   const columns = props.columns as PdfTableColumn[];
   const widths = columnWidths(columns, width);
@@ -485,6 +498,47 @@ function layoutImage(node: PdfElement, available: number, context: LayoutContext
   const width = node.props.width === undefined ? available : positive(node.props.width, "width");
   const height = node.props.height === undefined ? (width * image.height) / image.width : positive(node.props.height, "height");
   return [withWidth(imageBlock(image, width, height, style), width)];
+}
+
+// eslint-disable-next-line complexity -- icon prop validation and defaults
+function layoutIcon(node: PdfElement, available: number): Block[] {
+  const name = node.props.name;
+  if (typeof name !== "string" || !iconNames().includes(name as PdfIconName)) {
+    failPdf("PDF_INVALID_INPUT", "Icon requires a supported name.", { name });
+  }
+  const size = node.props.size === undefined ? 16 : positive(node.props.size, "size");
+  if (size > 256) failPdf("PDF_INVALID_INPUT", "Icon size cannot exceed 256.", { size });
+  const strokeWidth = node.props.strokeWidth === undefined ? 2 : positive(node.props.strokeWidth, "strokeWidth");
+  const color = normalizeColor(node.props.color as string | undefined) ?? "#2563EB";
+  const marginTop = nonNegative(node.props.marginTop ?? 0, "marginTop");
+  const marginBottom = nonNegative(node.props.marginBottom ?? 0, "marginBottom");
+  return [withWidth(iconBlock(name as PdfIconName, size, color, strokeWidth, marginTop, marginBottom), available)];
+}
+
+function layoutChart(node: PdfElement, available: number, context: LayoutContext, kind: "bar" | "line" | "pie"): Block[] {
+  const style = resolveStyle({ ...context.defaults, ...styleProps(node.props) });
+  const width = resolveWidth(style.width, available);
+  const colors = Array.isArray(node.props.colors)
+    ? (node.props.colors as string[]).map((color) => normalizeColor(color) ?? color)
+    : undefined;
+  const block = chartBlock(kind, node.props.data as PdfChartDatum[], {
+    title: typeof node.props.title === "string" ? node.props.title : undefined,
+    width,
+    height: style.height,
+    colors,
+    showValues: node.props.showValues as boolean | undefined,
+    valueFormat: node.props.valueFormat as ((value: number) => string) | undefined,
+    fontSize: Math.min(style.fontSize, 12),
+    padding: style.paddingTop || 14
+  }, style);
+  return [withWidth(block, width)];
+}
+
+function layoutFormula(node: PdfElement, available: number, context: LayoutContext): Block[] {
+  const style = resolveStyle({ ...context.defaults, ...styleProps(node.props) });
+  const tex = node.props.tex;
+  if (typeof tex !== "string") failPdf("PDF_INVALID_INPUT", "Formula requires a tex string.");
+  return [mathBlock(tex, style, available)];
 }
 
 function layoutDivider(node: PdfElement, available: number): Block[] {
@@ -559,16 +613,28 @@ function headingDefaults(level: unknown): Partial<PdfStyle> {
   return { fontSize: 28, bold: true, marginBottom: 10, lineHeight: 1.2 };
 }
 
-function layoutHeading(node: PdfElement, available: number): Block[] {
-  return layoutTextNode(node, available, headingDefaults(node.props.level));
+function layoutHeading(node: PdfElement, available: number, context: LayoutContext): Block[] {
+  const defaults = headingDefaults(node.props.level);
+  if (context.defaults.lineHeight !== undefined) defaults.lineHeight = context.defaults.lineHeight;
+  return layoutTextNode(node, available, context, defaults);
 }
 
-function layoutParagraph(node: PdfElement, available: number): Block[] {
-  return layoutTextNode(node, available, { lineHeight: 1.55, marginBottom: 8 });
+function layoutParagraph(node: PdfElement, available: number, context: LayoutContext): Block[] {
+  return layoutTextNode(node, available, context, {
+    lineHeight: context.defaults.lineHeight ?? 1.55,
+    marginBottom: 8
+  });
 }
 
 function layoutPage(node: PdfElement, available: number, context: LayoutContext): Block[] {
-  return [breakBlock(), ...layoutNodes(childrenOf(node), available, context)];
+  const previous = context.defaults;
+  if (node.props.lineHeight !== undefined) {
+    const lineHeight = resolveStyle({ lineHeight: node.props.lineHeight as number }).lineHeight;
+    context.defaults = { ...previous, lineHeight };
+  }
+  const children = layoutNodes(childrenOf(node), available, context);
+  context.defaults = previous;
+  return [pageStartBlock(node.props.watermark as PdfWatermarkInput | undefined), ...children];
 }
 
 type NodeHandler = (node: PdfElement, available: number, context: LayoutContext) => Block[];
@@ -576,11 +642,16 @@ type NodeHandler = (node: PdfElement, available: number, context: LayoutContext)
 const NODE_HANDLERS: Record<string, NodeHandler> = {
   view: layoutView,
   row: layoutRow,
-  text: (node, available) => layoutTextNode(node, available),
+  text: (node, available, context) => layoutTextNode(node, available, context),
   heading: layoutHeading,
   paragraph: layoutParagraph,
   table: (node, available, context) => layoutTable(node, available, context),
   image: layoutImage,
+  icon: layoutIcon,
+  "bar-chart": (node, available, context) => layoutChart(node, available, context, "bar"),
+  "line-chart": (node, available, context) => layoutChart(node, available, context, "line"),
+  "pie-chart": (node, available, context) => layoutChart(node, available, context, "pie"),
+  formula: layoutFormula,
   divider: (node, available) => layoutDivider(node, available),
   spacer: (node, available) => layoutSpacer(node, available),
   bookmark: (node) => layoutBookmark(node),
@@ -623,8 +694,9 @@ type PageLayout = {
   background?: string;
 };
 
-function newPage(layout: PageLayout): PdfPageModel {
+function newPage(layout: PageLayout, watermark?: PdfWatermarkInput): PdfPageModel {
   const page: PdfPageModel = { width: layout.width, height: layout.height, ops: [], links: [] };
+  if (watermark !== undefined) page.watermark = watermark;
   if (layout.background) {
     page.ops.push({ kind: "rect", x: 0, y: 0, width: layout.width, height: layout.height, fill: layout.background });
   }
@@ -646,13 +718,14 @@ type PageState = {
   y: number;
   layout: PageLayout;
   queue: Block[];
+  watermark?: PdfWatermarkInput;
 };
 
 function nextPage(state: PageState): void {
   if (state.pages.length >= PDF_LIMITS.maxPages) {
     failPdf("PDF_LIMIT_EXCEEDED", "Document has too many pages.", { pages: state.pages.length });
   }
-  state.current = newPage(state.layout);
+  state.current = newPage(state.layout, state.watermark);
   state.pages.push(state.current);
   state.y = state.layout.contentTop;
 }
@@ -690,13 +763,28 @@ function pageHasContent(page: PdfPageModel, layout: PageLayout): boolean {
   return page.ops.length > (layout.background ? 1 : 0);
 }
 
-// eslint-disable-next-line complexity -- page breaks and bookmark markers share one loop
-function paginate(blocks: Block[], layout: PageLayout, outline: PdfOutlineItem[]): PdfPageModel[] {
-  const pages = [newPage(layout)];
-  const state: PageState = { pages, current: pages[0], y: layout.contentTop, layout, queue: [...blocks] };
+// eslint-disable-next-line complexity, max-lines-per-function -- page breaks and bookmark markers share one loop
+function paginate(
+  blocks: Block[],
+  layout: PageLayout,
+  outline: PdfOutlineItem[],
+  watermark?: PdfWatermarkInput
+): PdfPageModel[] {
+  const pages = [newPage(layout, watermark)];
+  const state: PageState = { pages, current: pages[0], y: layout.contentTop, layout, queue: [...blocks], watermark };
   while (state.queue.length > 0) {
     const block = state.queue.shift();
     if (!block) break;
+    if (block.kind === "page-start") {
+      const start = block as PageStartBlock;
+      if (start.watermark !== undefined) state.watermark = start.watermark;
+      if (pageHasContent(state.current, layout) || state.y > layout.contentTop) nextPage(state);
+      else {
+        state.current.watermark = state.watermark;
+        state.y = layout.contentTop;
+      }
+      continue;
+    }
     if (block.kind === "break") {
       if (pageHasContent(state.current, layout) || state.y > layout.contentTop) nextPage(state);
       else state.y = layout.contentTop;
@@ -793,6 +881,51 @@ function measureDecoratorHeights(
   return { header: headerHeight, footer: footerHeight };
 }
 
+function resolveWatermark(
+  input: PdfWatermarkInput | undefined,
+  page: number,
+  total: number
+): PdfWatermark | undefined {
+  if (!input) return undefined;
+  if (typeof input === "function") {
+    const result = input({ page, total });
+    return result === false ? undefined : result;
+  }
+  return input;
+}
+
+// eslint-disable-next-line complexity -- watermark defaults and validation
+function watermarkOps(watermark: PdfWatermark, page: PdfPageModel): PdfOp[] {
+  if (typeof watermark.text !== "string" || watermark.text.trim().length === 0) {
+    failPdf("PDF_INVALID_INPUT", "Watermark text must be a non-empty string.");
+  }
+  if (watermark.text.length > 500) failPdf("PDF_LIMIT_EXCEEDED", "Watermark text is too long.", { length: watermark.text.length });
+  const size = watermark.fontSize === undefined ? 64 : positive(watermark.fontSize, "fontSize");
+  const opacity = watermark.opacity === undefined ? 0.12 : watermark.opacity;
+  if (!Number.isFinite(opacity) || opacity < 0 || opacity > 1) {
+    failPdf("PDF_INVALID_INPUT", "Watermark opacity must be between 0 and 1.", { opacity });
+  }
+  const angle = watermark.angle === undefined ? -35 : watermark.angle;
+  if (!Number.isFinite(angle) || angle < -180 || angle > 180) {
+    failPdf("PDF_INVALID_INPUT", "Watermark angle must be between -180 and 180.", { angle });
+  }
+  const font = resolveFontKey(watermark.fontFamily ?? "helvetica", watermark.bold === true, false);
+  const width = measureText(watermark.text, font, size);
+  return [
+    {
+      kind: "text",
+      x: (page.width - width) / 2,
+      y: page.height / 2 + size * 0.35,
+      text: watermark.text,
+      font,
+      size,
+      color: normalizeColor(watermark.color) ?? "#E2E8F0",
+      rotate: angle,
+      opacity
+    }
+  ];
+}
+
 function decorate(
   pages: PdfPageModel[],
   props: RootProps,
@@ -801,9 +934,12 @@ function decorate(
 ): void {
   const header = props.header as PdfPageDecorator | undefined;
   const footer = props.footer as PdfPageDecorator | undefined;
+  const backgroundOffset = layout.background ? 1 : 0;
   pages.forEach((page, index) => {
     const total = pages.length;
     const target = targetOf(page);
+    const watermark = resolveWatermark(page.watermark, index + 1, total);
+    if (watermark) page.ops.splice(backgroundOffset, 0, ...watermarkOps(watermark, page));
     const headerBlocks = decoratorBlocks({ decorator: header, context, width: layout.contentWidth, page: index + 1, total });
     drawStack({ blocks: headerBlocks, target, x: layout.margin.left, y: layout.margin.top, width: layout.contentWidth });
     const footerBlocks = decoratorBlocks({ decorator: footer, context, width: layout.contentWidth, page: index + 1, total });
@@ -856,7 +992,7 @@ function withPageNumbers(props: RootProps): RootProps {
 }
 
 /** Lays out a declarative PDF component tree into pages. */
-// eslint-disable-next-line complexity -- pagination and decorator convergence state machine
+// eslint-disable-next-line complexity, max-lines-per-function -- pagination and decorator convergence state machine
 function buildDocument(element: PdfElement): {
   document: { pages: PdfPageModel[]; metadata: PdfMetadata; outline?: PdfOutlineItem[] };
   layout: PageLayout;
@@ -864,12 +1000,19 @@ function buildDocument(element: PdfElement): {
   const root = resolveElement(element);
   if (root.type !== "pdf") failPdf("PDF_INVALID_INPUT", "Expected a Pdf root element.");
   const props = withPageNumbers(root.props);
-  const context: LayoutContext = { imageCache: new Map(), blocks: 0, cells: 0, imageBytes: 0, depth: 0 };
+  const context: LayoutContext = {
+    imageCache: new Map(),
+    blocks: 0,
+    cells: 0,
+    imageBytes: 0,
+    depth: 0,
+    defaults: props.lineHeight === undefined ? {} : { lineHeight: resolveStyle({ lineHeight: props.lineHeight as number }).lineHeight }
+  };
   let layout = pageLayoutOf(props, context);
   if (layout.contentBottom <= layout.contentTop) failPdf("PDF_INVALID_INPUT", "Margins and header/footer leave no body height.");
   const blocks = layoutNodes(childrenOf(root), layout.contentWidth, context);
   let outline: PdfOutlineItem[] = [];
-  let pages = paginate(blocks, layout, outline);
+  let pages = paginate(blocks, layout, outline, props.watermark as PdfWatermarkInput | undefined);
   let measured = measureDecoratorHeights(props, context, layout.contentWidth, pages.length);
   for (let pass = 0; pass < 4; pass += 1) {
     if (measured.header <= layout.headerReserved && measured.footer <= layout.footerReserved) break;
@@ -878,7 +1021,7 @@ function buildDocument(element: PdfElement): {
       failPdf("PDF_INVALID_INPUT", "Margins and header/footer leave no body height.");
     }
     outline = [];
-    pages = paginate(blocks, layout, outline);
+    pages = paginate(blocks, layout, outline, props.watermark as PdfWatermarkInput | undefined);
     measured = measureDecoratorHeights(props, context, layout.contentWidth, pages.length);
   }
   if (measured.header > layout.headerReserved || measured.footer > layout.footerReserved) {

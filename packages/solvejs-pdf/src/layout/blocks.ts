@@ -2,7 +2,7 @@ import { failPdf } from "../errors.js";
 import type { PdfFontKey, MeasuredLine } from "../pdf/fonts.js";
 import type { PdfImage } from "../pdf/images.js";
 import type { PdfPageModel } from "../pdf/model.js";
-import type { PdfAlign } from "../shared.js";
+import type { PdfAlign, PdfWatermarkInput } from "../shared.js";
 import type { ResolvedStyle } from "./style.js";
 
 /** Drawing surface for one page, including link annotations. */
@@ -24,7 +24,7 @@ export type Block = {
 
 type BoxRect = { x: number; y: number; width: number; height: number };
 
-function drawBox(target: DrawTarget, rect: BoxRect, style: ResolvedStyle): void {
+export function drawBox(target: DrawTarget, rect: BoxRect, style: ResolvedStyle): void {
   if (!style.background && style.borderWidth <= 0) return;
   target.page.ops.push({
     kind: "rect",
@@ -55,6 +55,15 @@ function lineX(block: TextBlock, line: MeasuredLine, x: number, width: number): 
   return x + block.style.paddingLeft;
 }
 
+function justifySpacing(block: TextBlock, line: MeasuredLine, width: number, last: boolean): number | undefined {
+  if (block.align !== "justify" || last) return undefined;
+  const contentWidth = width - block.style.paddingLeft - block.style.paddingRight;
+  const spaces = line.text.split(" ").length - 1;
+  if (spaces <= 0) return undefined;
+  const extra = (contentWidth - line.width) / spaces;
+  return extra > 0 ? extra : undefined;
+}
+
 type TextDraw = { block: TextBlock; target: DrawTarget; x: number; y: number; width: number };
 
 // eslint-disable-next-line max-lines-per-function -- text, decoration and link drawing stay together
@@ -63,6 +72,8 @@ function drawTextBlock(context: TextDraw): void {
   drawBox(target, { x, y, width, height: block.height }, block.style);
   block.lines.forEach((line, index) => {
     const lineY = y + block.style.paddingTop + index * block.lineHeight + block.size * 0.8;
+    const last = index === block.lines.length - 1;
+    const wordSpacing = justifySpacing(block, line, width, last);
     target.page.ops.push({
       kind: "text",
       x: lineX(block, line, x, width),
@@ -70,17 +81,19 @@ function drawTextBlock(context: TextDraw): void {
       text: line.text,
       font: block.font,
       size: block.size,
-      color: block.style.color
+      color: block.style.color,
+      ...(wordSpacing === undefined ? {} : { wordSpacing })
     });
     if (block.style.underline || block.style.strike) {
       const lineXStart = lineX(block, line, x, width);
+      const ruleWidth = block.align === "justify" && !last ? width - block.style.paddingLeft - block.style.paddingRight : line.width;
       const rule = { color: block.style.color, width: Math.max(0.5, block.size * 0.05) };
       if (block.style.underline) {
         target.page.ops.push({
           kind: "line",
           x1: lineXStart,
           y1: lineY + block.size * 0.12,
-          x2: lineXStart + line.width,
+          x2: lineXStart + ruleWidth,
           y2: lineY + block.size * 0.12,
           ...rule
         });
@@ -90,7 +103,7 @@ function drawTextBlock(context: TextDraw): void {
           kind: "line",
           x1: lineXStart,
           y1: lineY - block.size * 0.28,
-          x2: lineXStart + line.width,
+          x2: lineXStart + ruleWidth,
           y2: lineY - block.size * 0.28,
           ...rule
         });
@@ -243,10 +256,11 @@ export type RowBlock = Block & {
   kind: "row";
   items: RowItem[];
   style: ResolvedStyle;
+  valign: "top" | "middle" | "bottom";
 };
 
 /** Creates a horizontal container. */
-export function rowBlock(items: RowItem[], style: ResolvedStyle): RowBlock {
+export function rowBlock(items: RowItem[], style: ResolvedStyle, valign: RowBlock["valign"] = "top"): RowBlock {
   const contentHeight = items.reduce((max, item) => Math.max(max, item.block.marginTop + item.block.height), 0);
   const height = style.paddingTop + style.paddingBottom + style.borderWidth * 2 + contentHeight;
   return {
@@ -256,12 +270,16 @@ export function rowBlock(items: RowItem[], style: ResolvedStyle): RowBlock {
     marginBottom: style.marginBottom,
     items,
     style,
+    valign,
     draw(target, x, y, width) {
       drawBox(target, { x, y, width, height }, style);
       let cursor = x + style.paddingLeft + style.borderWidth;
       const top = y + style.paddingTop + style.borderWidth;
       items.forEach((item, index) => {
-        item.block.draw(target, cursor, top + item.block.marginTop, item.width);
+        let itemY = top + item.block.marginTop;
+        if (valign === "middle") itemY = top + (contentHeight - item.block.height - item.block.marginTop) / 2 + item.block.marginTop;
+        if (valign === "bottom") itemY = top + contentHeight - item.block.height;
+        item.block.draw(target, cursor, itemY, item.width);
         cursor += item.width;
         if (index < items.length - 1) cursor += style.gap;
       });
@@ -317,6 +335,12 @@ function drawCellText(context: CellDraw): void {
     let textX = x + block.cellPadding;
     if (cell.align === "center") textX += (contentWidth - line.width) / 2;
     if (cell.align === "right") textX += contentWidth - line.width;
+    const last = index === cell.lines.length - 1;
+    const spaces = line.text.split(" ").length - 1;
+    const wordSpacing =
+      cell.align === "justify" && !last && spaces > 0 && contentWidth > line.width
+        ? (contentWidth - line.width) / spaces
+        : undefined;
     target.page.ops.push({
       kind: "text",
       x: textX,
@@ -324,7 +348,8 @@ function drawCellText(context: CellDraw): void {
       text: line.text,
       font: cell.font,
       size: block.fontSize,
-      color: cell.color
+      color: cell.color,
+      ...(wordSpacing === undefined ? {} : { wordSpacing })
     });
   });
 }
@@ -449,6 +474,13 @@ export function imageBlock(image: PdfImage, width: number, height: number, style
 }
 
 export type SimpleBlock = Block & { kind: "spacer" | "divider" | "break" };
+
+export type PageStartBlock = Block & { kind: "page-start"; watermark?: PdfWatermarkInput };
+
+/** Zero-height page marker that starts a new page and can override the watermark. */
+export function pageStartBlock(watermark?: PdfWatermarkInput): PageStartBlock {
+  return { kind: "page-start", watermark, height: 0, marginTop: 0, marginBottom: 0, draw: () => undefined };
+}
 
 export function spacerBlock(height: number, marginTop = 0, marginBottom = 0): SimpleBlock {
   return { kind: "spacer", height, marginTop, marginBottom, draw: () => undefined };

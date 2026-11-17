@@ -85,8 +85,8 @@ export const PdfColors = {
 /** A named palette entry or a `#RRGGBB` hexadecimal color. */
 export type PdfColor = keyof typeof PdfColors | (string & {});
 
-export type PdfAlign = "left" | "center" | "right";
-export type PdfFontFamily = "helvetica" | "times" | "courier";
+export type PdfAlign = "left" | "center" | "right" | "justify";
+export type PdfFontFamily = "helvetica" | "times" | "courier" | "symbol";
 
 /** Page size presets in PDF points (1/72 inch). */
 export const PAGE_SIZES = {
@@ -98,6 +98,25 @@ export const PAGE_SIZES = {
 
 export type PdfPageSizeName = keyof typeof PAGE_SIZES;
 export type PdfPageSize = PdfPageSizeName | { width: number; height: number };
+
+/** A diagonal text watermark drawn behind the page content. */
+export type PdfWatermark = {
+  text: string;
+  fontFamily?: PdfFontFamily;
+  fontSize?: number;
+  color?: PdfColor;
+  /** Rotation in degrees. Defaults to -35. */
+  angle?: number;
+  /** 0 to 1. Defaults to 0.12. */
+  opacity?: number;
+  bold?: boolean;
+};
+
+/** A watermark, a page-aware factory, or `false` to disable an inherited watermark. */
+export type PdfWatermarkInput =
+  | PdfWatermark
+  | false
+  | ((context: { page: number; total: number }) => PdfWatermark | false);
 
 /** Converts millimeters to PDF points. */
 export function mm(value: number): number {

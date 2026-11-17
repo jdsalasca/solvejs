@@ -1,14 +1,19 @@
 export { PdfError, type PdfErrorCode } from "./errors.js";
 export {
+  BarChart,
   Bookmark,
   Divider,
+  Formula,
   Fragment,
   Heading,
+  Icon,
   Image,
+  LineChart,
   Link,
   PdfPage,
   Paragraph,
   Pdf,
+  PieChart,
   Row,
   Spacer,
   Subtitle,
@@ -18,8 +23,11 @@ export {
   PDF_TEXT_PRESETS,
   createElement,
   type BookmarkProps,
+  type ChartProps,
   type DividerProps,
+  type FormulaProps,
   type HeadingProps,
+  type IconProps,
   type PdfTextPreset,
   type SubtitleProps,
   type ImageProps,
@@ -60,8 +68,12 @@ export {
   type PdfPageNumberOptions,
   type PdfPageNumberPreset,
   type PdfPageSize,
-  type PdfPageSizeName
+  type PdfPageSizeName,
+  type PdfWatermark,
+  type PdfWatermarkInput
 } from "./shared.js";
+export type { PdfChartDatum } from "./layout/charts.js";
+export type { PdfIconName } from "./layout/icons.js";
 export type {
   PdfDocumentModel,
   PdfLink,

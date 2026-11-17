@@ -1,4 +1,6 @@
-import type { PdfColor, PdfPageNumberOptions } from "./shared.js";
+import type { PdfColor, PdfPageNumberOptions, PdfWatermarkInput } from "./shared.js";
+import type { PdfIconName } from "./layout/icons.js";
+import type { PdfChartDatum } from "./layout/charts.js";
 import type {
   BookmarkProps,
   Fragment as FragmentType,
@@ -32,12 +34,26 @@ export type PdfProps = {
   footer?: PdfPageDecorator;
   /** Built-in page-number footer, used when no custom footer is provided. */
   pageNumbers?: PdfPageNumberOptions;
+  /** Document-wide line-height multiplier for text that does not set its own. */
+  lineHeight?: number;
+  /** Watermark drawn behind every page; a PdfPage can override it. */
+  watermark?: PdfWatermarkInput;
   children?: PdfNode | PdfNode[];
 };
 
-export type PageProps = { children?: PdfNode | PdfNode[] };
+export type PageProps = {
+  children?: PdfNode | PdfNode[];
+  /** Page-level line-height override for the text on this page. */
+  lineHeight?: number;
+  /** Page-level watermark override; `false` disables the document watermark. */
+  watermark?: PdfWatermarkInput;
+};
 export type ViewProps = PdfStyle & { children?: PdfNode | PdfNode[] };
-export type RowProps = PdfStyle & { children?: PdfNode | PdfNode[] };
+export type RowProps = PdfStyle & {
+  children?: PdfNode | PdfNode[];
+  /** Vertical alignment of row items with different heights. */
+  valign?: "top" | "middle" | "bottom";
+};
 export type TextProps = PdfStyle & {
   value?: string | number | boolean | Date | null;
   href?: string;
@@ -89,6 +105,29 @@ export type ImageProps = {
   background?: PdfColor;
   marginTop?: number;
   marginBottom?: number;
+};
+
+export type IconProps = {
+  name: PdfIconName;
+  /** Square size in points. Defaults to 16. */
+  size?: number;
+  color?: PdfColor;
+  strokeWidth?: number;
+  marginTop?: number;
+  marginBottom?: number;
+};
+
+export type ChartProps = PdfStyle & {
+  data: readonly PdfChartDatum[];
+  title?: string;
+  colors?: readonly PdfColor[];
+  showValues?: boolean;
+  valueFormat?: (value: number) => string;
+};
+
+export type FormulaProps = PdfStyle & {
+  /** A supported LaTeX subset: fractions, roots, superscripts, subscripts and Greek/math symbols. */
+  tex: string;
 };
 export type LinkProps = { href: string; children?: PdfNode | PdfNode[] };
 
@@ -162,6 +201,31 @@ export function Table(props: TableProps): PdfElement {
 /** JPEG image from bytes, a data URL or base64. */
 export function Image(props: ImageProps): PdfElement {
   return create("image", props);
+}
+
+/** Built-in vector icon, useful next to text and inside stat cards. */
+export function Icon(props: IconProps): PdfElement {
+  return create("icon", props);
+}
+
+/** Vertical bar chart. */
+export function BarChart(props: ChartProps): PdfElement {
+  return create("bar-chart", props);
+}
+
+/** Line chart with one series. */
+export function LineChart(props: ChartProps): PdfElement {
+  return create("line-chart", props);
+}
+
+/** Pie chart with an inline legend. */
+export function PieChart(props: ChartProps): PdfElement {
+  return create("pie-chart", props);
+}
+
+/** LaTeX-style formula rendered with native PDF text and vector rules. */
+export function Formula(props: FormulaProps): PdfElement {
+  return create("formula", props);
 }
 
 /** Wraps children in a clickable URL annotation. */

@@ -1,10 +1,10 @@
 import { failPdf } from "../errors.js";
-import { PDF_FONT_BASE_NAMES, PDF_FONT_WIDTHS, WIN_ANSI_BYTES, type PdfFontKey } from "./font-data.js";
+import { PDF_FONT_BASE_NAMES, PDF_FONT_WIDTHS, SYMBOL_BYTES, WIN_ANSI_BYTES, type PdfFontKey } from "./font-data.js";
 import type { PdfFontFamily } from "../shared.js";
 
 export type { PdfFontKey };
 
-const FAMILIES = new Set<PdfFontFamily>(["helvetica", "times", "courier"]);
+const FAMILIES = new Set<PdfFontFamily>(["helvetica", "times", "courier", "symbol"]);
 const SUFFIXES = {
   "false|false": "",
   "true|false": "-bold",
@@ -17,6 +17,7 @@ export function resolveFontKey(family: PdfFontFamily = "helvetica", bold = false
   if (!FAMILIES.has(family)) {
     failPdf("PDF_INVALID_INPUT", `Unsupported font family: ${String(family)}.`, { fontFamily: family });
   }
+  if (family === "symbol") return "symbol";
   return `${family}${SUFFIXES[`${bold}|${italic}`]}` as PdfFontKey;
 }
 
@@ -36,11 +37,23 @@ export function encodeWinAnsi(text: string): number[] {
   return bytes;
 }
 
+/** Encodes text for the resolved font: WinAnsi for text fonts, Adobe Symbol for `symbol`. */
+export function encodeForFont(text: string, font: PdfFontKey): number[] {
+  if (font !== "symbol") return encodeWinAnsi(text);
+  const bytes: number[] = [];
+  for (const character of text) {
+    const codePoint = character.codePointAt(0) ?? 63;
+    const byte = SYMBOL_BYTES[codePoint];
+    bytes.push(byte ?? (codePoint >= 32 && codePoint <= 126 ? codePoint : 63));
+  }
+  return bytes;
+}
+
 /** Measures a single line of text in points. */
 export function measureText(text: string, font: PdfFontKey, size: number): number {
   const widths = PDF_FONT_WIDTHS[font];
   let total = 0;
-  for (const byte of encodeWinAnsi(text)) total += widths[byte] ?? 0;
+  for (const byte of encodeForFont(text, font)) total += widths[byte] ?? 0;
   return (total * size) / 1000;
 }
 
@@ -123,7 +136,7 @@ export function layoutText(
   maxWidth: number
 ): MeasuredLine[] {
   return wrapText(text, font, size, maxWidth).map((line) => {
-    const bytes = encodeWinAnsi(line);
+    const bytes = encodeForFont(line, font);
     return { text: line, bytes, width: measureBytes(bytes, font, size) };
   });
 }

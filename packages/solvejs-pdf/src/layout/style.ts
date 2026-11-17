@@ -28,8 +28,8 @@ export type ResolvedStyle = {
   gap: number;
 };
 
-const ALIGNS = new Set<PdfAlign>(["left", "center", "right"]);
-const FAMILIES = new Set<PdfFontFamily>(["helvetica", "times", "courier"]);
+const ALIGNS = new Set<PdfAlign>(["left", "center", "right", "justify"]);
+const FAMILIES = new Set<PdfFontFamily>(["helvetica", "times", "courier", "symbol"]);
 const TRANSFORMS = new Set(["none", "uppercase", "lowercase", "capitalize"]);
 
 function oneOf<T>(value: T, allowed: Set<T>, label: string): T {

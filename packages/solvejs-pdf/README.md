@@ -95,16 +95,21 @@ const bytes = renderPdf(
 
 | Component | Main props |
 |---|---|
-| `Pdf` | `page` (`"a4"`, `"letter"`, `"a3"`, `"a5"` or `{ width, height }`), `margin`, `background`, `title`, `author`, `subject`, `keywords`, `creator`, `producer`, `header`, `footer`, `pageNumbers` |
-| `PdfPage` | Forces a new page; its children flow on that page |
+| `Pdf` | `page` (`"a4"`, `"letter"`, `"a3"`, `"a5"` or `{ width, height }`), `margin`, `background`, `title`, `author`, `subject`, `keywords`, `creator`, `producer`, `header`, `footer`, `pageNumbers`, `lineHeight`, `watermark` |
+| `PdfPage` | Forces a new page; `lineHeight` and `watermark` override the document defaults for that page and its continuation |
 | `View` | Vertical container: `padding`, `background`, `border`, `radius`, `width`, `height`, `gap`, plus style props |
-| `Row` | Horizontal container; children without a width share the remaining space |
-| `Text` | `value` or primitive children, `href`, `preset`, plus style props; supports `bold`, `italic`, `fontFamily`, `textTransform`, `underline`, `strike` |
+| `Row` | Horizontal container; `valign` (`"top"`, `"middle"`, `"bottom"`) aligns items with different heights |
+| `Text` | `value` or primitive children, `href`, `preset`, plus style props; `align` accepts `"justify"` |
 | `Subtitle` | Preset italic, muted subtitle text; accepts all text props |
 | `Heading` | `level` (`1`, `2`, `3`), plus text props |
-| `Paragraph` | Body text with a comfortable line height |
+| `Paragraph` | Body text with a comfortable line height; accepts `padding`, `paddingX`, `paddingY` |
 | `Table` | `columns`, `rows`, `header`, `zebra`, `cellPadding`, `headerBackground`, `headerColor`, `zebraColor`, `fontSize` |
 | `Image` | `src` (JPEG bytes, data URL or base64), `width`, `height`, `background` |
+| `Icon` | `name` (`check`, `arrow-right`, `star`, `info`, `warning`, `mail`, `lock`, `calendar`, `search`, `download`, `upload`, `clock`, `chart`, `doc`, `folder`, `user`, `globe` and more), `size`, `color`, `strokeWidth` |
+| `BarChart` | `data` (`{ label, value, color? }[]`), `title`, `height`, `colors`, `showValues`, `valueFormat` |
+| `LineChart` | Same data contract as `BarChart`, with one line series |
+| `PieChart` | Same data contract, with an inline legend |
+| `Formula` | `tex` with fractions, roots, superscripts, subscripts and Greek/math symbols |
 | `Link` | `href` (`http`, `https`, `mailto`, `tel`) wrapping any children |
 | `Divider` | `color`, `width`, `marginTop`, `marginBottom` |
 | `Spacer` | `height`, `marginTop`, `marginBottom` |
@@ -242,6 +247,99 @@ Pdf({
 `PdfColors` includes `Black`, `White`, `Slate`, `Gray`, `LightGray`, `SoftGray`, `Red`, `DarkRed`, `Rose`, `Orange`, `Amber`, `Yellow`, `Green`, `DarkGreen`, `Emerald`, `Teal`, `Blue`, `DarkBlue`, `Sky`, `LightBlue`, `Indigo`, `Purple`, `Pink` and `Brown`.
 
 Units are PDF points (1/72 inch). Use `mm()`, `cm()`, `inches()` or `pt()` when you prefer other units.
+
+## Visual documents
+
+### Justified copy, paragraph padding and line height
+
+`align: "justify"` distributes the extra space between words on every line except the last. Padding and margins are measured in points, and `lineHeight` can be set on the document, overridden on a `PdfPage`, or changed on one block:
+
+```tsx
+Pdf({
+  lineHeight: 1.6,
+  children: [
+    PdfPage({
+      children: Paragraph({
+        align: "justify",
+        paddingX: 6,
+        paddingY: 4,
+        children: "Long copy that should line up on both edges without touching the margins."
+      })
+    }),
+    PdfPage({ lineHeight: 1.9, children: Text({ children: "A slower, more editorial page." }) })
+  ]
+});
+```
+
+### Watermarks
+
+A watermark is drawn behind the body, so it never hides content. It can cover every page or be overridden per page, including a function of the page number:
+
+```tsx
+Pdf({
+  watermark: { text: "CONFIDENTIAL", opacity: 0.08, angle: -35 },
+  children: [
+    PdfPage({ children: Text({ children: "Page one uses the document watermark." }) }),
+    PdfPage({ watermark: { text: "DRAFT", color: "#FCA5A5" }, children: Text({ children: "Page two is different." }) }),
+    PdfPage({ watermark: false, children: Text({ children: "No watermark here." }) })
+  ]
+});
+```
+
+`opacity` is emitted through a PDF `ExtGState`; `color`, `fontSize`, `fontFamily`, `bold` and `angle` are configurable. A factory receives `{ page, total }` if you want the text to change with the page.
+
+### Icons, images and vertical alignment
+
+`Row({ valign: "middle" })` aligns a logo with a headline. `Image` accepts JPEG bytes, a data URL or base64. `Icon` draws a built-in vector glyph with the same color and stroke controls:
+
+```tsx
+Row({
+  valign: "middle",
+  gap: 12,
+  children: [
+    Image({ src: logo, width: 44, height: 44 }),
+    View({
+      children: [
+        Text({ preset: "eyebrow", children: "DOCUMENT LAB" }),
+        Text({ value: "A PDF with a visual voice", bold: true, fontSize: 24 })
+      ]
+    }),
+    Icon({ name: "check", color: PdfColors.Green, size: 18 })
+  ]
+});
+```
+
+### Charts
+
+`BarChart`, `LineChart` and `PieChart` share one data contract and draw with native PDF ops, so they stay sharp at any zoom:
+
+```tsx
+BarChart({
+  title: "Revenue by quarter",
+  data: [
+    { label: "Q1", value: 120 },
+    { label: "Q2", value: 180 },
+    { label: "Q3", value: 150 }
+  ],
+  height: 190,
+  showValues: true
+});
+```
+
+`valueFormat` customizes labels; `colors` accepts `PdfColors` names or hex values. Pie charts include an inline legend.
+
+### LaTeX-style formulas
+
+`Formula` renders a documented subset with native text and vector rules: `\frac`, `\sqrt`, `^`, `_`, Greek letters, `\sum`, `\int`, comparisons and common operators. Greek and math symbols use the standard PDF `Symbol` font, so they do not depend on custom font embedding.
+
+```tsx
+Formula({
+  tex: "\\frac{a^2 + b^2}{c} + \\sqrt{x} + \\sum_{i=1}^{n} i = \\alpha",
+  fontSize: 20
+});
+```
+
+The formula is one line. It scales down to the available width and does not split across pages. Very long formulas are still bounded by `PDF_LIMITS.maxTextLength` and the block budget.
 
 ## Layout behavior
 
@@ -453,6 +551,7 @@ export const InvoiceViewer = dynamic(
 | `renderPdf(element)` | Returns uncompressed PDF bytes synchronously. |
 | `renderPdfCompressed(element)` | Returns Flate-compressed PDF bytes as a promise. |
 | `buildPdfDocument(element)` | Returns the laid-out `{ pages, metadata }` model. |
+| `Icon`, `BarChart`, `LineChart`, `PieChart`, `Formula` | Vector icons, native charts and LaTeX-style formulas. |
 | `createPdfViewer(options)` | Creates a detached viewer host with `ready` and `destroy` for React refs. |
 | `mountPdfViewer(options, target?)` | Mounts a viewer and returns `{ element, ready, destroy }`. |
 | `definePdfViewer(tag?)` | Registers `<solvejs-pdf-viewer>`. |
@@ -469,7 +568,12 @@ export const InvoiceViewer = dynamic(
 - PDF 1.7 with classic xref, UTF-16 metadata and clickable links.
 - Standard Type 1 fonts with WinAnsi encoding (accented Spanish characters, curly quotes, dashes and the euro sign).
 - Text wrapping, alignment, line height, colors, backgrounds, borders, rounded corners, padding and margins.
-- Bold/italic standard faces, text transforms (`uppercase`, `lowercase`, `capitalize`) and underline/strike decorations.
+- Bold/italic standard faces, text transforms (`uppercase`, `lowercase`, `capitalize`), underline/strike and justified alignment.
+- Document-level and page-level line-height defaults, paragraph padding and margins.
+- Text watermarks with opacity, color, angle and per-page overrides.
+- Built-in vector icons, JPEG images, and vertical alignment of row items.
+- Native bar, line and pie charts.
+- A documented LaTeX-style formula subset with the standard Symbol font.
 - Nested `View` and `Row` layouts with numeric or percentage widths.
 - Automatic pagination, forced pages, split text/views, split tables with repeated headers, repeated headers/footers with page numbers.
 - Nested PDF bookmarks/outlines with page destinations.
@@ -584,15 +688,20 @@ Pick pdf-lib to edit or merge existing documents, PDFKit for streaming Node pipe
 
 - General PDF content parsing, text reflow or page rewriting outside AcroForm field updates.
 - XFA form data, encrypted PDFs and digital signatures.
-- Custom TTF/OTF font embedding and Unicode outside WinAnsi.
+- Custom TTF/OTF font embedding and Unicode outside WinAnsi/Symbol.
 - PNG, WebP, GIF or SVG images.
 - CMYK or 12-bit JPEG images, and progressive/arithmetic JPEG frames; these are rejected instead of producing incorrect colors or broken scans.
-- Charts and annotations other than links and form widgets.
+- Arbitrary LaTeX packages, multi-line formulas, matrices and custom math fonts.
+- Annotations other than links and form widgets.
 
 ## Limits and fidelity
 
 - Standard Type 1 fonts only; unsupported Unicode characters become `?` and repeated whitespace is collapsed during wrapping. Supply text your chosen font can represent.
-- Custom TTF/OTF embedding is not supported yet; use `helvetica`, `times` or `courier` with bold/italic for typographic contrast.
+- Custom TTF/OTF embedding is not supported yet; use `helvetica`, `times`, `courier` or `symbol` with bold/italic for typographic contrast.
+- A single text block is capped at 200,000 characters. There is no separate word cap because word width depends on the font; split very long copy into `Paragraph` blocks for better pagination.
+- A formula is one line, capped at 20,000 characters, and scales down to the available width. It does not split across pages.
+- Charts accept up to 200 data points with non-negative finite values. Pie legends are designed for a short series; keep labels concise.
+- Watermark text is capped at 500 characters. Watermarks are text-only in this release.
 - Tables cannot split a single row taller than the page; keep individual rows within the printable height.
 - Table cells are limited to 200,000 characters each, and a document to 200,000 table cells.
 - Bookmarks are limited to 1,000 entries and 300 characters per title; nesting is capped at level 6.

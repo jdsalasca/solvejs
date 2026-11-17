@@ -188,6 +188,12 @@ Competitor study:
 - PDF gaps ranked: PNG with transparency, page templates/watermarks, outlines/bookmarks and custom TTF fonts. Reading/editing existing PDFs stays out of scope.
 - Both package READMEs now include a capability matrix with the honest gaps and use-case guidance.
 
+## Round 15: Visual PDF toolkit - done
+
+- PDF `0.1.9`: justified text, document/page line-height overrides, text watermarks with opacity and per-page overrides, `Row` vertical alignment, vector `Icon`s, `BarChart`/`LineChart`/`PieChart`, and a `Formula` subset with the Symbol font. Added polygon paths, text rotation, word spacing and ExtGState opacity to the serializer.
+- Live Lab: fourth PDF document, "Visual systems", with a logo aligned to text, justified copy, a formula, icons, bar/line/pie charts and per-page watermarks.
+- Verified: PDF 54 tests, XLSX 70 tests, `npm run quality`, snippets and links; visual PDF checked in Chrome.
+
 ## Round 14: AcroForm support and document studios - done
 
 - PDF `0.1.8`: `readPdfForm`, `readPdfFormValues` and `fillPdfForm` for standard AcroForm text, checkbox, radio and choice fields, including xref streams and object streams. XFA and encrypted PDFs are detected; signatures are read but not signed.

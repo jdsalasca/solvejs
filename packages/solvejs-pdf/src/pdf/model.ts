@@ -1,3 +1,4 @@
+import type { PdfWatermarkInput } from "../shared.js";
 import type { PdfImage } from "./images.js";
 import type { PdfFontKey } from "./fonts.js";
 
@@ -10,6 +11,12 @@ export type PdfTextOp = {
   font: PdfFontKey;
   size: number;
   color: string;
+  /** Extra points between words, used by justified text. */
+  wordSpacing?: number;
+  /** Rotation in degrees around the anchor point. */
+  rotate?: number;
+  /** 0 to 1; emitted through a PDF ExtGState. */
+  opacity?: number;
 };
 
 /** Filled and/or stroked rectangle, optionally rounded. */
@@ -53,9 +60,25 @@ export type PdfImageOp = {
   width: number;
   height: number;
   image: PdfImage;
+  opacity?: number;
 };
 
-export type PdfOp = PdfTextOp | PdfRectOp | PdfLineOp | PdfImageOp;
+export type PdfPoint = { x: number; y: number };
+
+/** Filled and/or stroked polygon, used for icons, pie slices and simple charts. */
+export type PdfPolygonOp = {
+  kind: "polygon";
+  points: PdfPoint[];
+  fill?: string;
+  stroke?: string;
+  lineWidth?: number;
+  lineJoin?: "miter" | "round" | "bevel";
+  /** Close the path. Defaults to true; set false for open strokes like checks. */
+  closed?: boolean;
+  opacity?: number;
+};
+
+export type PdfOp = PdfTextOp | PdfRectOp | PdfLineOp | PdfImageOp | PdfPolygonOp;
 
 /** Clickable region that opens a URI. */
 export type PdfLink = {
@@ -72,6 +95,8 @@ export type PdfPageModel = {
   height: number;
   ops: PdfOp[];
   links: PdfLink[];
+  /** Watermark metadata; the layout engine draws it behind the body. */
+  watermark?: PdfWatermarkInput;
 };
 
 /** Document metadata written to the Info dictionary. */

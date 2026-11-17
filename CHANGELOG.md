@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.12.9 - 2026-11-16
+
+- Added `@jdsalasc/solvejs-pdf@0.1.9` visual document features: justified text, document/page-level line height, paragraph padding and margins, text watermarks with opacity and per-page overrides, `Row` vertical alignment, built-in vector `Icon`s, `BarChart`/`LineChart`/`PieChart`, and a documented `Formula` subset with the standard Symbol font. The serializer now supports polygon paths, text rotation, word spacing and PDF ExtGState opacity. Migration impact: none; additive API.
+- Documented the per-block text limit (200,000 characters), formula limit (20,000 characters, one line), chart limit (200 points, non-negative values) and watermark limit (500 characters).
+- Bumped the meta package to `1.12.9`. Migration impact: none.
+
 ## 1.12.8 - 2026-11-16
 
 - Added `@jdsalasc/solvejs-pdf@0.1.8` AcroForm support: `readPdfForm`, `readPdfFormValues` and `fillPdfForm` read text, checkbox, radio and choice fields (values, options, page numbers and widget rectangles), then append a filled PDF revision with `/NeedAppearances`. Classic xref, xref streams and object streams are supported. XFA, encrypted PDFs and signatures are detected but not modified. The reader rejects files over 64 MB, documents with more than 200,000 objects, and streams that expand beyond 64 MB. Migration impact: none; additive API.
