@@ -9,9 +9,11 @@ on:
       - packages/**
       - scripts/prepare-docs-vendor.mjs
       - scripts/version-docs-assets.mjs
+      - scripts/generate-api-index.mjs
       - package.json
       - package-lock.json
       - .github/workflows/pages.yml
+  workflow_dispatch:
 
 permissions:
   contents: read
