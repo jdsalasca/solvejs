@@ -719,6 +719,7 @@ type PageState = {
   layout: PageLayout;
   queue: Block[];
   watermark?: PdfWatermarkInput;
+  rootWatermark?: PdfWatermarkInput;
 };
 
 function nextPage(state: PageState): void {
@@ -771,13 +772,13 @@ function paginate(
   watermark?: PdfWatermarkInput
 ): PdfPageModel[] {
   const pages = [newPage(layout, watermark)];
-  const state: PageState = { pages, current: pages[0], y: layout.contentTop, layout, queue: [...blocks], watermark };
+  const state: PageState = { pages, current: pages[0], y: layout.contentTop, layout, queue: [...blocks], watermark, rootWatermark: watermark };
   while (state.queue.length > 0) {
     const block = state.queue.shift();
     if (!block) break;
     if (block.kind === "page-start") {
       const start = block as PageStartBlock;
-      if (start.watermark !== undefined) state.watermark = start.watermark;
+      state.watermark = start.watermark === undefined ? state.rootWatermark : start.watermark;
       if (pageHasContent(state.current, layout) || state.y > layout.contentTop) nextPage(state);
       else {
         state.current.watermark = state.watermark;

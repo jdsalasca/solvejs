@@ -1,10 +1,10 @@
 # Changelog
 
-## 1.12.9 - 2026-11-16
+## 1.12.10 - 2026-11-16
 
-- Added `@jdsalasc/solvejs-pdf@0.1.9` visual document features: justified text, document/page-level line height, paragraph padding and margins, text watermarks with opacity and per-page overrides, `Row` vertical alignment, built-in vector `Icon`s, `BarChart`/`LineChart`/`PieChart`, and a documented `Formula` subset with the standard Symbol font. The serializer now supports polygon paths, text rotation, word spacing and PDF ExtGState opacity. Migration impact: none; additive API.
+- Added `@jdsalasc/solvejs-pdf@0.1.10` visual document features: justified text, document/page-level line height, paragraph padding and margins, text watermarks with opacity and per-page overrides, `Row` vertical alignment, built-in vector `Icon`s, `BarChart`/`LineChart`/`PieChart`, and a documented `Formula` subset with the standard Symbol font. The serializer now supports polygon paths, text rotation, word spacing and PDF ExtGState opacity. Migration impact: none; additive API.
 - Documented the per-block text limit (200,000 characters), formula limit (20,000 characters, one line), chart limit (200 points, non-negative values) and watermark limit (500 characters).
-- Bumped the meta package to `1.12.9`. Migration impact: none.
+- Bumped the meta package to `1.12.10`. Migration impact: none.
 
 ## 1.12.8 - 2026-11-16
 

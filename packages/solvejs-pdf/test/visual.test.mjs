@@ -55,14 +55,16 @@ test("draws text watermarks behind page content and varies them per page", () =>
       children: [
         PdfPage({ children: Text({ value: "One" }) }),
         PdfPage({ watermark: { text: "CONFIDENTIAL" }, children: Text({ value: "Two" }) }),
-        PdfPage({ watermark: false, children: Text({ value: "Three" }) })
+        PdfPage({ children: Text({ value: "Three" }) }),
+        PdfPage({ watermark: false, children: Text({ value: "Four" }) })
       ]
     })
   );
   assert.equal(model.pages[0].ops[0].text, "DRAFT");
   assert.equal(model.pages[0].ops[0].opacity, 0.2);
   assert.equal(model.pages[1].ops[0].text, "CONFIDENTIAL");
-  assert.ok(!textOps(model.pages[2]).some((op) => op.text === "DRAFT" || op.text === "CONFIDENTIAL"));
+  assert.equal(model.pages[2].ops[0].text, "DRAFT");
+  assert.ok(!textOps(model.pages[3]).some((op) => op.text === "DRAFT" || op.text === "CONFIDENTIAL"));
 
   const bytes = renderPdf(
     Pdf({ watermark: { text: "CONFIDENTIAL", opacity: 0.15 }, children: PdfPage({ children: Text({ value: "Body" }) }) })

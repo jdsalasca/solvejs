@@ -190,7 +190,7 @@ Competitor study:
 
 ## Round 15: Visual PDF toolkit - done
 
-- PDF `0.1.9`: justified text, document/page line-height overrides, text watermarks with opacity and per-page overrides, `Row` vertical alignment, vector `Icon`s, `BarChart`/`LineChart`/`PieChart`, and a `Formula` subset with the Symbol font. Added polygon paths, text rotation, word spacing and ExtGState opacity to the serializer.
+- PDF `0.1.10`: justified text, document/page line-height overrides, text watermarks with opacity and per-page overrides, `Row` vertical alignment, vector `Icon`s, `BarChart`/`LineChart`/`PieChart`, and a `Formula` subset with the Symbol font. Added polygon paths, text rotation, word spacing and ExtGState opacity to the serializer.
 - Live Lab: fourth PDF document, "Visual systems", with a logo aligned to text, justified copy, a formula, icons, bar/line/pie charts and per-page watermarks.
 - Verified: PDF 54 tests, XLSX 70 tests, `npm run quality`, snippets and links; visual PDF checked in Chrome.
 
