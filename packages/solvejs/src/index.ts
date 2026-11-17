@@ -34,6 +34,7 @@ export {
   Spacer,
   Subtitle,
   Title,
+  Stamp,
   BarChart,
   Formula,
   Icon,

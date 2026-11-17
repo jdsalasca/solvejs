@@ -193,7 +193,7 @@ Competitor study:
 - PDF: PNG images with alpha `SMask`, JPEG/PNG image watermarks, customizable stamps, `Title`, new typography presets, `maxLines` paragraph clamping and parser hardening from the Codex Terra audit.
 - XLSX: reader parity for hidden rows, hidden columns and filter values; concurrent ZIP entry inflation with a per-entry declared-size cap.
 - Live Lab: start-here guide, PNG/custom-stamp PDF proof, XLSX metadata round-trip example and hidden row/column preview.
-- Verified: PDF 61 tests, XLSX 74 tests, env 27 tests, full quality gate and visual browser check.
+- Verified: PDF 62 tests, XLSX 74 tests, env 27 tests, full quality gate and visual browser check.
 
 ## Round 20: Identifier package - done
 
