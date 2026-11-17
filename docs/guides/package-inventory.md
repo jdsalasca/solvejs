@@ -4,7 +4,7 @@ Generated on 2026-11-17.
 
 | Package | Version | Functions | Consts | Types | Tests |
 |---|---:|---:|---:|---:|---:|
-| @jdsalasc/solvejs | 1.12.14 | 0 | 0 | 0 | 5 |
+| @jdsalasc/solvejs | 1.12.15 | 0 | 0 | 0 | 5 |
 | @jdsalasc/solvejs-async | 1.10.1 | 10 | 0 | 8 | 26 |
 | @jdsalasc/solvejs-cache | 0.2.2 | 5 | 0 | 7 | 32 |
 | @jdsalasc/solvejs-constants | 1.10.1 | 1 | 8 | 0 | 9 |

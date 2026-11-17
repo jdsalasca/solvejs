@@ -1,6 +1,6 @@
 {
   "name": "@jdsalasc/solvejs",
-  "version": "1.12.14",
+  "version": "1.12.15",
   "description": "Zero-dependency TypeScript utilities for dates, validation, money, caching, HTTP, JSON, identifiers, URLs, pagination, semver, errors, env, schema, strings, lists, and objects.",
   "license": "MIT",
   "type": "module",
