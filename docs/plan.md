@@ -188,6 +188,12 @@ Competitor study:
 - PDF gaps ranked: PNG with transparency, page templates/watermarks, outlines/bookmarks and custom TTF fonts. Reading/editing existing PDFs stays out of scope.
 - Both package READMEs now include a capability matrix with the honest gaps and use-case guidance.
 
+## Round 20: Identifier package - done
+
+- Added `@jdsalasc/solvejs-id@0.1.0`: UUID v4/v7, ULID, NanoID, prefixed IDs, random tokens, validators and timestamp extraction, with injectable clock/randomness.
+- Added the ID tab to the Live Lab with a deterministic variant and 23 packages in the API reference.
+- Verified: 12 ID tests, build, publint, CJS declarations and the full quality gate.
+
 ## Round 19: npm discoverability and canonical live docs - done
 
 - Switched the canonical live documentation URL to GitHub Pages (`https://jdsalasca.github.io/solvejs/live/`); the home server remains a mirror.

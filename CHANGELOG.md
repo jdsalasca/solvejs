@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.12.14 - 2026-11-17
+
+- Added `@jdsalasc/solvejs-id@0.1.0`: zero-dependency UUID v4, time-ordered UUID v7, ULID, NanoID, prefixed IDs, random tokens, validators and timestamp extraction, with injectable clock/randomness. Migration impact: none; new package.
+- The meta package now re-exports the ID package and depends on `0.1.0`. Migration impact: none.
+- Live Lab: new `solvejs-id` tab with a deterministic variant, plus 23 packages in the API reference. Migration impact: none.
+
 ## 1.12.13 - 2026-11-17
 
 - Published a metadata and discoverability release across all packages: every README now links to the canonical GitHub Pages Live Documentation, and every `homepage` points at that package's runnable examples.

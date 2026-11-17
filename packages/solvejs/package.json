@@ -1,7 +1,7 @@
 {
   "name": "@jdsalasc/solvejs",
-  "version": "1.12.13",
-  "description": "Zero-dependency TypeScript utilities for dates, validation, money, caching, HTTP, JSON, URLs, pagination, semver, errors, env, schema, strings, lists, and objects.",
+  "version": "1.12.14",
+  "description": "Zero-dependency TypeScript utilities for dates, validation, money, caching, HTTP, JSON, identifiers, URLs, pagination, semver, errors, env, schema, strings, lists, and objects.",
   "license": "MIT",
   "type": "module",
   "sideEffects": false,
@@ -38,21 +38,22 @@
     "@jdsalasc/solvejs-constants": "1.10.1",
     "@jdsalasc/solvejs-date": "1.10.2",
     "@jdsalasc/solvejs-env": "1.10.1",
-    "@jdsalasc/solvejs-http": "0.2.2",
     "@jdsalasc/solvejs-errors": "0.2.2",
+    "@jdsalasc/solvejs-http": "0.2.2",
+    "@jdsalasc/solvejs-id": "0.1.0",
     "@jdsalasc/solvejs-json": "0.2.1",
     "@jdsalasc/solvejs-list": "1.10.1",
-    "@jdsalasc/solvejs-numbers": "1.10.1",
     "@jdsalasc/solvejs-money": "0.2.2",
+    "@jdsalasc/solvejs-numbers": "1.10.1",
+    "@jdsalasc/solvejs-objects": "1.10.1",
     "@jdsalasc/solvejs-pagination": "0.2.2",
     "@jdsalasc/solvejs-pdf": "0.1.13",
-    "@jdsalasc/solvejs-objects": "1.10.1",
     "@jdsalasc/solvejs-regex": "1.10.1",
     "@jdsalasc/solvejs-schema": "1.10.1",
     "@jdsalasc/solvejs-semver": "0.2.2",
     "@jdsalasc/solvejs-string": "1.10.2",
-    "@jdsalasc/solvejs-validators": "1.10.1",
     "@jdsalasc/solvejs-url": "0.2.2",
+    "@jdsalasc/solvejs-validators": "1.10.1",
     "@jdsalasc/solvejs-xlsx": "0.3.2"
   },
   "publishConfig": {
@@ -91,6 +92,9 @@
     "tree-shakeable",
     "utility library",
     "monorepo",
-    "no dependencies"
+    "no dependencies",
+    "uuid",
+    "ulid",
+    "nanoid"
   ]
 }

@@ -1,0 +1,72 @@
+{
+  "name": "@jdsalasc/solvejs-id",
+  "version": "0.1.0",
+  "description": "Zero-dependency TypeScript identifiers: UUID v4, time-ordered UUID v7, ULID, NanoID, prefixed IDs and random tokens with an injectable clock.",
+  "license": "MIT",
+  "type": "module",
+  "sideEffects": false,
+  "main": "./dist/cjs/index.cjs",
+  "module": "./dist/esm/index.js",
+  "types": "./dist/esm/index.d.ts",
+  "exports": {
+    ".": {
+      "import": {
+        "types": "./dist/esm/index.d.ts",
+        "default": "./dist/esm/index.js"
+      },
+      "require": {
+        "types": "./dist/cjs/index.d.cts",
+        "default": "./dist/cjs/index.cjs"
+      }
+    }
+  },
+  "files": [
+    "dist",
+    "README.md"
+  ],
+  "scripts": {
+    "build": "npm run clean && npm run build:esm && npm run build:cjs",
+    "build:esm": "tsc -p tsconfig.esm.json",
+    "build:cjs": "tsc -p tsconfig.cjs.json && node ./scripts/rename-cjs.mjs && node ../../scripts/build-cjs-types.mjs",
+    "clean": "node -e \"require('node:fs').rmSync('dist',{recursive:true,force:true})\"",
+    "test": "npm run build && node --test test/*.test.mjs",
+    "lint": "tsc -p tsconfig.esm.json --noEmit"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "author": "jdsalasc",
+  "homepage": "https://jdsalasca.github.io/solvejs/live/#pkg-id",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/jdsalasca/solvejs.git"
+  },
+  "bugs": {
+    "url": "https://github.com/jdsalasca/solvejs/issues"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {},
+  "keywords": [
+    "uuid",
+    "uuid v4",
+    "uuid v7",
+    "ulid",
+    "nanoid",
+    "prefixed id",
+    "sortable id",
+    "random token",
+    "identifier",
+    "typescript id",
+    "javascript id",
+    "zero dependency",
+    "solvejs",
+    "esm",
+    "commonjs",
+    "nodejs",
+    "browser",
+    "crypto",
+    "id generator"
+  ]
+}

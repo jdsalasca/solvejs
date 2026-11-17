@@ -35,6 +35,7 @@ SolveJS is a monorepo of 21 focused packages. Install the whole ecosystem with o
 | Build URLs, join paths, and serialize query strings deterministically | `@jdsalasc/solvejs-url` | `npm i @jdsalasc/solvejs-url` |
 | Paginate API responses with pages, offsets, cursors, and envelopes | `@jdsalasc/solvejs-pagination` | `npm i @jdsalasc/solvejs-pagination` |
 | Parse and compare semantic versions, ranges, and prereleases | `@jdsalasc/solvejs-semver` | `npm i @jdsalasc/solvejs-semver` |
+| Generate UUID v4/v7, ULID, NanoID, prefixed IDs or random tokens | `@jdsalasc/solvejs-id` | `npm i @jdsalasc/solvejs-id` |
 | Sleep, timeout, retry, debounce, throttle, queue, or rate-limit async work | `@jdsalasc/solvejs-async` | `npm i @jdsalasc/solvejs-async` |
 | Group, count, dedupe, sort, chunk, or partition arrays | `@jdsalasc/solvejs-list` | `npm i @jdsalasc/solvejs-list` |
 | Pick, omit, get/set dotted paths, map values, or deep-merge objects | `@jdsalasc/solvejs-objects` | `npm i @jdsalasc/solvejs-objects` |
