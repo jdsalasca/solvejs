@@ -35,7 +35,7 @@ test("parseBooleanString", () => {
 });
 
 test("TIME", () => {
-  assert.deepEqual(Object.keys(TIME), ["SECOND_MS", "MINUTE_MS", "HOUR_MS", "DAY_MS"]);
+  assert.deepEqual(Object.keys(TIME), ["SECOND_MS", "MINUTE_MS", "HOUR_MS", "DAY_MS", "WEEK_MS"]);
   assert.equal(TIME.SECOND_MS, 1000);
   assert.equal(TIME.MINUTE_MS, 60_000);
   assert.equal(TIME.HOUR_MS, 3_600_000);
@@ -47,7 +47,7 @@ test("TIME", () => {
 });
 
 test("FILE_SIZE_BYTES", () => {
-  assert.deepEqual(Object.keys(FILE_SIZE_BYTES), ["KB", "MB", "GB"]);
+  assert.deepEqual(Object.keys(FILE_SIZE_BYTES), ["KB", "MB", "GB", "TB"]);
   assert.equal(FILE_SIZE_BYTES.KB, 1024);
   assert.equal(FILE_SIZE_BYTES.MB, 1024 ** 2);
   assert.equal(FILE_SIZE_BYTES.GB, 1024 ** 3);
@@ -56,7 +56,7 @@ test("FILE_SIZE_BYTES", () => {
 });
 
 test("HTTP_METHODS", () => {
-  assert.deepEqual(Object.keys(HTTP_METHODS), ["GET", "POST", "PUT", "PATCH", "DELETE"]);
+  assert.deepEqual(Object.keys(HTTP_METHODS), ["GET", "HEAD", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"]);
   for (const [key, value] of Object.entries(HTTP_METHODS)) {
     assert.equal(key, value, `${key} should map to itself`);
   }
@@ -97,7 +97,12 @@ test("CONTENT_TYPES", () => {
     "FORM_URLENCODED",
     "MULTIPART_FORM_DATA",
     "TEXT",
-    "HTML"
+    "HTML",
+    "CSV",
+    "XML",
+    "PDF",
+    "XLSX",
+    "EVENT_STREAM"
   ]);
   assert.equal(CONTENT_TYPES.JSON, "application/json");
   assert.equal(CONTENT_TYPES.HTML, "text/html");
@@ -128,4 +133,14 @@ test("COMMON_DELIMITERS", () => {
   assert.equal(COMMON_DELIMITERS.UNDERSCORE, "_");
   assert.equal(COMMON_DELIMITERS.SLASH, "/");
   assert.equal(new Set(Object.values(COMMON_DELIMITERS)).size, 5, "every delimiter is distinct");
+});
+
+test("recent constants cover weeks, terabytes, HEAD and document content types", () => {
+  assert.equal(TIME.WEEK_MS, 604_800_000);
+  assert.equal(FILE_SIZE_BYTES.TB, 1_099_511_627_776);
+  assert.equal(HTTP_METHODS.HEAD, "HEAD");
+  assert.equal(HTTP_METHODS.OPTIONS, "OPTIONS");
+  assert.equal(CONTENT_TYPES.CSV, "text/csv");
+  assert.equal(CONTENT_TYPES.PDF, "application/pdf");
+  assert.equal(CONTENT_TYPES.EVENT_STREAM, "text/event-stream");
 });

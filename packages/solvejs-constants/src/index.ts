@@ -2,7 +2,8 @@ export const TIME = {
   SECOND_MS: 1_000,
   MINUTE_MS: 60_000,
   HOUR_MS: 3_600_000,
-  DAY_MS: 86_400_000
+  DAY_MS: 86_400_000,
+  WEEK_MS: 604_800_000
 } as const;
 
 export const COMMON_DELIMITERS = {
@@ -21,15 +22,18 @@ export const BOOLEAN_STRINGS = {
 export const FILE_SIZE_BYTES = {
   KB: 1024,
   MB: 1024 * 1024,
-  GB: 1024 * 1024 * 1024
+  GB: 1024 * 1024 * 1024,
+  TB: 1024 * 1024 * 1024 * 1024
 } as const;
 
 export const HTTP_METHODS = {
   GET: "GET",
+  HEAD: "HEAD",
   POST: "POST",
   PUT: "PUT",
   PATCH: "PATCH",
-  DELETE: "DELETE"
+  DELETE: "DELETE",
+  OPTIONS: "OPTIONS"
 } as const;
 
 export const COMMON_HTTP_HEADERS = {
@@ -59,7 +63,12 @@ export const CONTENT_TYPES = {
   FORM_URLENCODED: "application/x-www-form-urlencoded",
   MULTIPART_FORM_DATA: "multipart/form-data",
   TEXT: "text/plain",
-  HTML: "text/html"
+  HTML: "text/html",
+  CSV: "text/csv",
+  XML: "application/xml",
+  PDF: "application/pdf",
+  XLSX: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+  EVENT_STREAM: "text/event-stream"
 } as const;
 
 /**

@@ -12,10 +12,8 @@ Zero-dependency constants for time, file sizes, HTTP methods, HTTP statuses, and
 
 - `TIME`
 - `FILE_SIZE_BYTES`
-- `HTTP_METHODS`
-- `COMMON_HTTP_HEADERS`
-- `HTTP_STATUS`
-- `CONTENT_TYPES`
+- `HTTP_METHODS`, `COMMON_HTTP_HEADERS`, `HTTP_STATUS`
+- `CONTENT_TYPES` (JSON, text, HTML, CSV, XML, PDF, XLSX, SSE)
 - `parseBooleanString`
 
 ## When to use this package
@@ -42,4 +40,6 @@ const ttl = 15 * TIME.MINUTE_MS;
 const maxUpload = 10 * FILE_SIZE_BYTES.MB;
 const response = { status: HTTP_STATUS.OK, type: CONTENT_TYPES.JSON };
 parseBooleanString("true"); // true
+HTTP_METHODS.HEAD; // "HEAD"
+CONTENT_TYPES.CSV; // "text/csv"
 ```
