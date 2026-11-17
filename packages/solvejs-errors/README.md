@@ -12,6 +12,7 @@ Zero-dependency error handling for APIs: a typed `AppError`, stable codes mapped
 - `AppError`
 - `createError`
 - `isAppError`
+- `isErrorCode`
 - `getErrorCode`
 - `getStatusForCode`
 - `normalizeError`
@@ -36,7 +37,7 @@ npm i @jdsalasc/solvejs-errors
 ## Quick example
 
 ```ts
-import { createError, normalizeError, errorToResponse, toResult } from "@jdsalasc/solvejs-errors";
+import { createError, isErrorCode, normalizeError, errorToResponse, toResult } from "@jdsalasc/solvejs-errors";
 
 try {
   const user = await db.findUser(id);
@@ -69,6 +70,7 @@ An unknown code maps to `500`, never to a success status, so a typo cannot leak 
 
 ```ts
 if (getErrorCode(error) === "NOT_FOUND") return null;
+if (isErrorCode(error, "NOT_FOUND")) return null; // typed alternative
 ```
 
 The message is for humans and may be reworded in any release. The code is the contract.

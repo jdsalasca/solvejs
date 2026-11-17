@@ -9,6 +9,7 @@ import {
   getErrorCode,
   getStatusForCode,
   isAppError,
+  isErrorCode,
   normalizeError,
   serializeError,
   toResult
@@ -465,4 +466,11 @@ test("instanceof survives a subclass, because the prototype is repaired on purpo
   assert.ok(isAppError(error));
   assert.equal(getErrorCode(error), "CONFLICT");
   assert.equal(error.toString(), "Conflict [CONFLICT]: already exists");
+});
+
+test("isErrorCode matches only AppErrors with the requested code", () => {
+  assert.equal(isErrorCode(createError("NOT_FOUND", "missing"), "NOT_FOUND"), true);
+  assert.equal(isErrorCode(createError("NOT_FOUND", "missing"), "CONFLICT"), false);
+  assert.equal(isErrorCode(new Error("plain"), "NOT_FOUND"), false);
+  assert.equal(isErrorCode(null, "NOT_FOUND"), false);
 });

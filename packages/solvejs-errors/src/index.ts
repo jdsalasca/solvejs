@@ -166,6 +166,17 @@ export function isAppError(value: unknown): value is AppError {
 }
 
 /**
+ * Checks whether a value is an application error with a specific stable code.
+ *
+ * @param value - Candidate error.
+ * @param code - Expected machine-readable code.
+ * @returns `true` when the value is an `AppError` with that code.
+ */
+export function isErrorCode(value: unknown, code: string): boolean {
+  return isAppError(value) && value.code === code;
+}
+
+/**
  * Reads the code from any error value.
  *
  * @param value - Candidate error.
