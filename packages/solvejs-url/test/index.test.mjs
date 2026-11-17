@@ -4,6 +4,7 @@ import {
   UrlError,
   buildUrl,
   getUrlParam,
+  getUrlParams,
   joinUrl,
   omitQuery,
   parseQuery,
@@ -265,4 +266,16 @@ test("replacePathParam substitutes textually, so a longer name that shares a pre
   // A name that is a suffix of another token is not what the caller usually means, so preferring
   // the longest match is not something this function attempts.
   assert.equal(replacePathParam("/a:idx:id", "idx", "7"), "/a7:id");
+});
+
+test("getUrlParams reads several query values in one pass", () => {
+  assert.deepEqual(
+    getUrlParams("https://example.com/items?page=2&q=pdf+reports#frag?ignored=1", ["page", "q", "missing"]),
+    { page: "2", q: "pdf reports", missing: null }
+  );
+  assert.deepEqual(getUrlParams("/items", ["page"]), { page: null });
+  const prototype = getUrlParams("/?__proto__=x", ["__proto__"]);
+  assert.equal(Object.prototype.hasOwnProperty.call(prototype, "__proto__"), true);
+  assert.equal(prototype.__proto__, "x");
+  assert.equal(Object.getPrototypeOf(prototype), Object.prototype);
 });

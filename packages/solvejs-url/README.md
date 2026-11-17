@@ -16,6 +16,7 @@ Zero-dependency URL building and query-string utilities: deterministic query ser
 - `withQuery`
 - `omitQuery`
 - `getUrlParam`
+- `getUrlParams`
 - `replacePathParam`
 - `UrlError`
 
@@ -35,13 +36,16 @@ npm i @jdsalasc/solvejs-url
 ## Quick example
 
 ```ts
-import { buildUrl, parseQuery, withQuery, omitQuery, replacePathParam } from "@jdsalasc/solvejs-url";
+import { buildUrl, getUrlParams, parseQuery, withQuery, omitQuery, replacePathParam } from "@jdsalasc/solvejs-url";
 
 buildUrl("https://api.example.com", { path: "users", query: { page: 2 }, hash: "top" });
 // "https://api.example.com/users?page=2#top"
 
 parseQuery("?q=hello+world&tag=a&tag=b");
 // { q: "hello world", tag: ["a", "b"] }
+
+getUrlParams("/items?page=2&q=shoes", ["page", "q", "missing"]);
+// { page: "2", q: "shoes", missing: null }
 
 withQuery("https://example.com/search?page=1", { page: 2, q: "shoes" });
 // "https://example.com/search?page=2&q=shoes"

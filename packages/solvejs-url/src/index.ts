@@ -222,6 +222,25 @@ export function getUrlParam(url: string, name: string): string | null {
 }
 
 /**
+ * Reads several query parameters in one pass.
+ *
+ * @param url - URL or path with a query string.
+ * @param names - Parameter names to read.
+ * @returns A record with each name mapped to its value or `null`.
+ */
+export function getUrlParams(url: string, names: readonly string[]): Record<string, string | null> {
+  const withoutFragment = url.split("#")[0];
+  const questionMark = withoutFragment.indexOf("?");
+  const search = questionMark === -1 ? "" : withoutFragment.slice(questionMark + 1);
+  const params = new URLSearchParams(search);
+  const output: Record<string, string | null> = {};
+  for (const name of names) {
+    Object.defineProperty(output, name, { value: params.get(name), enumerable: true, writable: true, configurable: true });
+  }
+  return output;
+}
+
+/**
  * Replaces a `:name` placeholder in a path template.
  *
  * @param path - Path template such as `/users/:id`.
