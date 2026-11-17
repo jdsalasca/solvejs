@@ -3,7 +3,7 @@
   "packages": [
     {
       "name": "@jdsalasc/solvejs",
-      "version": "1.12.16",
+      "version": "1.12.17",
       "entries": [
         {
           "name": "AcceptOptions",
@@ -1964,6 +1964,12 @@
           "kind": "type",
           "signature": "type StaleWhileRevalidateOptions = { /** How long a value counts as fresh, in milliseconds. */ freshMs: number; /** How long a stale value may still be served while a refresh runs. */ staleMs: number; /** Clock source. Defaults to `Date.now`. */ now?: () => number; };",
           "doc": "Options for {@link createStaleWhileRevalidate}."
+        },
+        {
+          "name": "Stamp",
+          "kind": "function",
+          "signature": "(props: StampProps) => PdfElement",
+          "doc": "Rotated stamp box, useful for PAID / VOID / RECEIVED marks."
         },
         {
           "name": "startOfDay",

@@ -12,7 +12,7 @@ for (const [specifier, target] of entries) {
   if (!existsSync(file)) throw new Error(`Missing vendor file for ${specifier}: ${file}`);
 }
 
-const source = ["docs/live/live.js", "docs/live/packages.js"]
+const source = ["docs/live/live.js", "docs/live/recipes.js", "docs/live/packages.js"]
   .map((file) => readFileSync(file, "utf8"))
   .join("\n");
 const imports = [...source.matchAll(/from\s+"(@jdsalasc\/[^"]+)"/g)].map((match) => match[1]);

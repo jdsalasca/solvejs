@@ -3,10 +3,10 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="description" content="SolveJS Live Lab: PDF and XLSX studios, an AcroForm reader, and runnable examples for every package." />
+  <meta name="description" content="SolveJS Live Lab: runnable PDF and XLSX studios, recipes that combine packages, an AcroForm reader, and an API reference for every package." />
   <link rel="canonical" href="https://jdsalasca.github.io/solvejs/live/" />
   <meta property="og:title" content="SolveJS Live Lab" />
-  <meta property="og:description" content="Runnable PDF, XLSX, AcroForm and utility examples for every SolveJS package." />
+  <meta property="og:description" content="Runnable PDF, XLSX, AcroForm and cross-package recipes for every SolveJS package." />
   <meta property="og:url" content="https://jdsalasca.github.io/solvejs/live/" />
   <meta property="og:type" content="website" />
   <title>Live Lab | SolveJS</title>
@@ -45,6 +45,8 @@
   </script>
 </head>
 <body class="lab-body">
+  <noscript><p class="noscript">The Live Lab runs every example in your browser. Enable JavaScript to use the PDF, XLSX and API demos.</p></noscript>
+  <a class="skip-link" href="#suite-guide">Skip to content</a>
   <header class="topnav">
     <a class="brand" href="../index.html">
       <span class="brand-mark">S</span>
@@ -53,6 +55,7 @@
     <nav class="topnav-links" aria-label="SolveJS links">
       <a href="../index.html">Cookbook</a>
       <a href="#suite-guide">Guide</a>
+      <a href="#recipes">Recipes</a>
       <a href="#package-explorer">Packages</a>
       <a href="#form-lab">Form Lab</a>
       <a href="https://www.npmjs.com/package/@jdsalasc/solvejs" target="_blank" rel="noreferrer">npm</a>
@@ -104,7 +107,10 @@
           <h2>How to use the suite</h2>
           <p class="live-caption">One package per job. Install only what you need, or install the meta package when you want every utility behind one import.</p>
         </div>
-        <a class="hero-link" href="#package-explorer">Open the package explorer →</a>
+        <div class="guide-actions">
+          <a class="hero-link" href="#recipes">Browse recipes →</a>
+          <a class="hero-link" href="#package-explorer">Open the package explorer →</a>
+        </div>
       </div>
       <div class="guide-steps">
         <article class="guide-step">
@@ -146,6 +152,18 @@
       </div>
     </section>
 
+    <section class="panel recipes-panel" id="recipes">
+      <div class="guide-head">
+        <div>
+          <p class="panel-kicker">RECIPES</p>
+          <h2>One job, several packages</h2>
+          <p class="live-caption">The suite is designed to compose. Each recipe runs here with the published build, then you can copy the snippet into your app.</p>
+        </div>
+        <span class="mini-pill">6 runnable recipes</span>
+      </div>
+      <div id="recipes-host"></div>
+    </section>
+
     <section class="docs-shell" id="package-explorer">
       <aside class="docs-sidebar">
         <div class="sidebar-head">
@@ -155,9 +173,10 @@
         </div>
         <label class="sidebar-search">
           <span class="sidebar-search-label">Filter</span>
-          <input id="package-search" type="search" placeholder="Search packages…" autocomplete="off" />
+          <input id="package-search" type="search" placeholder="Search packages…  /" autocomplete="off" aria-label="Filter packages" />
         </label>
         <nav id="package-nav" class="package-nav" aria-label="SolveJS packages"></nav>
+        <p id="package-empty" class="nav-empty" role="status" hidden>No packages match that search.</p>
         <a class="sidebar-form-link" href="#form-lab">
           <span>AcroForm Lab</span>
           <span aria-hidden="true">→</span>
@@ -324,12 +343,15 @@
       <span>SolveJS Live Lab</span>
       <span>Runs the workspace build · no CDN, no tracking, no runtime dependencies</span>
       <span class="footer-links">
+        <a href="#recipes">Recipes</a>
+        <a href="#api">API reference</a>
         <a href="../guides/package-health-report.html">Package health</a>
         <a href="https://github.com/jdsalasca/solvejs/blob/main/CHANGELOG.md" target="_blank" rel="noreferrer">Changelog</a>
       </span>
     </footer>
   </main>
   <script type="module" src="./live.js?v=20261117"></script>
+  <script type="module" src="./recipes.js?v=20261117"></script>
   <script type="module" src="./packages.js?v=20261117"></script>
 </body>
 </html>

@@ -443,10 +443,36 @@ const PACKAGES = [
 ];
 
 const GROUPS = ["Flagship", "Core", "Infra", "Meta"];
+const RELATED = {
+  pdf: ["xlsx", "money", "date"],
+  xlsx: ["pdf", "money", "json"],
+  date: ["money", "pagination", "async"],
+  id: ["json", "url", "schema"],
+  money: ["date", "xlsx", "numbers"],
+  validators: ["string", "errors", "schema"],
+  string: ["validators", "url", "json"],
+  list: ["pagination", "objects", "json"],
+  regex: ["validators", "string", "constants"],
+  constants: ["http", "errors"],
+  numbers: ["money", "validators", "list"],
+  objects: ["json", "env", "cache"],
+  async: ["cache", "http", "errors"],
+  env: ["objects", "schema", "errors"],
+  schema: ["validators", "errors", "json"],
+  url: ["string", "http", "pagination"],
+  cache: ["async", "http", "json"],
+  json: ["objects", "cache", "http"],
+  pagination: ["url", "date", "list"],
+  semver: ["errors", "json"],
+  errors: ["http", "validators", "json"],
+  http: ["async", "cache", "errors"],
+  meta: ["pdf", "xlsx", "date"]
+};
 const nav = document.querySelector("#package-nav");
 const content = document.querySelector("#package-content");
 const count = document.querySelector("#package-count");
 const search = document.querySelector("#package-search");
+const packageEmpty = document.querySelector("#package-empty");
 const packageName = document.querySelector("#package-name");
 const packageTitle = document.querySelector("#package-title");
 const packageLevel = document.querySelector("#package-level");
@@ -511,6 +537,46 @@ function resultCard() {
   const output = el("pre", "live-output");
   card.append(head, output);
   return { card, output, run };
+}
+
+function relatedBlock(pkg) {
+  const ids = RELATED[pkg.id] ?? [];
+  if (ids.length === 0) return null;
+  const wrap = el("div", "package-related");
+  wrap.append(el("span", "package-related-label", "Pairs well with"));
+  for (const id of ids) {
+    const related = PACKAGES.find((candidate) => candidate.id === id);
+    if (!related) continue;
+    const link = el("a", "package-related-link", related.name.replace("@jdsalasc/solvejs", "solvejs"));
+    link.href = `#pkg-${related.id}`;
+    link.title = related.title;
+    wrap.append(link);
+  }
+  return wrap;
+}
+
+function packagePager(pkg) {
+  const index = PACKAGES.indexOf(pkg);
+  const previous = index > 0 ? PACKAGES[index - 1] : undefined;
+  const next = index < PACKAGES.length - 1 ? PACKAGES[index + 1] : undefined;
+  const wrap = el("nav", "package-pager");
+  wrap.setAttribute("aria-label", "Package navigation");
+  for (const [direction, target, label] of [
+    ["previous", previous, "Previous"],
+    ["next", next, "Next"]
+  ]) {
+    if (!target) continue;
+    const link = el("a", `package-page-link is-${direction}`);
+    link.href = `#pkg-${target.id}`;
+    link.append(
+      el("span", "package-page-label", direction === "previous" ? `← ${label}` : `${label} →`),
+      el("strong", undefined, target.name.replace("@jdsalasc/solvejs", "solvejs"))
+    );
+    wrap.append(link);
+  }
+  if (!previous) wrap.classList.add("only-next");
+  if (!next) wrap.classList.add("only-previous");
+  return wrap;
 }
 
 function renderSimple(pkg) {
@@ -612,6 +678,9 @@ function setActive(pkg) {
       : pkg.demo === "xlsx"
         ? renderXlsxDemo(content)
         : renderSimple(pkg);
+  const related = relatedBlock(pkg);
+  if (related) content.prepend(related);
+  content.append(packagePager(pkg));
   enhanceCodeBlocks(content);
 }
 
@@ -682,8 +751,8 @@ apiButton.addEventListener("click", () => selectApi());
 reference.append(apiButton);
 nav.append(reference);
 
-search.addEventListener("input", () => {
-  const query = search.value.trim().toLowerCase();
+function filterNav(query) {
+  let visibleTotal = 0;
   for (const section of nav.querySelectorAll(".nav-group")) {
     let visible = 0;
     for (const button of section.querySelectorAll(".nav-item")) {
@@ -694,17 +763,58 @@ search.addEventListener("input", () => {
       button.hidden = !match;
       if (match) visible += 1;
     }
+    visibleTotal += visible;
     section.hidden = visible === 0;
   }
+  return visibleTotal;
+}
+
+function isTypingTarget(target) {
+  return target instanceof HTMLInputElement || target instanceof HTMLTextAreaElement || target instanceof HTMLSelectElement;
+}
+
+function clearSearch() {
+  if (document.activeElement !== search || !search.value) return;
+  search.value = "";
+  search.dispatchEvent(new Event("input"));
+  search.blur();
+}
+
+search.addEventListener("input", () => {
+  const query = search.value.trim().toLowerCase();
+  const visibleTotal = filterNav(query);
+  if (count) {
+    count.textContent = query ? `${visibleTotal} of ${PACKAGES.length} packages` : `${PACKAGES.length} packages`;
+  }
+  if (packageEmpty) packageEmpty.hidden = visibleTotal > 0;
+});
+
+document.addEventListener("keydown", (event) => {
+  if (event.key === "/" && !isTypingTarget(event.target)) {
+    event.preventDefault();
+    (document.querySelector("#api-search") ?? search).focus();
+    return;
+  }
+  if (event.key === "Escape") clearSearch();
 });
 
 const initial = location.hash.startsWith("#pkg-") ? location.hash.slice(5) : "pdf";
 if (location.hash === "#api") selectApi(false);
 else select(initial, false);
 
+function revealExplorer(smooth = false) {
+  const explorer = document.querySelector("#package-explorer");
+  if (explorer) explorer.scrollIntoView({ block: "start", behavior: smooth ? "smooth" : "instant" });
+}
+
+if (location.hash.startsWith("#pkg-") || location.hash === "#api") {
+  requestAnimationFrame(() => revealExplorer(false));
+}
+
 window.addEventListener("hashchange", () => {
   if (location.hash === "#api") selectApi(false);
   else if (location.hash.startsWith("#pkg-")) select(location.hash.slice(5), false);
+  if (location.hash === "#api" || location.hash.startsWith("#pkg-")) revealExplorer(true);
 });
 
 const formLab = renderFormLab({

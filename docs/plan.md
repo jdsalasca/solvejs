@@ -188,6 +188,14 @@ Competitor study:
 - PDF gaps ranked: PNG with transparency, page templates/watermarks, outlines/bookmarks and custom TTF fonts. Reading/editing existing PDFs stays out of scope.
 - Both package READMEs now include a capability matrix with the honest gaps and use-case guidance.
 
+## Round 22: Live documentation polish - done
+
+- Added six runnable cross-package recipes: input validation, invoice math, retry/backoff, async memoization, pagination cursors and config merging.
+- Package explorer now shows related packages and previous/next navigation; `/` focuses search, Escape clears it and the count reports the filtered total.
+- Package deep links scroll directly to the explorer on desktop and mobile.
+- Accessibility: skip link, visible focus rings, `aria-live` recipe output and reduced-motion support.
+- Verified: desktop and 390 px layouts, no console errors, no horizontal overflow, search/deep-link/pager behavior.
+
 ## Round 21: PDF media, XLSX parity and a suite guide - done
 
 - PDF: PNG images with alpha `SMask`, JPEG/PNG image watermarks, customizable stamps, `Title`, new typography presets, `maxLines` paragraph clamping and parser hardening from the Codex Terra audit.

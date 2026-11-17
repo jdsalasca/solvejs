@@ -10,6 +10,7 @@
 - XLSX `0.3.3`: read parity for hidden rows, hidden columns and `filterColumns`; ZIP entries inflate concurrently, each capped at its declared size so the total decompression budget is unchanged. Migration impact: none.
 - `solvejs-env`: `getEnvNumber` now validates `defaultValue` against `integer`, `min`, `max` and finiteness. Migration impact: none unless an invalid default was silently accepted.
 - Live Lab: start-here guide, PNG badge and custom-stamp PDF proof, XLSX metadata round-trip example, hidden row/column preview. Migration impact: none.
+- Live Lab polish: six runnable cross-package recipes, related-package chips, previous/next package navigation, `/` search shortcut with match count, package deep links that land on the explorer, skip link, visible focus rings and reduced-motion support. Migration impact: none.
 - Meta package `1.12.17` re-exports `Title` and `Stamp` and depends on PDF `0.1.14` and XLSX `0.3.3`. Migration impact: none.
 
 ## 1.12.15 - 2026-11-17
