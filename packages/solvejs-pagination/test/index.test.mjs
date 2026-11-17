@@ -7,6 +7,7 @@ import {
   offsetToCursor,
   pageCount,
   pageToOffset,
+  pageWindow,
   offsetToPage,
   paginate,
   withPagination
@@ -276,4 +277,15 @@ test("withPagination validates its inputs", () => {
     { page: 1, perPage: 10, total: 0, totalPages: 0, hasPrevious: false, hasNext: false },
     "an empty collection still reports page 1"
   );
+});
+
+test("pageWindow builds a compact range around the current page", () => {
+  assert.deepEqual(pageWindow(5, 100, 10), [4, 5, 6]);
+  assert.deepEqual(pageWindow(5, 100, 10, 2), [3, 4, 5, 6, 7]);
+  assert.deepEqual(pageWindow(1, 100, 10), [1, 2]);
+  assert.deepEqual(pageWindow(10, 100, 10), [9, 10]);
+  assert.deepEqual(pageWindow(50, 100, 10), [9, 10], "out-of-range pages clamp to the last page");
+  assert.deepEqual(pageWindow(1, 0, 10), []);
+  assert.throws(() => pageWindow(Number.NaN, 0, 10), (error) => error instanceof PaginationError && error.code === "PAGINATION_INVALID_PAGE");
+  assert.throws(() => pageWindow(1, 100, 10, -1), (error) => error instanceof PaginationError && error.code === "PAGINATION_INVALID_RADIUS");
 });

@@ -13,6 +13,7 @@ Zero-dependency pagination helpers for APIs and UIs: page/offset conversion, pag
 - `offsetToPage`
 - `pageCount`
 - `clampPage`
+- `pageWindow`
 - `offsetToCursor`
 - `cursorToOffset`
 - `paginate`
@@ -34,12 +35,13 @@ npm i @jdsalasc/solvejs-pagination
 ## Quick example
 
 ```ts
-import { pageToOffset, offsetToPage, pageCount, clampPage, paginate, withPagination } from "@jdsalasc/solvejs-pagination";
+import { pageToOffset, offsetToPage, pageCount, clampPage, pageWindow, paginate, withPagination } from "@jdsalasc/solvejs-pagination";
 
 pageToOffset(3, 20);        // 40
 offsetToPage(40, 20);       // 3
 pageCount(41, 20);          // 3, an exact multiple does not add an empty page
 clampPage(99, 100, 20);     // 5
+pageWindow(3, 100, 20);     // [2, 3, 4]
 
 const page = paginate(rows, { page: 2, perPage: 20, maxPerPage: 100 });
 // { items: [...], page: 2, total, totalPages, hasPrevious: true, hasNext: true }

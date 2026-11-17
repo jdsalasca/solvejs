@@ -4,7 +4,8 @@ export type PaginationErrorCode =
   | "PAGINATION_INVALID_PER_PAGE"
   | "PAGINATION_INVALID_OFFSET"
   | "PAGINATION_INVALID_TOTAL"
-  | "PAGINATION_INVALID_CURSOR";
+  | "PAGINATION_INVALID_CURSOR"
+  | "PAGINATION_INVALID_RADIUS";
 
 /**
  * Error thrown by the pagination utilities.
@@ -114,6 +115,32 @@ export function clampPage(page: number, total: number, perPage: number): number 
 
   const lastPage = Math.max(1, pageCount(total, perPage));
   return Math.min(Math.max(1, page), lastPage);
+}
+
+/**
+ * Builds a compact window of page numbers around the current page.
+ *
+ * Useful for pagination controls: `pageWindow(5, 100, 10)` returns `[4, 5, 6]`.
+ *
+ * @param page - Requested page, one-based.
+ * @param total - Total number of items.
+ * @param perPage - Items per page.
+ * @param radius - Pages to include on each side. Defaults to 1.
+ * @returns Page numbers within the valid range; empty when there are no items.
+ * @throws {PaginationError} `PAGINATION_INVALID_TOTAL`, `PAGINATION_INVALID_PER_PAGE` or `PAGINATION_INVALID_RADIUS`.
+ */
+export function pageWindow(page: number, total: number, perPage: number, radius = 1): number[] {
+  assertNonNegativeInteger(total, "PAGINATION_INVALID_TOTAL", "total");
+  assertPositiveInteger(perPage, "PAGINATION_INVALID_PER_PAGE", "perPage");
+  if (!Number.isInteger(radius) || radius < 0) {
+    fail("PAGINATION_INVALID_RADIUS", "Expected radius to be a non-negative integer.", { radius });
+  }
+  const lastPage = pageCount(total, perPage);
+  const current = clampPage(page, total, perPage);
+  if (lastPage === 0) return [];
+  const start = Math.max(1, current - radius);
+  const end = Math.min(lastPage, current + radius);
+  return Array.from({ length: end - start + 1 }, (_, index) => start + index);
 }
 
 /**
