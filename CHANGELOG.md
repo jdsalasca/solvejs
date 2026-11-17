@@ -4,6 +4,7 @@
 
 - Fixed CommonJS type resolution across the workspace: every package now mirrors its declaration tree to `dist/cjs/**/*.d.cts`, exposes separate `import.types` and `require.types` conditions, and passes `publint`. This removes the “types are interpreted as ESM when resolving require” warning and gives `require()` consumers correct types. Migration impact: none.
 - Added `npm run check:publint` to the quality gate and CI, plus a Node 20/22/24 test matrix. The health and inventory reports are regenerated from current workspaces. Migration impact: none.
+- Live Lab: generated API reference from TypeScript declarations, copy buttons, copy-link, per-package example variants, and direct links to the health report and changelog. Migration impact: none.
 - Bumped `@jdsalasc/solvejs-pdf@0.1.12`, `@jdsalasc/solvejs-xlsx@0.3.1` and the meta package to `1.12.12`. Migration impact: none.
 
 ## 1.12.11 - 2026-11-16

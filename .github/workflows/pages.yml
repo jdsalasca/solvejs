@@ -47,6 +47,9 @@ jobs:
       - name: Copy package builds for the Live Lab
         run: node scripts/prepare-docs-vendor.mjs
 
+      - name: Generate API index
+        run: npm run generate:api
+
       - name: Version docs assets and vendor bundles
         run: node scripts/version-docs-assets.mjs docs ${{ github.run_id }}
 

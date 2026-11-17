@@ -8,6 +8,7 @@ $repo = Split-Path -Parent $PSScriptRoot
 Set-Location $repo
 
 node scripts/prepare-docs-vendor.mjs
+node scripts/generate-api-index.mjs
 
 $zip = Join-Path $env:TEMP "solvejs-docs.zip"
 $stage = Join-Path $env:TEMP "solvejs-docs-stage"

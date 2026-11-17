@@ -188,6 +188,14 @@ Competitor study:
 - PDF gaps ranked: PNG with transparency, page templates/watermarks, outlines/bookmarks and custom TTF fonts. Reading/editing existing PDFs stays out of scope.
 - Both package READMEs now include a capability matrix with the honest gaps and use-case guidance.
 
+## Round 18: Live API reference and docs polish - done
+
+- Generated `docs/live/api.json` from the TypeScript declarations of every package, with function, type, interface, class and const signatures plus JSDoc.
+- Added an API Reference browser with search, package filter, copy buttons and npm links.
+- Added copy buttons to every code block, a "Copy link" action in the package header, and extra runnable variants for date, money, validators, string, numbers, URL, schema and async.
+- Linked the package health report and repository changelog from the footer.
+- Deploy scripts and GitHub Pages now regenerate the API index before publishing.
+
 ## Round 17: CommonJS type parity and CI trust - done
 
 - Mirrored ESM declarations into `dist/cjs/**/*.d.cts` during every CJS build and split `exports` into `import.types` / `require.types`.

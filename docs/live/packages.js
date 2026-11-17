@@ -20,6 +20,7 @@ import { buildUrl, parseQuery } from "@jdsalasc/solvejs-url";
 import { validateCellphoneNumber, validateEmail } from "@jdsalasc/solvejs-validators";
 import { renderPdfDemo, renderFormLab } from "./pdf-gallery.js";
 import { renderXlsxDemo } from "./xlsx-gallery.js";
+import { renderApiBrowser } from "./api-browser.js";
 
 const PACKAGES = [
   {
@@ -45,7 +46,17 @@ const PACKAGES = [
     run: () => {
       const start = parseDateStrict("2026-11-16", "YYYY-MM-DD");
       return { start: metaFormatDate(start), plus30: metaFormatDate(addDays(start, 30)) };
-    }
+    },
+    variants: [
+      {
+        label: "Negative offset",
+        code: `addDays(parseDateStrict("2026-11-16"), -7)`,
+        run: () => {
+          const start = parseDateStrict("2026-11-16", "YYYY-MM-DD");
+          return { start: metaFormatDate(start), minus7: metaFormatDate(addDays(start, -7)) };
+        }
+      }
+    ]
   },
   {
     id: "money",
@@ -56,7 +67,17 @@ const PACKAGES = [
     run: () => {
       const amount = fromDecimal("1234.56");
       return { minorUnits: amount, display: formatMoney(amount), tax19: formatMoney(1898) };
-    }
+    },
+    variants: [
+      {
+        label: "Small amounts",
+        code: `formatMoney(fromDecimal("0.05"))`,
+        run: () => {
+          const amount = fromDecimal("0.05");
+          return { minorUnits: amount, display: formatMoney(amount) };
+        }
+      }
+    ]
   },
   {
     id: "validators",
@@ -67,7 +88,17 @@ const PACKAGES = [
     run: () => ({
       email: validateEmail("dev@example.com"),
       phone: validateCellphoneNumber("+573001234567", { allowInternational: true })
-    })
+    }),
+    variants: [
+      {
+        label: "Invalid input",
+        code: `validateEmail("not-an-email")`,
+        run: () => ({
+          email: validateEmail("not-an-email"),
+          phone: validateCellphoneNumber("12")
+        })
+      }
+    ]
   },
   {
     id: "string",
@@ -75,7 +106,14 @@ const PACKAGES = [
     title: "Safe text normalization",
     level: "Core",
     code: `slugify("Café & Code"); mask("4242424242424242")`,
-    run: () => ({ slug: slugify("Café & Code"), masked: mask("4242424242424242", 4) })
+    run: () => ({ slug: slugify("Café & Code"), masked: mask("4242424242424242", 4) }),
+    variants: [
+      {
+        label: "Punctuation",
+        code: `slugify("Hello, World!"); mask("1234567890", 2)`,
+        run: () => ({ slug: slugify("Hello, World!"), masked: mask("1234567890", 2) })
+      }
+    ]
   },
   {
     id: "list",
@@ -109,7 +147,14 @@ const PACKAGES = [
     title: "Safe math helpers",
     level: "Core",
     code: `safeDivide(10, 0, 0); roundTo(19.995, 2)`,
-    run: () => ({ divideByZero: safeDivide(10, 0, 0), rounded: roundTo(19.995, 2) })
+    run: () => ({ divideByZero: safeDivide(10, 0, 0), rounded: roundTo(19.995, 2) }),
+    variants: [
+      {
+        label: "Real division",
+        code: `safeDivide(10, 4); roundTo(-1.005, 2)`,
+        run: () => ({ divided: safeDivide(10, 4), rounded: roundTo(-1.005, 2) })
+      }
+    ]
   },
   {
     id: "regex",
@@ -128,7 +173,14 @@ const PACKAGES = [
     run: () => ({
       url: buildUrl("https://api.dev", { path: "users", query: { page: 2, q: "pdf reports" } }),
       parsed: parseQuery("?page=2&tag=docs&tag=pdf")
-    })
+    }),
+    variants: [
+      {
+        label: "Repeated tags",
+        code: `parseQuery("?tag=docs&tag=pdf&tag=api")`,
+        run: () => ({ parsed: parseQuery("?tag=docs&tag=pdf&tag=api") })
+      }
+    ]
   },
   {
     id: "json",
@@ -198,7 +250,14 @@ const PACKAGES = [
     run: async () => ({
       mapped: await pMap([1, 2, 3], async (n) => n * 2, { concurrency: 2 }),
       retried: await retry(() => 42, { retries: 1, delayMs: 0 })
-    })
+    }),
+    variants: [
+      {
+        label: "Serial map",
+        code: `await pMap([1,2,3], n => n * 3, { concurrency: 1 })`,
+        run: async () => ({ mapped: await pMap([1, 2, 3], async (n) => n * 3, { concurrency: 1 }) })
+      }
+    ]
   },
   {
     id: "env",
@@ -217,7 +276,21 @@ const PACKAGES = [
     run: () => {
       const User = s.object({ id: s.string(), age: s.number().int() });
       return User.parse({ id: "u1", age: 42 });
-    }
+    },
+    variants: [
+      {
+        label: "Invalid payload",
+        code: `User.parse({ id: 1, age: "x" })`,
+        run: () => {
+          try {
+            const User = s.object({ id: s.string(), age: s.number().int() });
+            return User.parse({ id: 1, age: "x" });
+          } catch (error) {
+            return { error: error instanceof Error ? error.message : String(error) };
+          }
+        }
+      }
+    ]
   },
   {
     id: "constants",
@@ -246,10 +319,23 @@ const packageName = document.querySelector("#package-name");
 const packageTitle = document.querySelector("#package-title");
 const packageLevel = document.querySelector("#package-level");
 const packageNpm = document.querySelector("#package-npm");
+const packageLink = document.querySelector("#package-link");
+if (packageLink) {
+  packageLink.addEventListener("click", () => {
+    const result = navigator.clipboard?.writeText(location.href);
+    result?.then(() => {
+      packageLink.textContent = "Copied";
+      setTimeout(() => {
+        packageLink.textContent = "Copy link";
+      }, 1200);
+    });
+  });
+}
 if (count) count.textContent = `${PACKAGES.length} packages`;
 
 let active = PACKAGES[0];
 let cleanup = () => {};
+let apiActive = false;
 
 function el(tag, className, text) {
   const node = document.createElement(tag);
@@ -282,17 +368,36 @@ function resultCard() {
 }
 
 function renderSimple(pkg) {
+  const examples = [
+    { label: "Happy path", code: pkg.code, run: pkg.run },
+    ...(pkg.variants ?? [])
+  ];
+  let current = 0;
   const grid = el("div", "package-grid");
-  const code = codeCard("Code", pkg.code);
+  const code = codeCard("Code", examples[0].code);
   const result = resultCard();
   grid.append(code.card, result.card);
-  content.replaceChildren(grid);
+
+  const variants = el("div", "package-variants");
+  examples.forEach((example, index) => {
+    const button = el("button", "demo-pill", example.label);
+    button.type = "button";
+    button.classList.toggle("is-active", index === 0);
+    button.addEventListener("click", () => {
+      current = index;
+      code.codeNode.textContent = example.code;
+      for (const item of variants.children) item.classList.toggle("is-active", item === button);
+      execute();
+    });
+    variants.append(button);
+  });
+  content.replaceChildren(...(examples.length > 1 ? [variants] : []), grid);
 
   async function execute() {
     result.output.classList.remove("is-error");
     result.output.textContent = "Running…";
     try {
-      const value = await Promise.resolve().then(pkg.run);
+      const value = await Promise.resolve().then(examples[current].run);
       result.output.textContent = typeof value === "string" ? value : JSON.stringify(value, null, 2);
     } catch (error) {
       result.output.classList.add("is-error");
@@ -304,8 +409,35 @@ function renderSimple(pkg) {
   return () => {};
 }
 
+function enhanceCodeBlocks(root) {
+  for (const pre of root.querySelectorAll("pre")) {
+    if (pre.parentElement?.classList.contains("code-wrap")) continue;
+    const wrap = el("div", "code-wrap");
+    pre.before(wrap);
+    wrap.append(pre);
+    const button = el("button", "copy-code", "Copy");
+    button.type = "button";
+    button.addEventListener("click", () => {
+      const result = navigator.clipboard?.writeText(pre.textContent ?? "");
+      result?.then(
+        () => {
+          button.textContent = "Copied";
+          setTimeout(() => {
+            button.textContent = "Copy";
+          }, 1200);
+        },
+        () => undefined
+      );
+    });
+    wrap.append(button);
+  }
+}
+
 function setActive(pkg) {
   active = pkg;
+  apiActive = false;
+  packageNpm.hidden = false;
+  if (packageLink) packageLink.hidden = false;
   for (const button of nav.querySelectorAll(".nav-item")) {
     const selected = button.dataset.id === pkg.id;
     button.classList.toggle("is-active", selected);
@@ -324,11 +456,33 @@ function setActive(pkg) {
       : pkg.demo === "xlsx"
         ? renderXlsxDemo(content)
         : renderSimple(pkg);
+  enhanceCodeBlocks(content);
+}
+
+function selectApi(updateHash = true) {
+  active = null;
+  apiActive = true;
+  for (const button of nav.querySelectorAll(".nav-item")) {
+    const selected = button.dataset.id === "api";
+    button.classList.toggle("is-active", selected);
+    if (selected) button.setAttribute("aria-current", "true");
+    else button.removeAttribute("aria-current");
+  }
+  packageName.textContent = "API Reference";
+  packageTitle.textContent = "Generated from the TypeScript declarations";
+  packageLevel.textContent = "REFERENCE";
+  packageNpm.hidden = true;
+  if (packageLink) packageLink.hidden = true;
+  cleanup();
+  content.replaceChildren();
+  cleanup = () => {};
+  renderApiBrowser(content);
+  if (updateHash) history.replaceState(null, "", "#api");
 }
 
 function select(id, updateHash = true) {
   const pkg = PACKAGES.find((candidate) => candidate.id === id) ?? PACKAGES[0];
-  if (pkg === active && content.childElementCount > 0) return;
+  if (!apiActive && pkg === active && content.childElementCount > 0) return;
   setActive(pkg);
   if (updateHash) history.replaceState(null, "", `#pkg-${pkg.id}`);
 }
@@ -355,13 +509,30 @@ for (const group of GROUPS) {
   nav.append(section);
 }
 
+const reference = el("div", "nav-group");
+const referenceHeading = el("h3", "nav-group-label", "Reference");
+referenceHeading.append(el("span", undefined, "1"));
+reference.append(referenceHeading);
+const apiButton = el("button", "nav-item");
+apiButton.type = "button";
+apiButton.dataset.id = "api";
+apiButton.title = "Generated API reference for every package";
+const apiDot = el("span", "nav-dot");
+apiDot.dataset.level = "reference";
+apiButton.append(apiDot, el("span", "nav-name", "API Reference"), el("span", "nav-arrow", "→"));
+apiButton.addEventListener("click", () => selectApi());
+reference.append(apiButton);
+nav.append(reference);
+
 search.addEventListener("input", () => {
   const query = search.value.trim().toLowerCase();
   for (const section of nav.querySelectorAll(".nav-group")) {
     let visible = 0;
     for (const button of section.querySelectorAll(".nav-item")) {
       const pkg = PACKAGES.find((candidate) => candidate.id === button.dataset.id);
-      const match = !query || `${pkg.name} ${pkg.title} ${pkg.level}`.toLowerCase().includes(query);
+      const haystack =
+        button.dataset.id === "api" ? "api reference types declarations signatures" : `${pkg.name} ${pkg.title} ${pkg.level}`;
+      const match = !query || haystack.toLowerCase().includes(query);
       button.hidden = !match;
       if (match) visible += 1;
     }
@@ -370,10 +541,12 @@ search.addEventListener("input", () => {
 });
 
 const initial = location.hash.startsWith("#pkg-") ? location.hash.slice(5) : "pdf";
-select(initial, false);
+if (location.hash === "#api") selectApi(false);
+else select(initial, false);
 
 window.addEventListener("hashchange", () => {
-  if (location.hash.startsWith("#pkg-")) select(location.hash.slice(5), false);
+  if (location.hash === "#api") selectApi(false);
+  else if (location.hash.startsWith("#pkg-")) select(location.hash.slice(5), false);
 });
 
 const formLab = renderFormLab({

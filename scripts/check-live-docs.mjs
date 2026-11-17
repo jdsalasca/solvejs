@@ -22,4 +22,9 @@ for (const specifier of imports) {
   }
 }
 
-console.log(`Live Lab check passed: ${entries.length} import map entries, ${imports.length} module imports.`);
+const api = JSON.parse(readFileSync("docs/live/api.json", "utf8"));
+if (!Array.isArray(api.packages) || api.packages.length === 0) {
+  throw new Error("Live Lab API index is empty. Run npm run generate:api.");
+}
+
+console.log(`Live Lab check passed: ${entries.length} import map entries, ${imports.length} module imports, ${api.packages.length} API packages.`);

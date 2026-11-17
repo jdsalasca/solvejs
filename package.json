@@ -43,7 +43,8 @@
     "check:release": "node --test test/release-matrix.test.mjs",
     "check:snippets": "node scripts/check-snippets.mjs",
     "check:jsdoc": "node scripts/check-jsdoc.mjs",
-    "check:publint": "node scripts/check-publint.mjs"
+    "check:publint": "node scripts/check-publint.mjs",
+    "generate:api": "node scripts/generate-api-index.mjs"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
