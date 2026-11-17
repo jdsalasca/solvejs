@@ -8,6 +8,7 @@ on:
       - docs/**
       - packages/**
       - scripts/prepare-docs-vendor.mjs
+      - scripts/version-docs-assets.mjs
       - package.json
       - package-lock.json
       - .github/workflows/pages.yml
@@ -45,6 +46,9 @@ jobs:
 
       - name: Copy package builds for the Live Lab
         run: node scripts/prepare-docs-vendor.mjs
+
+      - name: Version docs assets and vendor bundles
+        run: node scripts/version-docs-assets.mjs docs ${{ github.run_id }}
 
       - name: Setup Pages
         uses: actions/configure-pages@v5
