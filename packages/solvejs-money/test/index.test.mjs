@@ -9,6 +9,7 @@ import {
   fromDecimal,
   multiplyMoney,
   percentageOf,
+  splitEvenly,
   subtractMoney,
   sumMoney,
   toDecimal
@@ -317,4 +318,18 @@ test("formatMoney lets a malformed locale throw rather than guessing", () => {
     "$12.34",
     "a valid configuration is unaffected"
   );
+});
+
+test("splitEvenly distributes the remainder and preserves the total", () => {
+  assert.deepEqual(splitEvenly(1000, 3), [334, 333, 333]);
+  assert.deepEqual(splitEvenly(-1000, 3), [-334, -333, -333]);
+  assert.deepEqual(splitEvenly(0, 2), [0, 0]);
+  assert.deepEqual(splitEvenly(999, 1), [999]);
+  assert.equal(splitEvenly(1000, 3).reduce((sum, value) => sum + value, 0), 1000);
+});
+
+test("splitEvenly rejects invalid part counts", () => {
+  assert.throws(() => splitEvenly(1000, 0), (error) => error instanceof MoneyError && error.code === "MONEY_INVALID_PARTS");
+  assert.throws(() => splitEvenly(1000, 2.5), (error) => error instanceof MoneyError && error.code === "MONEY_INVALID_PARTS");
+  assert.throws(() => splitEvenly(10.5, 2), (error) => error instanceof MoneyError && error.code === "MONEY_INVALID_MINOR_UNITS");
 });

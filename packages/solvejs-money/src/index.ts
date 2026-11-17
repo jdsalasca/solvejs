@@ -4,6 +4,7 @@ export type MoneyErrorCode =
   | "MONEY_INVALID_MINOR_UNITS"
   | "MONEY_INVALID_FACTOR"
   | "MONEY_INVALID_WEIGHTS"
+  | "MONEY_INVALID_PARTS"
   | "MONEY_INVALID_FRACTION_DIGITS";
 
 /**
@@ -387,6 +388,28 @@ export function allocateAmount(total: number, weights: readonly number[]): numbe
   }
 
   return result.map((value) => sign * value);
+}
+
+/**
+ * Splits an amount into equal parts, distributing the remainder one minor unit at a time.
+ *
+ * The first parts receive the extra unit (or extra negative unit for a negative total). The
+ * returned array always sums back to the original amount.
+ *
+ * @param total - Amount in minor units.
+ * @param parts - Number of parts. Must be a positive integer.
+ * @returns Array of per-part amounts in minor units.
+ * @throws {MoneyError} `MONEY_INVALID_MINOR_UNITS` or `MONEY_INVALID_PARTS`.
+ */
+export function splitEvenly(total: number, parts: number): number[] {
+  assertMinorUnits(total, "total");
+  if (!Number.isSafeInteger(parts) || parts < 1) {
+    fail("MONEY_INVALID_PARTS", "Expected parts to be a positive integer.", { received: parts });
+  }
+  const base = Math.trunc(total / parts);
+  const remainder = total - base * parts;
+  const direction = Math.sign(remainder);
+  return Array.from({ length: parts }, (_, index) => base + (index < Math.abs(remainder) ? direction : 0));
 }
 
 /**

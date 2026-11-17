@@ -18,6 +18,7 @@ Zero-dependency money math in integer minor units: exact addition, percentages, 
 - `percentageOf`
 - `applyPercentage`
 - `allocateAmount`
+- `splitEvenly`
 - `formatMoney`
 - `MoneyError`
 
@@ -47,7 +48,7 @@ nothing at all for a zero-decimal currency.
 ## Quick example
 
 ```ts
-import { fromDecimal, toDecimal, multiplyMoney, applyPercentage, allocateAmount, formatMoney } from "@jdsalasc/solvejs-money";
+import { fromDecimal, toDecimal, multiplyMoney, applyPercentage, allocateAmount, splitEvenly, formatMoney } from "@jdsalasc/solvejs-money";
 
 const unit = fromDecimal("19.99");            // 1999
 const subtotal = multiplyMoney(unit, 3);      // 5997
@@ -58,6 +59,7 @@ toDecimal(taxed);                             // "65.30"
 formatMoney(taxed);                           // "$65.30"
 
 allocateAmount(taxed, [1, 1, 1]);            // [2180, 2175, 2175], sums back exactly
+splitEvenly(taxed, 3);                       // [2177, 2177, 2176], sums back exactly
 ```
 
 Compare with the float path: `((19.99 * 3) * 0.9 * 1.21).toFixed(2)` is `"65.31"`, one cent off.
