@@ -188,6 +188,14 @@ Competitor study:
 - PDF gaps ranked: PNG with transparency, page templates/watermarks, outlines/bookmarks and custom TTF fonts. Reading/editing existing PDFs stays out of scope.
 - Both package READMEs now include a capability matrix with the honest gaps and use-case guidance.
 
+## Round 25: Concurrency, statistics and version ordering - done
+
+- Added `createMutex` to async and `createSingleFlight` to cache.
+- Added `maxBy`/`minBy` to list, `splitEvenly` to money, `variance`/`standardDeviation` to numbers and `sortVersions`/`latestVersion` to semver.
+- Added live variants for all six packages.
+- Codex Terra review found and we fixed: cache-key collisions for Date/Map/views, semver single-item validation, variance overflow and `undefined` min/max winners.
+- Verified: package tests, full quality gate, live docs check and browser examples.
+
 ## Round 24: Payments, object cleanup and immutability - done
 
 - Added IBAN validation with country-specific lengths and MOD-97 checksums.

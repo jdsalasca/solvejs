@@ -3,7 +3,7 @@
   "packages": [
     {
       "name": "@jdsalasc/solvejs",
-      "version": "1.14.0",
+      "version": "1.15.0",
       "entries": [
         {
           "name": "AcceptOptions",
@@ -285,6 +285,12 @@
           "doc": "Creates a cache that evicts the least recently used entry once `maxSize` is exceeded. Reading an entry marks it as recently used, so a hot key survives eviction."
         },
         {
+          "name": "createMutex",
+          "kind": "function",
+          "signature": "() => Mutex",
+          "doc": "Creates a FIFO mutex for serializing async critical sections. A rejected task does not break the chain: the next queued task still runs. The mutex is process-local and does not coordinate across workers or machines."
+        },
+        {
           "name": "createPdfElement",
           "kind": "function",
           "signature": "(type: ElementType, props?: Record<string, unknown>, ...children: PdfNode[]) => PdfElement",
@@ -295,6 +301,12 @@
           "kind": "function",
           "signature": "(options: RateLimiterOptions) => <T>(task: () => Promise<T> | T) => Promise<T>",
           "doc": "Creates a fixed-window async rate limiter wrapper."
+        },
+        {
+          "name": "createSingleFlight",
+          "kind": "function",
+          "signature": "<TArgs extends unknown[], TResult>(loader: (...args: TArgs) => Promise<TResult> | TResult, options?: SingleFlightOptions<TArgs>) => SingleFlight<TArgs, TResult>",
+          "doc": "Deduplicates concurrent async calls without caching the resolved value. While a call is in flight, later calls with the same key share its promise. Once it settles, the entry is removed, so the next call runs the loader again. Rejected call"
         },
         {
           "name": "createStaleWhileRevalidate",
@@ -1068,6 +1080,12 @@
           "doc": "Creates an object map from list values keyed by selector output."
         },
         {
+          "name": "latestVersion",
+          "kind": "function",
+          "signature": "(versions: readonly string[]) => string | null",
+          "doc": "Returns the highest semantic version."
+        },
+        {
           "name": "LineChart",
           "kind": "function",
           "signature": "(props: ChartProps) => PdfElement",
@@ -1109,6 +1127,12 @@
           "doc": "Masks a string keeping a number of trailing characters visible."
         },
         {
+          "name": "maxBy",
+          "kind": "function",
+          "signature": "<T>(values: readonly T[], selector: (value: T) => number) => T | undefined",
+          "doc": "Returns the item with the highest numeric score. Non-finite scores are ignored. The first item wins a tie."
+        },
+        {
           "name": "maxSatisfying",
           "kind": "function",
           "signature": "(versions: readonly string[], range: string) => string | null",
@@ -1139,6 +1163,12 @@
           "doc": "A memoized async function."
         },
         {
+          "name": "minBy",
+          "kind": "function",
+          "signature": "<T>(values: readonly T[], selector: (value: T) => number) => T | undefined",
+          "doc": "Returns the item with the lowest numeric score. Non-finite scores are ignored. The first item wins a tie."
+        },
+        {
           "name": "mm",
           "kind": "function",
           "signature": "(value: number) => number",
@@ -1153,7 +1183,7 @@
         {
           "name": "MoneyErrorCode",
           "kind": "type",
-          "signature": "type MoneyErrorCode = \"MONEY_INVALID_DECIMAL\" | \"MONEY_INVALID_MINOR_UNITS\" | \"MONEY_INVALID_FACTOR\" | \"MONEY_INVALID_WEIGHTS\" | \"MONEY_INVALID_FRACTION_DIGITS\";",
+          "signature": "type MoneyErrorCode = \"MONEY_INVALID_DECIMAL\" | \"MONEY_INVALID_MINOR_UNITS\" | \"MONEY_INVALID_FACTOR\" | \"MONEY_INVALID_WEIGHTS\" | \"MONEY_INVALID_PARTS\" | \"MONEY_INVALID_FRACTION_DIGITS\";",
           "doc": "Stable money error codes."
         },
         {
@@ -1167,6 +1197,12 @@
           "kind": "type",
           "signature": "type MultiplyOptions = { /** How to settle a fractional minor unit. Defaults to `half-away-from-zero`. */ rounding?: RoundingMode; };",
           "doc": "Options for {@link multiplyMoney}, {@link percentageOf} and {@link applyPercentage}."
+        },
+        {
+          "name": "Mutex",
+          "kind": "type",
+          "signature": "type Mutex = { /** Runs one task after the previously queued tasks settle. */ run<T>(task: () => Promise<T> | T): Promise<T>; /** Number of tasks that are running or waiting. */ readonly pending: number; /** `true` while at least one task is running or waiting. */ isLocked(): boo",
+          "doc": "A serialized critical section."
         },
         {
           "name": "nanoid",
@@ -2003,6 +2039,18 @@
           "signature": "type SheetToJsonOptions = { /** Header row. Defaults to the first row. */ header?: readonly (string | number)[]; /** Value used when a row has no cell for a header. Defaults to `null`. */ defval?: XlsxCellValue; /** Treat the first row as data instead of headers. */ skipHeader?: "
         },
         {
+          "name": "SingleFlight",
+          "kind": "type",
+          "signature": "type SingleFlight<TArgs extends unknown[], TResult> = ((...args: TArgs) => Promise<TResult>) & { /** Number of calls currently in flight. */ readonly size: number; /** Forgets all in-flight entries without cancelling the promises. */ clear(): void; };",
+          "doc": "A loader that deduplicates concurrent calls with the same key."
+        },
+        {
+          "name": "SingleFlightOptions",
+          "kind": "type",
+          "signature": "type SingleFlightOptions<TArgs extends unknown[]> = { /** Builds the in-flight key from the call arguments. Defaults to a stable key. */ key?: (...args: TArgs) => string; };",
+          "doc": "Options for {@link createSingleFlight}."
+        },
+        {
           "name": "sleep",
           "kind": "function",
           "signature": "(ms: number) => Promise<void>",
@@ -2021,6 +2069,12 @@
           "doc": "Sorts values by selector output."
         },
         {
+          "name": "sortVersions",
+          "kind": "function",
+          "signature": "(versions: readonly string[], order?: \"asc\" | \"desc\") => string[]",
+          "doc": "Sorts semantic versions by precedence."
+        },
+        {
           "name": "Spacer",
           "kind": "function",
           "signature": "(props: SpacerProps) => PdfElement",
@@ -2030,6 +2084,12 @@
           "name": "SpacerProps",
           "kind": "type",
           "signature": "type SpacerProps = { height?: number; marginTop?: number; marginBottom?: number; };"
+        },
+        {
+          "name": "splitEvenly",
+          "kind": "function",
+          "signature": "(total: number, parts: number) => number[]",
+          "doc": "Splits an amount into equal parts, distributing the remainder one minor unit at a time. The first parts receive the extra unit (or extra negative unit for a negative total). The returned array always sums back to the original amount."
         },
         {
           "name": "stableKey",
@@ -2060,6 +2120,12 @@
           "kind": "function",
           "signature": "(props: StampProps) => PdfElement",
           "doc": "Rotated stamp box, useful for PAID / VOID / RECEIVED marks."
+        },
+        {
+          "name": "standardDeviation",
+          "kind": "function",
+          "signature": "(values: readonly number[], sample?: boolean) => number",
+          "doc": "Computes the standard deviation of a numeric collection."
         },
         {
           "name": "startOfDay",
@@ -2481,6 +2547,12 @@
           "signature": "type ValidationResultCode = \"VALID\" | \"EMPTY\" | \"INVALID_TYPE\" | \"INVALID_RESULT\" | \"INVALID_FORMAT\" | \"TOO_SHORT\" | \"TOO_LONG\" | \"INVALID_CHARACTERS\" | \"UNSUPPORTED_LOCALE\" | \"UNSUPPORTED_COUNTRY\" | \"CHECKSUM_FAILED\";"
         },
         {
+          "name": "variance",
+          "kind": "function",
+          "signature": "(values: readonly number[], sample?: boolean) => number",
+          "doc": "Computes the variance of a numeric collection."
+        },
+        {
           "name": "Version",
           "kind": "type",
           "signature": "type Version = { major: number; minor: number; patch: number; prerelease: Array<string | number>; build: Array<string | number>; };",
@@ -2736,8 +2808,14 @@
     },
     {
       "name": "@jdsalasc/solvejs-async",
-      "version": "1.10.1",
+      "version": "1.11.0",
       "entries": [
+        {
+          "name": "createMutex",
+          "kind": "function",
+          "signature": "() => Mutex",
+          "doc": "Creates a FIFO mutex for serializing async critical sections. A rejected task does not break the chain: the next queued task still runs. The mutex is process-local and does not coordinate across workers or machines."
+        },
         {
           "name": "createRateLimiter",
           "kind": "function",
@@ -2766,6 +2844,12 @@
           "name": "DebouncePromiseOptions",
           "kind": "type",
           "signature": "type DebouncePromiseOptions = { waitMs: number; };"
+        },
+        {
+          "name": "Mutex",
+          "kind": "type",
+          "signature": "type Mutex = { /** Runs one task after the previously queued tasks settle. */ run<T>(task: () => Promise<T> | T): Promise<T>; /** Number of tasks that are running or waiting. */ readonly pending: number; /** `true` while at least one task is running or waiting. */ isLocked(): boo",
+          "doc": "A serialized critical section."
         },
         {
           "name": "pMap",
@@ -2842,7 +2926,7 @@
     },
     {
       "name": "@jdsalasc/solvejs-cache",
-      "version": "0.2.2",
+      "version": "0.3.0",
       "entries": [
         {
           "name": "CacheError",
@@ -2861,6 +2945,12 @@
           "kind": "function",
           "signature": "<T = unknown>(options: LruCacheOptions) => TtlCache<T>",
           "doc": "Creates a cache that evicts the least recently used entry once `maxSize` is exceeded. Reading an entry marks it as recently used, so a hot key survives eviction."
+        },
+        {
+          "name": "createSingleFlight",
+          "kind": "function",
+          "signature": "<TArgs extends unknown[], TResult>(loader: (...args: TArgs) => Promise<TResult> | TResult, options?: SingleFlightOptions<TArgs>) => SingleFlight<TArgs, TResult>",
+          "doc": "Deduplicates concurrent async calls without caching the resolved value. While a call is in flight, later calls with the same key share its promise. Once it settles, the entry is removed, so the next call runs the loader again. Rejected call"
         },
         {
           "name": "createStaleWhileRevalidate",
@@ -2897,6 +2987,18 @@
           "kind": "type",
           "signature": "type MemoizedAsync<TArgs extends unknown[], TResult> = ((...args: TArgs) => Promise<TResult>) & { clear(): void; delete(...args: TArgs): boolean; readonly size: number; };",
           "doc": "A memoized async function."
+        },
+        {
+          "name": "SingleFlight",
+          "kind": "type",
+          "signature": "type SingleFlight<TArgs extends unknown[], TResult> = ((...args: TArgs) => Promise<TResult>) & { /** Number of calls currently in flight. */ readonly size: number; /** Forgets all in-flight entries without cancelling the promises. */ clear(): void; };",
+          "doc": "A loader that deduplicates concurrent calls with the same key."
+        },
+        {
+          "name": "SingleFlightOptions",
+          "kind": "type",
+          "signature": "type SingleFlightOptions<TArgs extends unknown[]> = { /** Builds the in-flight key from the call arguments. Defaults to a stable key. */ key?: (...args: TArgs) => string; };",
+          "doc": "Options for {@link createSingleFlight}."
         },
         {
           "name": "stableKey",
@@ -3636,7 +3738,7 @@
     },
     {
       "name": "@jdsalasc/solvejs-list",
-      "version": "1.10.1",
+      "version": "1.11.0",
       "entries": [
         {
           "name": "chunk",
@@ -3681,6 +3783,18 @@
           "doc": "Creates an object map from list values keyed by selector output."
         },
         {
+          "name": "maxBy",
+          "kind": "function",
+          "signature": "<T>(values: readonly T[], selector: (value: T) => number) => T | undefined",
+          "doc": "Returns the item with the highest numeric score. Non-finite scores are ignored. The first item wins a tie."
+        },
+        {
+          "name": "minBy",
+          "kind": "function",
+          "signature": "<T>(values: readonly T[], selector: (value: T) => number) => T | undefined",
+          "doc": "Returns the item with the lowest numeric score. Non-finite scores are ignored. The first item wins a tie."
+        },
+        {
           "name": "partition",
           "kind": "function",
           "signature": "<T>(values: readonly T[], predicate: (value: T) => boolean) => [T[], T[]]",
@@ -3714,7 +3828,7 @@
     },
     {
       "name": "@jdsalasc/solvejs-money",
-      "version": "0.2.2",
+      "version": "0.3.0",
       "entries": [
         {
           "name": "addMoney",
@@ -3767,7 +3881,7 @@
         {
           "name": "MoneyErrorCode",
           "kind": "type",
-          "signature": "type MoneyErrorCode = | \"MONEY_INVALID_DECIMAL\" | \"MONEY_INVALID_MINOR_UNITS\" | \"MONEY_INVALID_FACTOR\" | \"MONEY_INVALID_WEIGHTS\" | \"MONEY_INVALID_FRACTION_DIGITS\";",
+          "signature": "type MoneyErrorCode = | \"MONEY_INVALID_DECIMAL\" | \"MONEY_INVALID_MINOR_UNITS\" | \"MONEY_INVALID_FACTOR\" | \"MONEY_INVALID_WEIGHTS\" | \"MONEY_INVALID_PARTS\" | \"MONEY_INVALID_FRACTION_DIGITS\";",
           "doc": "Stable money error codes."
         },
         {
@@ -3793,6 +3907,12 @@
           "kind": "type",
           "signature": "type RoundingMode = \"half-away-from-zero\" | \"half-up\" | \"floor\" | \"ceil\" | \"down\";",
           "doc": "Rounding behaviour for a fractional result."
+        },
+        {
+          "name": "splitEvenly",
+          "kind": "function",
+          "signature": "(total: number, parts: number) => number[]",
+          "doc": "Splits an amount into equal parts, distributing the remainder one minor unit at a time. The first parts receive the extra unit (or extra negative unit for a negative total). The returned array always sums back to the original amount."
         },
         {
           "name": "subtractMoney",
@@ -3822,7 +3942,7 @@
     },
     {
       "name": "@jdsalasc/solvejs-numbers",
-      "version": "1.10.1",
+      "version": "1.11.0",
       "entries": [
         {
           "name": "applyDiscount",
@@ -3897,6 +4017,12 @@
           "doc": "Safely divides two numbers with a fallback value."
         },
         {
+          "name": "standardDeviation",
+          "kind": "function",
+          "signature": "(values: readonly number[], sample?: boolean) => number",
+          "doc": "Computes the standard deviation of a numeric collection."
+        },
+        {
           "name": "sum",
           "kind": "function",
           "signature": "(values: readonly number[]) => number",
@@ -3919,6 +4045,12 @@
           "kind": "function",
           "signature": "(value: number, options?: { input?: \"ratio\" | \"percent\"; locale?: string; maximumFractionDigits?: number; }) => string",
           "doc": "Formats a ratio or percentage number using `Intl.NumberFormat`."
+        },
+        {
+          "name": "variance",
+          "kind": "function",
+          "signature": "(values: readonly number[], sample?: boolean) => number",
+          "doc": "Computes the variance of a numeric collection."
         }
       ]
     },
@@ -4717,7 +4849,7 @@
     },
     {
       "name": "@jdsalasc/solvejs-semver",
-      "version": "0.2.2",
+      "version": "0.3.0",
       "entries": [
         {
           "name": "compareVersions",
@@ -4756,6 +4888,12 @@
           "doc": "Checks whether a version is a valid semantic version."
         },
         {
+          "name": "latestVersion",
+          "kind": "function",
+          "signature": "(versions: readonly string[]) => string | null",
+          "doc": "Returns the highest semantic version."
+        },
+        {
           "name": "maxSatisfying",
           "kind": "function",
           "signature": "(versions: readonly string[], range: string) => string | null",
@@ -4790,6 +4928,12 @@
           "kind": "type",
           "signature": "type SemverErrorCode = | \"SEMVER_INVALID_VERSION\" | \"SEMVER_INVALID_RANGE\" | \"SEMVER_INVALID_RELEASE\";",
           "doc": "Stable semver error codes."
+        },
+        {
+          "name": "sortVersions",
+          "kind": "function",
+          "signature": "(versions: readonly string[], order?: \"asc\" | \"desc\") => string[]",
+          "doc": "Sorts semantic versions by precedence."
         },
         {
           "name": "Version",

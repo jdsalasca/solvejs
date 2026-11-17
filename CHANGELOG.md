@@ -1,5 +1,17 @@
 # Changelog
 
+## 1.15.0 - 2026-11-17
+
+- `@jdsalasc/solvejs-async@1.11.0`: added `createMutex` for FIFO critical sections with `pending`, `isLocked()` and rejection-safe queuing. Migration impact: none.
+- `@jdsalasc/solvejs-cache@0.3.0`: added `createSingleFlight` to deduplicate concurrent calls without caching the resolved value. Migration impact: none.
+- `@jdsalasc/solvejs-list@1.11.0`: added `maxBy` and `minBy` with non-finite-score handling and stable ties. Migration impact: none.
+- `@jdsalasc/solvejs-money@0.3.0`: added `splitEvenly` for equal splits that preserve the original total. Migration impact: none.
+- `@jdsalasc/solvejs-numbers@1.11.0`: added `variance` and `standardDeviation` with population/sample modes. Migration impact: none.
+- `@jdsalasc/solvejs-semver@0.3.0`: added `sortVersions` and `latestVersion`. Migration impact: none.
+- Meta package `1.15.0` depends on the updated leaves and re-exports the new helpers. Migration impact: none.
+- Codex Terra review fixed before release: `stableKey` collisions for dates/maps/views, single-item validation in semver sorting, variance overflow on large equal values, and `undefined` as a valid min/max winner.
+- Live Lab: new mutex, single-flight, min/max, split, variance and version-sort variants. Migration impact: none.
+
 ## 1.14.0 - 2026-11-17
 
 - `@jdsalasc/solvejs-validators@1.11.0`: added `validateIban` / `isIban` with country-specific lengths, MOD-97 checksum, space/lowercase normalization and stable failure codes. Migration impact: none.

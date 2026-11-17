@@ -1,6 +1,6 @@
 import { formatDate as metaFormatDate, slugify as metaSlugify } from "@jdsalasc/solvejs";
-import { pMap, retry } from "@jdsalasc/solvejs-async";
-import { createTtlCache, stableKey } from "@jdsalasc/solvejs-cache";
+import { createMutex, pMap, retry } from "@jdsalasc/solvejs-async";
+import { createSingleFlight, createTtlCache, stableKey } from "@jdsalasc/solvejs-cache";
 import { HTTP_STATUS, TIME } from "@jdsalasc/solvejs-constants";
 import { addDays, addMonths, endOfMonth, formatDuration, parseDateStrict, parseDuration, startOfWeek, toIsoDate } from "@jdsalasc/solvejs-date";
 import { nanoid, prefixedId, randomToken, ulid, uuidTimestamp, uuidv4, uuidv7 } from "@jdsalasc/solvejs-id";
@@ -8,14 +8,14 @@ import { getEnvNumber } from "@jdsalasc/solvejs-env";
 import { createError, errorToResponse } from "@jdsalasc/solvejs-errors";
 import { calculateBackoffDelay, isRetryableStatus, negotiateContentType, parseContentType } from "@jdsalasc/solvejs-http";
 import { applyMergePatch, deepClone, getJsonPointer, stableStringify } from "@jdsalasc/solvejs-json";
-import { groupBy, uniqueBy } from "@jdsalasc/solvejs-list";
-import { formatMoney, fromDecimal } from "@jdsalasc/solvejs-money";
-import { roundTo, safeDivide } from "@jdsalasc/solvejs-numbers";
+import { groupBy, maxBy, minBy, uniqueBy } from "@jdsalasc/solvejs-list";
+import { formatMoney, fromDecimal, splitEvenly } from "@jdsalasc/solvejs-money";
+import { roundTo, safeDivide, standardDeviation } from "@jdsalasc/solvejs-numbers";
 import { deepFreeze, deepMerge, get, unset } from "@jdsalasc/solvejs-objects";
 import { paginate } from "@jdsalasc/solvejs-pagination";
 import { escapeRegex, validateByName } from "@jdsalasc/solvejs-regex";
 import { s } from "@jdsalasc/solvejs-schema";
-import { maxSatisfying, satisfies } from "@jdsalasc/solvejs-semver";
+import { latestVersion, maxSatisfying, satisfies, sortVersions } from "@jdsalasc/solvejs-semver";
 import { initials, mask, pluralize, slugify, truncateMiddle } from "@jdsalasc/solvejs-string";
 import { buildUrl, parseQuery } from "@jdsalasc/solvejs-url";
 import { validateCellphoneNumber, validateEmail, validateIban } from "@jdsalasc/solvejs-validators";
@@ -124,6 +124,11 @@ const PACKAGES = [
           const amount = fromDecimal("0.05");
           return { minorUnits: amount, display: formatMoney(amount) };
         }
+      },
+      {
+        label: "Split evenly",
+        code: `splitEvenly(1000, 3)`,
+        run: () => ({ parts: splitEvenly(1000, 3), total: splitEvenly(1000, 3).reduce((sum, value) => sum + value, 0) })
       }
     ]
   },
@@ -201,6 +206,14 @@ const PACKAGES = [
         label: "Dedupe only",
         code: `uniqueBy([{id:1},{id:1},{id:2}], row => row.id)`,
         run: () => uniqueBy([{ id: 1 }, { id: 1 }, { id: 2 }], (row) => row.id)
+      },
+      {
+        label: "Min and max",
+        code: `maxBy(rows, row => row.score); minBy(rows, row => row.score)`,
+        run: () => {
+          const rows = [{ id: "a", score: 4 }, { id: "b", score: 9 }, { id: "c", score: 2 }];
+          return { max: maxBy(rows, (row) => row.score), min: minBy(rows, (row) => row.score) };
+        }
       }
     ]
   },
@@ -251,6 +264,14 @@ const PACKAGES = [
         label: "Real division",
         code: `safeDivide(10, 4); roundTo(-1.005, 2)`,
         run: () => ({ divided: safeDivide(10, 4), rounded: roundTo(-1.005, 2) })
+      },
+      {
+        label: "Spread",
+        code: `standardDeviation([2,4,4,4,5,5,7,9])`,
+        run: () => ({
+          deviation: standardDeviation([2, 4, 4, 4, 5, 5, 7, 9]),
+          sample: standardDeviation([2, 4, 4, 4, 5, 5, 7, 9], true)
+        })
       }
     ]
   },
@@ -350,6 +371,14 @@ const PACKAGES = [
         label: "Outside range",
         code: `satisfies("2.0.0", "^1.2.3")`,
         run: () => ({ satisfies: satisfies("2.0.0", "^1.2.3") })
+      },
+      {
+        label: "Sort and latest",
+        code: `sortVersions(["1.10.0","1.2.0","2.0.0-rc.1"]); latestVersion(versions)`,
+        run: () => {
+          const versions = ["1.10.0", "1.2.0", "2.0.0-rc.1"];
+          return { sorted: sortVersions(versions), latest: latestVersion(versions) };
+        }
       }
     ]
   },
@@ -420,6 +449,20 @@ const PACKAGES = [
           now = 2000;
           return { before, after: cache.get("k") ?? null };
         }
+      },
+      {
+        label: "Single flight",
+        code: `const load = createSingleFlight(fetchPrices); await Promise.all([load(), load()])`,
+        run: async () => {
+          let calls = 0;
+          const load = createSingleFlight(async () => {
+            calls += 1;
+            await new Promise((resolve) => setTimeout(resolve, 5));
+            return "prices";
+          });
+          const values = await Promise.all([load(), load(), load()]);
+          return { values, calls, remaining: load.size };
+        }
       }
     ]
   },
@@ -438,6 +481,22 @@ const PACKAGES = [
         label: "Serial map",
         code: `await pMap([1,2,3], n => n * 3, { concurrency: 1 })`,
         run: async () => ({ mapped: await pMap([1, 2, 3], async (n) => n * 3, { concurrency: 1 }) })
+      },
+      {
+        label: "Mutex",
+        code: `const mutex = createMutex(); await mutex.run(taskA); await mutex.run(taskB)`,
+        run: async () => {
+          const mutex = createMutex();
+          const order = [];
+          const first = mutex.run(async () => {
+            order.push("a:start");
+            await new Promise((resolve) => setTimeout(resolve, 5));
+            order.push("a:end");
+          });
+          const second = mutex.run(() => order.push("b"));
+          await Promise.all([first, second]);
+          return { order, pending: mutex.pending, locked: mutex.isLocked() };
+        }
       }
     ]
   },
