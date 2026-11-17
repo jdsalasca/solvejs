@@ -1,23 +1,23 @@
 import { formatDate as metaFormatDate, slugify as metaSlugify } from "@jdsalasc/solvejs";
 import { createMutex, pMap, retry } from "@jdsalasc/solvejs-async";
 import { createSingleFlight, createTtlCache, stableKey } from "@jdsalasc/solvejs-cache";
-import { HTTP_STATUS, TIME } from "@jdsalasc/solvejs-constants";
+import { CONTENT_TYPES, HTTP_METHODS, HTTP_STATUS, TIME } from "@jdsalasc/solvejs-constants";
 import { addDays, addMonths, endOfMonth, formatDuration, parseDateStrict, parseDuration, startOfWeek, toIsoDate } from "@jdsalasc/solvejs-date";
 import { nanoid, prefixedId, randomToken, ulid, uuidTimestamp, uuidv4, uuidv7 } from "@jdsalasc/solvejs-id";
 import { getEnvNumber } from "@jdsalasc/solvejs-env";
-import { createError, errorToResponse } from "@jdsalasc/solvejs-errors";
+import { createError, errorToResponse, isErrorCode } from "@jdsalasc/solvejs-errors";
 import { calculateBackoffDelay, isRetryableStatus, negotiateContentType, parseContentType } from "@jdsalasc/solvejs-http";
 import { applyMergePatch, deepClone, getJsonPointer, stableStringify } from "@jdsalasc/solvejs-json";
 import { groupBy, maxBy, minBy, uniqueBy } from "@jdsalasc/solvejs-list";
 import { formatMoney, fromDecimal, splitEvenly } from "@jdsalasc/solvejs-money";
 import { roundTo, safeDivide, standardDeviation } from "@jdsalasc/solvejs-numbers";
 import { deepFreeze, deepMerge, get, unset } from "@jdsalasc/solvejs-objects";
-import { paginate } from "@jdsalasc/solvejs-pagination";
+import { paginate, pageWindow } from "@jdsalasc/solvejs-pagination";
 import { escapeRegex, validateByName } from "@jdsalasc/solvejs-regex";
 import { s } from "@jdsalasc/solvejs-schema";
 import { latestVersion, maxSatisfying, satisfies, sortVersions } from "@jdsalasc/solvejs-semver";
 import { initials, mask, pluralize, slugify, truncateMiddle } from "@jdsalasc/solvejs-string";
-import { buildUrl, parseQuery } from "@jdsalasc/solvejs-url";
+import { buildUrl, getUrlParams, parseQuery } from "@jdsalasc/solvejs-url";
 import { validateCellphoneNumber, validateEmail, validateIban } from "@jdsalasc/solvejs-validators";
 import { renderPdfDemo, renderFormLab } from "./pdf-gallery.js";
 import { renderXlsxDemo } from "./xlsx-gallery.js";
@@ -287,6 +287,16 @@ const PACKAGES = [
         label: "Invalid email",
         code: `validateByName("not-an-email", "email")`,
         run: () => ({ email: validateByName("not-an-email", "email") })
+      },
+      {
+        label: "New patterns",
+        code: `validateByName("018f4b7c-7a3d-7c2e-9f10-2b6d8a1f3c40", "uuidV7"); validateByName("solve-js", "slug")`,
+        run: () => ({
+          uuidV7: validateByName("018f4b7c-7a3d-7c2e-9f10-2b6d8a1f3c40", "uuidV7"),
+          slug: validateByName("solve-js", "slug"),
+          iban: validateByName("GB82WEST12345698765432", "iban"),
+          semver: validateByName("1.2.3-rc.1", "semver")
+        })
       }
     ]
   },
@@ -305,6 +315,11 @@ const PACKAGES = [
         label: "Repeated tags",
         code: `parseQuery("?tag=docs&tag=pdf&tag=api")`,
         run: () => ({ parsed: parseQuery("?tag=docs&tag=pdf&tag=api") })
+      },
+      {
+        label: "Several params",
+        code: `getUrlParams("/items?page=2&q=shoes", ["page", "q", "missing"])`,
+        run: () => ({ params: getUrlParams("/items?page=2&q=shoes", ["page", "q", "missing"]) })
       }
     ]
   },
@@ -353,6 +368,11 @@ const PACKAGES = [
         label: "First page",
         code: `paginate([1,2,3,4,5], { page: 1, perPage: 2 })`,
         run: () => paginate([1, 2, 3, 4, 5], { page: 1, perPage: 2 })
+      },
+      {
+        label: "Page window",
+        code: `pageWindow(5, 100, 10, 1)`,
+        run: () => ({ middle: pageWindow(5, 100, 10, 1), start: pageWindow(1, 100, 10, 2), end: pageWindow(50, 100, 10, 1) })
       }
     ]
   },
@@ -394,6 +414,14 @@ const PACKAGES = [
         label: "Validation error",
         code: `errorToResponse(createError("VALIDATION_FAILED", "Email is required."))`,
         run: () => errorToResponse(createError("VALIDATION_FAILED", "Email is required."))
+      },
+      {
+        label: "Code guard",
+        code: `isErrorCode(createError("NOT_FOUND", "missing"), "NOT_FOUND")`,
+        run: () => {
+          const error = createError("NOT_FOUND", "missing");
+          return { match: isErrorCode(error, "NOT_FOUND"), other: isErrorCode(error, "CONFLICT") };
+        }
       }
     ]
   },
@@ -543,6 +571,14 @@ const PACKAGES = [
             return { error: error instanceof Error ? error.message : String(error) };
           }
         }
+      },
+      {
+        label: "Record map",
+        code: `s.record(s.number().int().min(0)).parse({ ada: 10, grace: 8 })`,
+        run: () => {
+          const Scores = s.record(s.number().int().min(0));
+          return { scores: Scores.parse({ ada: 10, grace: 8 }), schema: Scores.toJsonSchema() };
+        }
       }
     ]
   },
@@ -558,6 +594,11 @@ const PACKAGES = [
         label: "More constants",
         code: `HTTP_STATUS.NOT_FOUND; TIME.HOUR_MS`,
         run: () => ({ notFound: HTTP_STATUS.NOT_FOUND, hour: TIME.HOUR_MS })
+      },
+      {
+        label: "Weeks and documents",
+        code: `TIME.WEEK_MS; HTTP_METHODS.HEAD; CONTENT_TYPES.CSV`,
+        run: () => ({ week: TIME.WEEK_MS, method: HTTP_METHODS.HEAD, csv: CONTENT_TYPES.CSV, pdf: CONTENT_TYPES.PDF })
       }
     ]
   },

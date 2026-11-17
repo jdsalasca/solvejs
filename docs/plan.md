@@ -188,6 +188,14 @@ Competitor study:
 - PDF gaps ranked: PNG with transparency, page templates/watermarks, outlines/bookmarks and custom TTF fonts. Reading/editing existing PDFs stays out of scope.
 - Both package READMEs now include a capability matrix with the honest gaps and use-case guidance.
 
+## Round 26: Finishing every package surface - done
+
+- Added constants for weeks, terabytes, HEAD/OPTIONS and document/stream content types.
+- Added `isErrorCode`, `pageWindow`, `getUrlParams`, `s.record` and UUID v7/semver/slug/IBAN/date-time patterns.
+- Added live variants for all six packages.
+- Codex Terra review found and we fixed: `__proto__` key handling in records and URL params, strict SemVer validation, and page validation on empty collections.
+- Verified: package tests, full quality gate, live docs check and browser examples.
+
 ## Round 25: Concurrency, statistics and version ordering - done
 
 - Added `createMutex` to async and `createSingleFlight` to cache.

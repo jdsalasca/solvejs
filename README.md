@@ -28,21 +28,21 @@ SolveJS is a monorepo of 21 focused packages. Install the whole ecosystem with o
 | Do exact money math for invoices, payments, taxes, splits and equal divisions | `@jdsalasc/solvejs-money` | `npm i @jdsalasc/solvejs-money` |
 | Cache API responses with TTL, LRU, async memoization, single-flight or stale-while-revalidate | `@jdsalasc/solvejs-cache` | `npm i @jdsalasc/solvejs-cache` |
 | Fetch JSON with timeout, abort and typed errors, retry HTTP calls with exponential backoff and jitter, or negotiate content types | `@jdsalasc/solvejs-http` | `npm i @jdsalasc/solvejs-http` |
-| Normalize errors into typed codes, HTTP statuses, and safe JSON responses | `@jdsalasc/solvejs-errors` | `npm i @jdsalasc/solvejs-errors` |
+| Normalize errors into typed codes, HTTP statuses, safe JSON responses and code guards | `@jdsalasc/solvejs-errors` | `npm i @jdsalasc/solvejs-errors` |
 | Parse environment variables at startup and fail fast with clear messages | `@jdsalasc/solvejs-env` | `npm i @jdsalasc/solvejs-env` |
-| Validate API payloads and forms without a schema dependency | `@jdsalasc/solvejs-schema` | `npm i @jdsalasc/solvejs-schema` |
+| Validate API payloads and forms, including dictionaries, without a schema dependency | `@jdsalasc/solvejs-schema` | `npm i @jdsalasc/solvejs-schema` |
 | Parse, stringify, clone, compare, merge JSON, read JSON Pointers or apply Merge Patch safely | `@jdsalasc/solvejs-json` | `npm i @jdsalasc/solvejs-json` |
-| Build URLs, join paths, and serialize query strings deterministically | `@jdsalasc/solvejs-url` | `npm i @jdsalasc/solvejs-url` |
-| Paginate API responses with pages, offsets, cursors, and envelopes | `@jdsalasc/solvejs-pagination` | `npm i @jdsalasc/solvejs-pagination` |
+| Build URLs, read several query params, join paths, and serialize query strings deterministically | `@jdsalasc/solvejs-url` | `npm i @jdsalasc/solvejs-url` |
+| Paginate API responses with pages, offsets, cursors, envelopes and page windows | `@jdsalasc/solvejs-pagination` | `npm i @jdsalasc/solvejs-pagination` |
 | Parse, compare, sort, and bump semantic versions, ranges, and prereleases | `@jdsalasc/solvejs-semver` | `npm i @jdsalasc/solvejs-semver` |
 | Generate UUID v4/v7, ULID, NanoID, prefixed IDs or random tokens | `@jdsalasc/solvejs-id` | `npm i @jdsalasc/solvejs-id` |
 | Sleep, timeout, retry, debounce, throttle, queue, rate-limit or serialize async work | `@jdsalasc/solvejs-async` | `npm i @jdsalasc/solvejs-async` |
 | Group, count, dedupe, sort, chunk, partition, or pick min/max from arrays | `@jdsalasc/solvejs-list` | `npm i @jdsalasc/solvejs-list` |
 | Pick, omit, get/set/unset dotted paths, deep-freeze or deep-merge objects | `@jdsalasc/solvejs-objects` | `npm i @jdsalasc/solvejs-objects` |
 | Slugify, truncate, mask, build initials, pluralize, or change string case | `@jdsalasc/solvejs-string` | `npm i @jdsalasc/solvejs-string` |
-| Use common regex patterns for email, phone, URL, UUID, IPv4, and ISO dates | `@jdsalasc/solvejs-regex` | `npm i @jdsalasc/solvejs-regex` |
+| Use common regex patterns for email, phone, URL, UUID v4/v7, IPv4, semver, slugs, IBAN and ISO dates | `@jdsalasc/solvejs-regex` | `npm i @jdsalasc/solvejs-regex` |
 | Parse numbers, compute percentages, variance and deviation, format currency, or round safely | `@jdsalasc/solvejs-numbers` | `npm i @jdsalasc/solvejs-numbers` |
-| Use time, file-size, HTTP method, status, and content-type constants | `@jdsalasc/solvejs-constants` | `npm i @jdsalasc/solvejs-constants` |
+| Use time, file-size, HTTP method, status, header, and content-type constants | `@jdsalasc/solvejs-constants` | `npm i @jdsalasc/solvejs-constants` |
 | Export or read XLSX with JSX components, formulas, JSON conversion, conditional formatting, filters, hidden rows/columns and metadata | `@jdsalasc/solvejs-xlsx` | `npm i @jdsalasc/solvejs-xlsx` |
 | Generate PDFs with JSX components, PNG/JPEG images, image watermarks, custom stamps, charts, formulas and AcroForm fields | `@jdsalasc/solvejs-pdf` | `npm i @jdsalasc/solvejs-pdf` |
 | Import any of the above from one entry point | `@jdsalasc/solvejs` | `npm i @jdsalasc/solvejs` |

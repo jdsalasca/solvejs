@@ -3,7 +3,7 @@
   "packages": [
     {
       "name": "@jdsalasc/solvejs",
-      "version": "1.15.1",
+      "version": "1.16.0",
       "entries": [
         {
           "name": "AcceptOptions",
@@ -258,7 +258,7 @@
         {
           "name": "CONTENT_TYPES",
           "kind": "const",
-          "signature": "const CONTENT_TYPES: { readonly JSON: \"application/json\"; readonly FORM_URLENCODED: \"application/x-www-form-urlencoded\"; readonly MULTIPART_FORM_DATA: \"multipart/form-data\"; readonly TEXT: \"text/plain\"; readonly HTML: \"text/html\"; }"
+          "signature": "const CONTENT_TYPES: { readonly JSON: \"application/json\"; readonly FORM_URLENCODED: \"application/x-www-form-urlencoded\"; readonly MULTIPART_FORM_DATA: \"multipart/form-data\"; readonly TEXT: \"text/plain\"; readonly HTML: \"text/html\"; readonly CSV: \"text/csv\"; readonly XML: \"applicat"
         },
         {
           "name": "countBy",
@@ -498,7 +498,7 @@
         {
           "name": "FILE_SIZE_BYTES",
           "kind": "const",
-          "signature": "const FILE_SIZE_BYTES: { readonly KB: 1024; readonly MB: number; readonly GB: number; }"
+          "signature": "const FILE_SIZE_BYTES: { readonly KB: 1024; readonly MB: number; readonly GB: number; readonly TB: number; }"
         },
         {
           "name": "fillPdfForm",
@@ -692,6 +692,12 @@
           "doc": "Reads a single query value from a URL."
         },
         {
+          "name": "getUrlParams",
+          "kind": "function",
+          "signature": "(url: string, names: readonly string[]) => Record<string, string | null>",
+          "doc": "Reads several query parameters in one pass."
+        },
+        {
           "name": "grossMargin",
           "kind": "function",
           "signature": "(revenue: number, cost: number, decimals?: number) => number",
@@ -723,7 +729,7 @@
         {
           "name": "HTTP_METHODS",
           "kind": "const",
-          "signature": "const HTTP_METHODS: { readonly GET: \"GET\"; readonly POST: \"POST\"; readonly PUT: \"PUT\"; readonly PATCH: \"PATCH\"; readonly DELETE: \"DELETE\"; }"
+          "signature": "const HTTP_METHODS: { readonly GET: \"GET\"; readonly HEAD: \"HEAD\"; readonly POST: \"POST\"; readonly PUT: \"PUT\"; readonly PATCH: \"PATCH\"; readonly DELETE: \"DELETE\"; readonly OPTIONS: \"OPTIONS\"; }"
         },
         {
           "name": "HTTP_STATUS",
@@ -888,6 +894,12 @@
           "kind": "function",
           "signature": "(value: string) => boolean",
           "doc": "Boolean wrapper for `validateEmail`."
+        },
+        {
+          "name": "isErrorCode",
+          "kind": "function",
+          "signature": "(value: unknown, code: string) => boolean",
+          "doc": "Checks whether a value is an application error with a specific stable code."
         },
         {
           "name": "isHttpUrl",
@@ -1324,6 +1336,12 @@
           "doc": "Converts a one-based page number into a zero-based offset."
         },
         {
+          "name": "pageWindow",
+          "kind": "function",
+          "signature": "(page: number, total: number, perPage: number, radius?: number) => number[]",
+          "doc": "Builds a compact window of page numbers around the current page. Useful for pagination controls: `pageWindow(5, 100, 10)` returns `[4, 5, 6]`."
+        },
+        {
           "name": "paginate",
           "kind": "function",
           "signature": "<T>(items: readonly T[], options: PaginateOptions) => Page<T>",
@@ -1350,7 +1368,7 @@
         {
           "name": "PaginationErrorCode",
           "kind": "type",
-          "signature": "type PaginationErrorCode = \"PAGINATION_INVALID_PAGE\" | \"PAGINATION_INVALID_PER_PAGE\" | \"PAGINATION_INVALID_OFFSET\" | \"PAGINATION_INVALID_TOTAL\" | \"PAGINATION_INVALID_CURSOR\";",
+          "signature": "type PaginationErrorCode = \"PAGINATION_INVALID_PAGE\" | \"PAGINATION_INVALID_PER_PAGE\" | \"PAGINATION_INVALID_OFFSET\" | \"PAGINATION_INVALID_TOTAL\" | \"PAGINATION_INVALID_CURSOR\" | \"PAGINATION_INVALID_RADIUS\";",
           "doc": "Stable pagination error codes."
         },
         {
@@ -1812,7 +1830,7 @@
         {
           "name": "REGEX_PATTERNS",
           "kind": "const",
-          "signature": "const REGEX_PATTERNS: { readonly email: RegExp; readonly phoneE164: RegExp; readonly urlHttp: RegExp; readonly hexColor: RegExp; readonly username: RegExp; readonly uuidV4: RegExp; readonly ipv4: RegExp; readonly isoDate: RegExp; }"
+          "signature": "const REGEX_PATTERNS: { readonly email: RegExp; readonly phoneE164: RegExp; readonly urlHttp: RegExp; readonly hexColor: RegExp; readonly username: RegExp; readonly uuidV4: RegExp; readonly ipv4: RegExp; readonly isoDate: RegExp; readonly isoDateTime: RegExp; readonly uuidV7: Reg"
         },
         {
           "name": "ReleaseType",
@@ -2243,7 +2261,7 @@
         {
           "name": "TIME",
           "kind": "const",
-          "signature": "const TIME: { readonly SECOND_MS: 1000; readonly MINUTE_MS: 60000; readonly HOUR_MS: 3600000; readonly DAY_MS: 86400000; }"
+          "signature": "const TIME: { readonly SECOND_MS: 1000; readonly MINUTE_MS: 60000; readonly HOUR_MS: 3600000; readonly DAY_MS: 86400000; readonly WEEK_MS: 604800000; }"
         },
         {
           "name": "timeout",
@@ -3034,7 +3052,7 @@
     },
     {
       "name": "@jdsalasc/solvejs-constants",
-      "version": "1.10.1",
+      "version": "1.11.0",
       "entries": [
         {
           "name": "BOOLEAN_STRINGS",
@@ -3054,17 +3072,17 @@
         {
           "name": "CONTENT_TYPES",
           "kind": "const",
-          "signature": "const CONTENT_TYPES: { readonly JSON: \"application/json\"; readonly FORM_URLENCODED: \"application/x-www-form-urlencoded\"; readonly MULTIPART_FORM_DATA: \"multipart/form-data\"; readonly TEXT: \"text/plain\"; readonly HTML: \"text/html\"; }"
+          "signature": "const CONTENT_TYPES: { readonly JSON: \"application/json\"; readonly FORM_URLENCODED: \"application/x-www-form-urlencoded\"; readonly MULTIPART_FORM_DATA: \"multipart/form-data\"; readonly TEXT: \"text/plain\"; readonly HTML: \"text/html\"; readonly CSV: \"text/csv\"; readonly XML: \"applicat"
         },
         {
           "name": "FILE_SIZE_BYTES",
           "kind": "const",
-          "signature": "const FILE_SIZE_BYTES: { readonly KB: 1024; readonly MB: number; readonly GB: number; }"
+          "signature": "const FILE_SIZE_BYTES: { readonly KB: 1024; readonly MB: number; readonly GB: number; readonly TB: number; }"
         },
         {
           "name": "HTTP_METHODS",
           "kind": "const",
-          "signature": "const HTTP_METHODS: { readonly GET: \"GET\"; readonly POST: \"POST\"; readonly PUT: \"PUT\"; readonly PATCH: \"PATCH\"; readonly DELETE: \"DELETE\"; }"
+          "signature": "const HTTP_METHODS: { readonly GET: \"GET\"; readonly HEAD: \"HEAD\"; readonly POST: \"POST\"; readonly PUT: \"PUT\"; readonly PATCH: \"PATCH\"; readonly DELETE: \"DELETE\"; readonly OPTIONS: \"OPTIONS\"; }"
         },
         {
           "name": "HTTP_STATUS",
@@ -3080,7 +3098,7 @@
         {
           "name": "TIME",
           "kind": "const",
-          "signature": "const TIME: { readonly SECOND_MS: 1000; readonly MINUTE_MS: 60000; readonly HOUR_MS: 3600000; readonly DAY_MS: 86400000; }"
+          "signature": "const TIME: { readonly SECOND_MS: 1000; readonly MINUTE_MS: 60000; readonly HOUR_MS: 3600000; readonly DAY_MS: 86400000; readonly WEEK_MS: 604800000; }"
         }
       ]
     },
@@ -3324,7 +3342,7 @@
     },
     {
       "name": "@jdsalasc/solvejs-errors",
-      "version": "0.2.2",
+      "version": "0.3.0",
       "entries": [
         {
           "name": "aggregateErrors",
@@ -3391,6 +3409,12 @@
           "kind": "function",
           "signature": "(value: unknown) => value is AppError",
           "doc": "Checks whether a value is an {@link AppError}."
+        },
+        {
+          "name": "isErrorCode",
+          "kind": "function",
+          "signature": "(value: unknown, code: string) => boolean",
+          "doc": "Checks whether a value is an application error with a specific stable code."
         },
         {
           "name": "normalizeError",
@@ -4116,7 +4140,7 @@
     },
     {
       "name": "@jdsalasc/solvejs-pagination",
-      "version": "0.2.2",
+      "version": "0.3.0",
       "entries": [
         {
           "name": "clampPage",
@@ -4161,6 +4185,12 @@
           "doc": "Converts a one-based page number into a zero-based offset."
         },
         {
+          "name": "pageWindow",
+          "kind": "function",
+          "signature": "(page: number, total: number, perPage: number, radius?: number) => number[]",
+          "doc": "Builds a compact window of page numbers around the current page. Useful for pagination controls: `pageWindow(5, 100, 10)` returns `[4, 5, 6]`."
+        },
+        {
           "name": "paginate",
           "kind": "function",
           "signature": "<T>(items: readonly T[], options: PaginateOptions) => Page<T>",
@@ -4187,7 +4217,7 @@
         {
           "name": "PaginationErrorCode",
           "kind": "type",
-          "signature": "type PaginationErrorCode = | \"PAGINATION_INVALID_PAGE\" | \"PAGINATION_INVALID_PER_PAGE\" | \"PAGINATION_INVALID_OFFSET\" | \"PAGINATION_INVALID_TOTAL\" | \"PAGINATION_INVALID_CURSOR\";",
+          "signature": "type PaginationErrorCode = | \"PAGINATION_INVALID_PAGE\" | \"PAGINATION_INVALID_PER_PAGE\" | \"PAGINATION_INVALID_OFFSET\" | \"PAGINATION_INVALID_TOTAL\" | \"PAGINATION_INVALID_CURSOR\" | \"PAGINATION_INVALID_RADIUS\";",
           "doc": "Stable pagination error codes."
         },
         {
@@ -4749,7 +4779,7 @@
     },
     {
       "name": "@jdsalasc/solvejs-regex",
-      "version": "1.10.1",
+      "version": "1.11.0",
       "entries": [
         {
           "name": "escapeRegex",
@@ -4771,7 +4801,7 @@
         {
           "name": "REGEX_PATTERNS",
           "kind": "const",
-          "signature": "const REGEX_PATTERNS: { readonly email: RegExp; readonly phoneE164: RegExp; readonly urlHttp: RegExp; readonly hexColor: RegExp; readonly username: RegExp; readonly uuidV4: RegExp; readonly ipv4: RegExp; readonly isoDate: RegExp; }"
+          "signature": "const REGEX_PATTERNS: { readonly email: RegExp; readonly phoneE164: RegExp; readonly urlHttp: RegExp; readonly hexColor: RegExp; readonly username: RegExp; readonly uuidV4: RegExp; readonly ipv4: RegExp; readonly isoDate: RegExp; readonly isoDateTime: RegExp; readonly uuidV7: Reg"
         },
         {
           "name": "testPattern",
@@ -4795,7 +4825,7 @@
     },
     {
       "name": "@jdsalasc/solvejs-schema",
-      "version": "1.10.1",
+      "version": "1.11.0",
       "entries": [
         {
           "name": "Infer",
@@ -5029,7 +5059,7 @@
     },
     {
       "name": "@jdsalasc/solvejs-url",
-      "version": "0.2.2",
+      "version": "0.3.0",
       "entries": [
         {
           "name": "buildUrl",
@@ -5042,6 +5072,12 @@
           "kind": "function",
           "signature": "(url: string, name: string) => string | null",
           "doc": "Reads a single query value from a URL."
+        },
+        {
+          "name": "getUrlParams",
+          "kind": "function",
+          "signature": "(url: string, names: readonly string[]) => Record<string, string | null>",
+          "doc": "Reads several query parameters in one pass."
         },
         {
           "name": "joinUrl",

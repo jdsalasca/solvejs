@@ -1,5 +1,17 @@
 # Changelog
 
+## 1.16.0 - 2026-11-17
+
+- `@jdsalasc/solvejs-constants@1.11.0`: added week/terabyte constants, `HEAD`/`OPTIONS`, and CSV/XML/PDF/XLSX/SSE content types. Migration impact: none.
+- `@jdsalasc/solvejs-errors@0.3.0`: added `isErrorCode` for typed error-code branching. Migration impact: none.
+- `@jdsalasc/solvejs-pagination@0.3.0`: added `pageWindow` for compact pagination controls. Migration impact: none.
+- `@jdsalasc/solvejs-regex@1.11.0`: added UUID v7, semver, slug, IBAN and ISO date-time patterns. Migration impact: none.
+- `@jdsalasc/solvejs-schema@1.11.0`: added `s.record` for dictionaries with typed values and JSON Schema output. Migration impact: none.
+- `@jdsalasc/solvejs-url@0.3.0`: added `getUrlParams` for reading several query values in one pass. Migration impact: none.
+- Meta package `1.16.0` re-exports the additions and pins the updated leaves. Migration impact: none.
+- Codex Terra review fixed before release: `__proto__` key preservation in `s.record` and `getUrlParams`, stricter SemVer syntax, and stable page validation for empty collections.
+- Live Lab: new constants, error guard, page window, regex patterns, record schema and multi-param variants. Migration impact: none.
+
 ## 1.15.1 - 2026-11-17
 
 - `@jdsalasc/solvejs-cache@0.3.1`: `stableKey` now distinguishes dates, regexps, maps, sets and array-buffer views instead of collapsing them to `{}`. Migration impact: none.
