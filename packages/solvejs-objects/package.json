@@ -1,6 +1,6 @@
 {
   "name": "@jdsalasc/solvejs-objects",
-  "version": "1.10.1",
+  "version": "1.11.0",
   "description": "Safe TypeScript object utilities for pick/omit, own-property checks, nested get/set, and prototype-hardened deep merges for config and state.",
   "license": "MIT",
   "type": "module",

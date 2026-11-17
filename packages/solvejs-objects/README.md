@@ -11,8 +11,8 @@ Zero-dependency object utilities: `pick`, `omit`, `get` and `set` at dotted path
 ## Utilities
 
 - `pick`, `omit`, `hasOwn`, `mapValues`
-- `get`, `set`
-- `deepMerge`
+- `get`, `set`, `unset`
+- `deepMerge`, `deepFreeze`
 
 ## When to use this package
 
@@ -87,11 +87,15 @@ npm i @jdsalasc/solvejs-objects
 ## Quick example
 
 ```ts
-import { pick, set, deepMerge, mapValues } from "@jdsalasc/solvejs-objects";
+import { deepFreeze, deepMerge, mapValues, pick, set, unset } from "@jdsalasc/solvejs-objects";
 
 const user = pick({ id: "u1", name: "Ada", role: "admin" }, ["id", "name"]);
 const labels = mapValues({ open: 2, closed: 1 }, (count) => `${count} tickets`);
 const state = { filters: {} };
 set(state, "filters.status", "active");
+unset(state, "filters.status");
 deepMerge({ app: { flags: { a: true } } }, { app: { flags: { b: true } } });
+deepFreeze({ config: { retries: 2, tags: ["api"] } });
 ```
+
+`set` and `unset` mutate in place and return the same reference, matching the existing path-helper contract. `unset` is a no-op when a segment is missing or inherited, so cleanup never mutates a prototype. `deepFreeze` walks plain objects and arrays, handles cycles and leaves dates, typed arrays and class instances untouched.

@@ -153,6 +153,73 @@ export function set<T extends object>(value: T, path: string, nextValue: unknown
   return value;
 }
 
+/* eslint-disable complexity -- path traversal, ownership checks and deletion */
+/**
+ * Deletes a nested value using dot-separated path segments.
+ *
+ * Mirrors {@link set}: it mutates the source object and returns the same reference. Missing paths
+ * are a no-op, so cleanup code does not need to check every level first.
+ *
+ * @param value - Source object.
+ * @param path - Dot path like `"user.profile.name"`.
+ * @returns Same object reference for chaining.
+ * @throws {TypeError} If value is not object-like, path is empty, or a segment is unsafe.
+ */
+export function unset<T extends object>(value: T, path: string): T {
+  if (value == null || (typeof value !== "object" && typeof value !== "function")) {
+    throw new TypeError("Expected value to be an object.");
+  }
+  const segments = path
+    .split(".")
+    .map((segment) => segment.trim())
+    .filter(Boolean);
+  if (segments.length === 0) {
+    throw new TypeError("Expected path to be a non-empty dot path.");
+  }
+  assertSafePathSegments(segments);
+
+  let cursor: Record<string, unknown> = value as Record<string, unknown>;
+  for (let index = 0; index < segments.length - 1; index += 1) {
+    if (!hasOwn(cursor, segments[index])) return value;
+    const current = cursor[segments[index]];
+    if (current == null || typeof current !== "object") return value;
+    cursor = current as Record<string, unknown>;
+  }
+  delete cursor[segments[segments.length - 1]];
+  return value;
+}
+/* eslint-enable complexity */
+
+function isFreezableContainer(value: object): boolean {
+  if (Array.isArray(value)) return true;
+  const prototype = Object.getPrototypeOf(value);
+  return prototype === Object.prototype || prototype === null;
+}
+
+/**
+ * Recursively freezes plain objects and arrays.
+ *
+ * Cycles are handled with a `WeakSet`. Only plain objects and arrays are frozen; dates, maps,
+ * sets, typed arrays and class instances are left untouched so their internal state keeps working.
+ *
+ * @param value - Value to freeze.
+ * @returns The same value.
+ */
+export function deepFreeze<T>(value: T): T {
+  const seen = new WeakSet<object>();
+  const freeze = (input: unknown): void => {
+    if (input === null || typeof input !== "object" || seen.has(input) || !isFreezableContainer(input)) return;
+    seen.add(input);
+    Object.freeze(input);
+    for (const key of Reflect.ownKeys(input)) {
+      const descriptor = Object.getOwnPropertyDescriptor(input, key);
+      if (descriptor && "value" in descriptor) freeze(descriptor.value);
+    }
+  };
+  freeze(value);
+  return value;
+}
+
 /**
  * Deeply merges plain objects. Arrays are replaced by source value.
  *

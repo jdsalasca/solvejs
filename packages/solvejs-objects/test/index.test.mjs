@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { deepMerge, get, hasOwn, mapValues, omit, pick, set } from "../dist/esm/index.js";
+import { deepFreeze, deepMerge, get, hasOwn, mapValues, omit, pick, set, unset } from "../dist/esm/index.js";
 
 test("hasOwn", () => {
   assert.equal(hasOwn({ a: 1 }, "a"), true);
@@ -168,4 +168,47 @@ test("a nested unsafe key is inert rather than removed", () => {
   const intoExisting = deepMerge({ outer: { keep: 1 } }, JSON.parse('{"outer": {"__proto__": {"deep": true}}}'));
   assert.equal({}.deep, undefined);
   assert.deepEqual(intoExisting, { outer: { keep: 1 } }, "the unsafe key is skipped at merge time");
+});
+
+test("unset removes nested values and mirrors set", () => {
+  const value = { user: { name: "Ada", address: { city: "London" } }, keep: true };
+  assert.equal(unset(value, "user.address.city"), value, "returns the same reference");
+  assert.deepEqual(value, { user: { name: "Ada", address: {} }, keep: true });
+  assert.doesNotThrow(() => unset(value, "user.missing.deep"));
+  assert.doesNotThrow(() => unset(value, "missing.deep"));
+  assert.throws(() => unset(value, "user.__proto__.x"), /unsafe segment/);
+  assert.throws(() => unset(value, ""), /non-empty/);
+
+  const proto = { nested: { x: 1 } };
+  const inherited = Object.create(proto);
+  unset(inherited, "nested.x");
+  assert.deepEqual(proto, { nested: { x: 1 } }, "inherited containers are not mutated");
+});
+
+test("deepFreeze freezes nested objects, arrays and cycles", () => {
+  const node = { name: "root", children: [{ name: "leaf" }] };
+  node.self = node;
+  assert.equal(deepFreeze(node), node);
+  assert.equal(Object.isFrozen(node), true);
+  assert.equal(Object.isFrozen(node.children), true);
+  assert.equal(Object.isFrozen(node.children[0]), true);
+  assert.equal(Object.isFrozen(node.self), true);
+  assert.equal(deepFreeze(42), 42);
+  assert.equal(deepFreeze(null), null);
+});
+
+test("deepFreeze leaves typed arrays and class instances untouched", () => {
+  class Client {
+    constructor() {
+      this.state = { open: true };
+    }
+  }
+  const client = new Client();
+  const binary = new Uint8Array([1, 2]);
+  const config = deepFreeze({ client, binary });
+  assert.equal(Object.isFrozen(config), true);
+  assert.equal(Object.isFrozen(client), false);
+  assert.equal(Object.isFrozen(client.state), false);
+  assert.equal(Object.isFrozen(binary), false);
+  assert.deepEqual([...binary], [1, 2]);
 });
