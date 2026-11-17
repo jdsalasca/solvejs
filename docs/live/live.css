@@ -1514,3 +1514,33 @@ solvejs-pdf-viewer {
 .topnav-links a {
   white-space: nowrap;
 }
+
+@media (max-width: 980px) {
+  .package-nav {
+    display: flex;
+    gap: 6px;
+    overflow-x: auto;
+    padding-bottom: 8px;
+    scrollbar-width: thin;
+  }
+
+  .nav-group {
+    display: contents;
+  }
+
+  .nav-group-label {
+    display: none;
+  }
+
+  .nav-item {
+    flex: 0 0 auto;
+    width: auto;
+    border-color: var(--line);
+    border-radius: 999px;
+    padding: 6px 10px;
+  }
+
+  .nav-arrow {
+    display: none;
+  }
+}
