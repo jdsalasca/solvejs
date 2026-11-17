@@ -1,12 +1,18 @@
 /* eslint-disable complexity, max-lines-per-function -- the PDF studio keeps each document recipe together */
 import {
+  BarChart,
   Bookmark,
   Divider,
+  Formula,
   Heading,
+  Icon,
+  Image,
+  LineChart,
   Paragraph,
   Pdf,
   PdfColors,
   PdfPage,
+  PieChart,
   Row,
   Spacer,
   Subtitle,
@@ -17,6 +23,8 @@ import {
   readPdfForm,
   renderPdf
 } from "@jdsalasc/solvejs-pdf";
+
+const LOGO = "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAMCAgICAgMCAgIDAwMDBAYEBAQEBAgGBgUGCQgKCgkICQkKDA8MCgsOCwkJDRENDg8QEBEQCgwSExIQEw8QEBD/2wBDAQMDAwQDBAgEBAgQCwkLEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBD/wAARCABAAEADASIAAhEBAxEB/8QAHwAAAQUBAQEBAQEAAAAAAAAAAAECAwQFBgcICQoL/8QAtRAAAgEDAwIEAwUFBAQAAAF9AQIDAAQRBRIhMUEGE1FhByJxFDKBkaEII0KxwRVS0fAkM2JyggkKFhcYGRolJicoKSo0NTY3ODk6Q0RFRkdISUpTVFVWV1hZWmNkZWZnaGlqc3R1dnd4eXqDhIWGh4iJipKTlJWWl5iZmqKjpKWmp6ipqrKztLW2t7i5usLDxMXGx8jJytLT1NXW19jZ2uHi4+Tl5ufo6erx8vP09fb3+Pn6/8QAHwEAAwEBAQEBAQEBAQAAAAAAAAECAwQFBgcICQoL/8QAtREAAgECBAQDBAcFBAQAAQJ3AAECAxEEBSExBhJBUQdhcRMiMoEIFEKRobHBCSMzUvAVYnLRChYkNOEl8RcYGRomJygpKjU2Nzg5OkNERUZHSElKU1RVVldYWVpjZGVmZ2hpanN0dXZ3eHl6goOEhYaHiImKkpOUlZaXmJmaoqOkpaanqKmqsrO0tba3uLm6wsPExcbHyMnK0tPU1dbX2Nna4uPk5ebn6Onq8vP09fb3+Pn6/9oADAMBAAIRAxEAPwD856ms7K81C4SzsLSa5nkzsihjLu2Bk4A5PAJ/Ciys7jULyCws4/MnuZVhiTIG52IAGTwOSOtfTHgjwRpfg/S4IorWFtRaL/SrrG53c4LKGIB2ZAwvHQEjOSf0ThnhmtxFWaT5acbc0rfgvP8AI+azTNIZbBNq8nsv1fkeHw/Cf4gzwxzp4dcLIocB7iFGAIzyrOCD7EAin/8ACofiH/0L3/k3B/8AF19JUV+kLw0yq2tSp98f/kD5h8UYvpGP3P8AzPm3/hUPxD/6F7/ybg/+Lo/4VD8Q/wDoXv8Aybg/+Lr6Sop/8Q0yn/n5U++P/wAgH+tGM/lj9z/+SPkW/wBM1LSphb6pp9zZysocR3ETRsVyRnDAHGQefY1Wr6t8R+F9F8VWLWGs2SSgqyxygASwk4+ZGxlTkD2OMEEcV8w69ol94c1e50XUlQXFqwVtjblYEAqwPoQQecHnkA8V+e8UcKVeHZRqRlz0paJ2s0+z6enez7H0mU5vDMk4tWmunl3X6m/8J4YZ/iDpCTxJIoaVwHUEBlhdlPPcEAg9iAa+la+bfhD/AMlE0n/tv/6Ikr6Sr9B8NEv7KqP/AKeP/wBJgfN8UP8A2uK/ur82X/D+kP4g17TdBju7e1fUruG0We4fbFEZHCh3PZRnJPoDWt438J2nhK7isob7UWuCZEubTU9Mawu7Z1Ixuj3uCjA5Vg2ThgQMDOJpV5Bp+p2l9dafBfw28ySSWs5YRzqCCUYqQwBHBIIPPFb/AIv8Z23iHSdI0DTdPvrew0Zrh7c3+oC9nHneXmMSCOMLEvlgqgXhnkOTu4+3qfWPrMOT+Hrfbs/n20Vu9+h4UfZ+ylzfF03/AOGOWooortMArwL47wwxeMrd4okRptPjeQqoBdt8i5PqcKoz6ADtXvteC/Hr/kcLP/sGx/8Ao2Wvh/EJJ5K7/wA0T3uG3/ty9GY/wh/5KJpP/bf/ANESV9JV82/CH/komk/9t/8A0RJX0lXJ4af8imp/18f/AKTA24o/3yP+FfnIKKKK/Qz5sKKKKACvBfj1/wAjhZ/9g2P/ANGy171Xgvx6/wCRws/+wbH/AOjZa+H8Qv8AkSS/xR/M97hv/fl6M8/0y/m0rUrTVLdUaWznjuIw4JUsjBgDgg4yPWvqTwv4jsfFWi2+s2EiESqBLGrbjDLgbozwDkE+gyMEcEV8pVf0TXtX8OXw1LRb57W4ClNygEMp6gqQQR0OCOoB6gV+ZcKcUS4dqyjUjzUp2ulumuq+XTS/dH1Wb5SsygnF2mtu3o/8z60orwKH47+MooY4ntNKmZFCmR4HDOQPvHa4GT14AHsKf/wvrxh/0DdH/wC/Mv8A8cr9NXiHkrV7y/8AAT5V8N47svvPeqK8F/4X14w/6Buj/wDfmX/45R/wvrxh/wBA3R/+/Mv/AMco/wCIhZL/ADS/8BD/AFcx3Zfee46lqVjo9jNqep3SW9rbrvkkfoB/MknAAHJJAHNfLXinxBN4p1+816e3SBrplIjQkhVVQqjJ6nCjJ4yc8DpR4g8U6/4pmin17UnumgUpGCqoqAnJwqgDJ4ycZOB6Csqvzni3i18QuNChFxpRd9bXbta7ttbVJJvdtvZL6bJ8n/s29So7zemmyX9f13//2Q==";
 
 function el(tag, className, text) {
   const node = document.createElement(tag);
@@ -257,10 +265,123 @@ function letterDoc(preset) {
   });
 }
 
+function visualDoc(preset) {
+  return Pdf({
+    title: "SolveJS visual document",
+    author: "SolveJS",
+    page: "a4",
+    margin: { top: 54, bottom: 54, left: 54, right: 54 },
+    watermark: { text: "SOLVEJS", opacity: 0.06 },
+    ...(preset === "none" ? {} : { pageNumbers: { preset } }),
+    children: [
+      PdfPage({
+        lineHeight: 1.6,
+        children: [
+          Row({
+            valign: "middle",
+            gap: 12,
+            children: [
+              Image({ src: LOGO, width: 44, height: 44 }),
+              View({
+                children: [
+                  Text({ preset: "eyebrow", children: "DOCUMENT LAB" }),
+                  Text({ value: "A PDF with a visual voice", bold: true, fontSize: 24, color: PdfColors.DarkBlue })
+                ]
+              })
+            ]
+          }),
+          Divider({ marginTop: 14, marginBottom: 14 }),
+          Text({
+            align: "justify",
+            value:
+              "Justified text distributes the extra space between words so both edges line up. This paragraph is long enough to wrap across several lines and show the effect without touching the document margins. Paragraph padding, line height and alignment can be set at the document level, overridden per page, or changed on a single block."
+          }),
+          View({
+            padding: 12,
+            background: PdfColors.SoftGray,
+            radius: 8,
+            marginTop: 12,
+            children: [
+              Text({ preset: "eyebrow", children: "MINI LATEX" }),
+              Formula({
+                tex: "\\frac{a^2 + b^2}{c} + \\sqrt{x} + \\sum_{i=1}^{n} i = \\alpha",
+                fontSize: 20,
+                marginTop: 4
+              })
+            ]
+          }),
+          BarChart({
+            title: "Revenue by quarter",
+            data: [
+              { label: "Q1", value: 120 },
+              { label: "Q2", value: 180 },
+              { label: "Q3", value: 150 },
+              { label: "Q4", value: 240 }
+            ],
+            height: 190,
+            width: 460,
+            marginTop: 16
+          })
+        ]
+      }),
+      PdfPage({
+        watermark: { text: "PAGE TWO", color: "#FCA5A5" },
+        children: [
+          Row({
+            gap: 14,
+            children: [
+              LineChart({
+                title: "Retention",
+                data: [
+                  { label: "Jan", value: 62 },
+                  { label: "Feb", value: 68 },
+                  { label: "Mar", value: 75 },
+                  { label: "Apr", value: 81 }
+                ],
+                height: 180,
+                width: 230
+              }),
+              PieChart({
+                title: "Mix",
+                data: [
+                  { label: "Docs", value: 45 },
+                  { label: "Data", value: 35 },
+                  { label: "Other", value: 20 }
+                ],
+                height: 180,
+                width: 230
+              })
+            ]
+          }),
+          View({
+            marginTop: 16,
+            padding: 12,
+            background: PdfColors.LightBlue,
+            radius: 8,
+            children: [
+              Row({
+                valign: "middle",
+                gap: 8,
+                children: [
+                  Icon({ name: "check", color: PdfColors.Green, size: 18 }),
+                  Text({ value: "Icons are vector polygons.", fontSize: 10 }),
+                  Icon({ name: "bolt", color: PdfColors.Amber, size: 18 }),
+                  Text({ value: "Charts share the document ops.", fontSize: 10 })
+                ]
+              })
+            ]
+          })
+        ]
+      })
+    ]
+  });
+}
+
 const DOCS = {
   report: { title: "Editorial report", description: "Display type, a native header, a zebra table, bookmarks and page-number presets.", build: reportDoc, pages: true },
   invoice: { title: "Invoice with custom furniture", description: "A branded header, a custom footer with contact details and its own page numbers.", build: invoiceDoc, pages: false },
-  letter: { title: "Editorial letter", description: "Title, subtitle, body and signature with the built-in page-number footer.", build: letterDoc, pages: true }
+  letter: { title: "Editorial letter", description: "Title, subtitle, body and signature with the built-in page-number footer.", build: letterDoc, pages: true },
+  visual: { title: "Visual systems", description: "Logo and text alignment, justified copy, a LaTeX formula, vector icons, charts and a per-page watermark.", build: visualDoc, pages: true }
 };
 
 function snippet(kind, preset) {
@@ -280,6 +401,27 @@ function snippet(kind, preset) {
   children: PdfPage({ children: [
     Table({ columns, rows, header: true, zebra: true })
   ]})
+})`;
+  }
+  if (kind === "visual") {
+    return `Pdf({
+  watermark: { text: "SOLVEJS", opacity: 0.06 },
+  pageNumbers: { preset: "${preset === "none" ? "minimal" : preset}" },
+  children: [
+    PdfPage({ lineHeight: 1.6, children: [
+      Row({ valign: "middle", gap: 12, children: [
+        Image({ src: logo, width: 44, height: 44 }),
+        Text({ value: "A PDF with a visual voice", bold: true })
+      ]}),
+      Text({ align: "justify", value: paragraph }),
+      Formula({ tex: "\\\\frac{a^2 + b^2}{c} + \\\\sqrt{x}", fontSize: 20 }),
+      BarChart({ data: revenue, height: 190 })
+    ]}),
+    PdfPage({ watermark: { text: "PAGE TWO" }, children: [
+      LineChart({ data: retention }),
+      PieChart({ data: mix })
+    ]})
+  ]
 })`;
   }
   return `Pdf({
@@ -355,7 +497,9 @@ export function renderPdfDemo(container) {
         ? ["Custom header per page", "Footer with contact details", "Table with zebra rows", "Page numbers inside the footer"]
         : doc === "letter"
           ? ["Display and title presets", "Subtitle + paragraph rhythm", "Signature preset", "Built-in page-number footer"]
-          : ["Native PDF header", "Display / title / body presets", "Bookmarks for each section", "Page-number presets"];
+          : doc === "visual"
+            ? ["Logo aligned with text", "Justified paragraph", "LaTeX fraction, root and sum", "Vector icons + bar, line and pie charts", "Per-page watermark"]
+            : ["Native PDF header", "Display / title / body presets", "Bookmarks for each section", "Page-number presets"];
     features.replaceChildren(...items.map((item) => el("li", undefined, item)));
   }
 
